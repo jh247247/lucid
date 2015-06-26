@@ -1,1 +1,2 @@
-include ':gpr'
+include ':gpr-app'
+include ':gpr-lib'
