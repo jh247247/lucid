@@ -1,3 +1,2 @@
 all:
-	./gradlew installDebug
-	./gradlew connectedAndroidTestDebug
+	./gradlew installDebug connectedAndroidTestDebug

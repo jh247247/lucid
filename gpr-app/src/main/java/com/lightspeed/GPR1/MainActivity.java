@@ -12,11 +12,7 @@ public class MainActivity extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-	Context ctx = getApplicationContext();
-        Toast t = Toast.makeText(ctx, "Test: " + Simple.add(2,3),
-                                 Toast.LENGTH_SHORT);
-        t.show();
+	super.onCreate(savedInstanceState);
+	setContentView(R.layout.main);
     }
 }
