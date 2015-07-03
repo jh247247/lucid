@@ -7,3 +7,5 @@ repositories {
 dependencies {
 	     testCompile 'junit:junit:4.11'
 }
+
+sourceSets.test.java.srcDirs = ["src/test/java"]

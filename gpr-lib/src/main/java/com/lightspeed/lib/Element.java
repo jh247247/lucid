@@ -4,8 +4,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.lang.UnsupportedOperationException;
 
-
-
 public class Element implements Iterable<Integer> {
     /**
      * Keep track of the amount of samples in this element
@@ -36,6 +34,8 @@ public class Element implements Iterable<Integer> {
         m_sampleStart = sampleStart;
         m_sampleStop = sampleStop;
         m_amountOfSamples = amountOfSamples;
+
+        m_samples = new int[m_amountOfSamples];
     }
 
     public Element(int amountOfSamples) {
@@ -45,7 +45,6 @@ public class Element implements Iterable<Integer> {
     public Iterator<Integer> iterator() {
         return new ElementIterator();
     }
-
 
     public class ElementIterator implements Iterator<Integer> {
         /**
@@ -80,5 +79,32 @@ public class Element implements Iterable<Integer> {
         public void remove() throws UnsupportedOperationException{
             throw new UnsupportedOperationException();
         }
+    }
+
+    public int getAmountOfSamples() {
+        return m_amountOfSamples;
+    }
+
+    public int getSampleStart() {
+        return m_sampleStart;
+    }
+
+    public int getSampleStop() {
+        return m_sampleStop;
+    }
+
+    public int getSample(int index) throws NoSuchElementException{
+        if(index < 0 || index > m_amountOfSamples) {
+            throw new NoSuchElementException();
+        }
+        return m_samples[index];
+    }
+
+    public void setSample(int index, int sample)
+        throws NoSuchElementException{
+        if(index < 0 || index > m_amountOfSamples) {
+            throw new NoSuchElementException();
+        }
+	m_samples[index] = sample;
     }
 }

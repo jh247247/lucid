@@ -1,14 +1,16 @@
 package com.lightspeed.gpr.lib;
 
+/**
+ * This is just an interface for generic processing of incoming
+ * data. Doesn't need to be super complicated.
+ */
 
-
-public abstract class Filter {
+public interface Filter {
     /**
-     * Parent class gets typecast to this, so when data gets processed
-     * it can be passed into the next filter that is enabled.
+     * Take in one element of data, process it and return a
+     * (hopefully) modified one. Elements shouldn't grow to take too
+     * long to process, although this interface may need to be
+     * modified in the future to handle async returns. (multithreading)
      */
-    public interface FilterCallBack {
-
-    }
-
+	Element process(Element data);
 };
