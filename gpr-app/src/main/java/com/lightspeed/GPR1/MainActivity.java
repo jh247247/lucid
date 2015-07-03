@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.widget.Toast;
 import android.content.Context;
-import a.Simple;
 
 public class MainActivity extends Activity
 {
