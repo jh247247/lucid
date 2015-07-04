@@ -27,19 +27,18 @@ public class Element implements Iterable<Integer> {
      */
     private int[] m_samples;
 
-    public Element(int amountOfSamples,
-                   int sampleStart,
-                   int sampleStop) {
+    public Element(int sampleStart,
+		   int sampleStop) {
 
         m_sampleStart = sampleStart;
         m_sampleStop = sampleStop;
-        m_amountOfSamples = amountOfSamples;
+        m_amountOfSamples = sampleStop-sampleStart;
 
         m_samples = new int[m_amountOfSamples];
     }
 
     public Element(int amountOfSamples) {
-        this(amountOfSamples, 0, amountOfSamples);
+        this(0, amountOfSamples);
     }
 
     public Iterator<Integer> iterator() {
@@ -105,6 +104,6 @@ public class Element implements Iterable<Integer> {
         if(index < 0 || index > m_amountOfSamples) {
             throw new NoSuchElementException();
         }
-	m_samples[index] = sample;
+        m_samples[index] = sample;
     }
 }

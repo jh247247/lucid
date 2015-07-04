@@ -1,5 +1,5 @@
 test:
-	./gradlew test
+	-./gradlew test
 	google-chrome gpr-lib/build/reports/tests/index.html
 
 all: test
