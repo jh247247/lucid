@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.lang.UnsupportedOperationException;
 
-public class Element implements Iterable<Integer> {
+public class Element implements Iterable<Integer>, Cloneable {
     /**
      * Keep track of the amount of samples in this element
      */
@@ -28,7 +28,7 @@ public class Element implements Iterable<Integer> {
     private int[] m_samples;
 
     public Element(int sampleStart,
-		   int sampleStop) {
+                   int sampleStop) {
 
         m_sampleStart = sampleStart;
         m_sampleStop = sampleStop;
@@ -105,5 +105,13 @@ public class Element implements Iterable<Integer> {
             throw new NoSuchElementException();
         }
         m_samples[index] = sample;
+    }
+
+    public Element clone() {
+        Element ret = new Element(m_sampleStart, m_sampleStop);
+        for (int i = m_sampleStart; i < m_sampleStop; i++) {
+            ret.setSample(i,m_samples[i-m_sampleStart]);
+        }
+	return ret;
     }
 }
