@@ -43,13 +43,12 @@ public class Average implements Filter{
      * resizes the incoming element to encompass the ranges of both the incoming data and the current average
      */
     private void resizeRunningAverage(Element data) {
-        // running average is not init'd, set it up with the length of
-        // the incoming data.
-        if(m_runningAverage == null) {
-            m_runningAverage = new Element(data.getSampleStart(),
-                                           data.getSampleStop());
-            return;
-        }
+        // running average is not init'd, use the first element to
+        // seed it
+	    if(m_runningAverage == null) {
+		m_runningAverage = new data.clone();
+		return;
+	    }
 
         // new element is longer than the current average!
         // have to resize and move data.
