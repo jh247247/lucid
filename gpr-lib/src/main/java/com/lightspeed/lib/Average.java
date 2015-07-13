@@ -1,5 +1,6 @@
 package com.lightspeed.gpr.lib;
 import java.util.Queue;
+import java.util.LinkedList;
 
 
 public class Average implements Filter{
@@ -38,6 +39,7 @@ public class Average implements Filter{
         m_amountToAverage = DEFAULT_AMOUNT_TO_AVERAGE;
         m_runningAverage = null;
         m_elementCount = 0;
+        m_averageQueue = new LinkedList<Element>();
     }
     /**
      * resizes the incoming element to encompass the ranges of both the incoming data and the current average
@@ -45,10 +47,10 @@ public class Average implements Filter{
     private void resizeRunningAverage(Element data) {
         // running average is not init'd, use the first element to
         // seed it
-	    if(m_runningAverage == null) {
-		m_runningAverage = new data.clone();
-		return;
-	    }
+        if(m_runningAverage == null) {
+            m_runningAverage = (Element) data.clone();
+            return;
+        }
 
         // new element is longer than the current average!
         // have to resize and move data.
@@ -71,15 +73,16 @@ public class Average implements Filter{
 
     public Element process(Element data) {
         // check if the running average has to be resized to fit the new data first...
-        resizeRunningAverage(data);
+        resizeRunningAverage(data.clone());
 
         // make element to return, should I make element cloneable?
         Element ret = new Element(data.getSampleStart(),
                                   data.getSampleStop());
 
         // set return element to incoming element minus running average.
-        for (int i = data.getSampleStart(); i < data.getSampleStop(); i++) {
-            ret.setSample(i,data.getSample(i) - m_runningAverage.getSample(i));
+        for (int i = ret.getSampleStart(); i < ret.getSampleStop(); i++) {
+            ret.setSample(i, data.getSample(i)
+			  - m_runningAverage.getSample(i));
         }
 
         // add incoming data to buffer of average
@@ -88,7 +91,8 @@ public class Average implements Filter{
         // add data to running average
         for (int i = data.getSampleStart(); i < data.getSampleStop(); i++) {
             m_runningAverage.setSample(i, m_runningAverage.getSample(i)
-                                       + data.getSample(i)/m_amountToAverage);
+                                       + (m_runningAverage.getSample(i)
+                                          - data.getSample(i))/m_amountToAverage);
         }
 
         // amount of elements exceeds set amount to average
@@ -102,7 +106,7 @@ public class Average implements Filter{
                                            - tmp.getSample(i)/m_amountToAverage);
             }
         }
-	
+
         // remove floating point errors by recalculating average
         // instead of running average
         if(m_elementCount > m_amountToAverage) {
@@ -114,12 +118,30 @@ public class Average implements Filter{
         return ret;
     }
 
+    /**
+     * Set the amount of data to keep and recalculate the average.
+     */
+
     public void setAmountToAverage(int amountToAverage) {
         m_amountToAverage = amountToAverage;
+        while(m_averageQueue.size() > m_amountToAverage)  {
+            // remove and don't care about changing the running
+            // average, it is going to be recalculated anyway.
+            m_averageQueue.remove();
+        }
         recalculateAverage();
     }
 
+    /**
+     * this recalculates the average by making a new Element and
+     * iterating over the entire backlog of data, calculating the average
+     * as it goes. Kind of a brute force method, so try to use sparingly.
+     */
     private void recalculateAverage() {
+        if(m_runningAverage == null) {
+            // running average not calculated yet, cannot recalculate!
+            return;
+        }
         Element tmp = new Element(m_runningAverage.getSampleStart(),
                                   m_runningAverage.getSampleStop());
         // iterate over all the stored elements

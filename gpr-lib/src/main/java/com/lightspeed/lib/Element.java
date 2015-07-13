@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.lang.UnsupportedOperationException;
 
-public class Element implements Iterable<Integer>, Cloneable {
+public class Element implements Iterable<Double>, Cloneable {
     /**
      * Keep track of the amount of samples in this element
      */
@@ -24,8 +24,11 @@ public class Element implements Iterable<Integer>, Cloneable {
      * Should have a length that is the minimum of:
      * m_sampleStart - m_sampleStop
      * m_amountOfSamples
+     *
+     * I would like to make this an int to optimize it later, but that
+     * comes later!
      */
-    private int[] m_samples;
+    private double[] m_samples;
 
     public Element(int sampleStart,
                    int sampleStop) {
@@ -34,18 +37,18 @@ public class Element implements Iterable<Integer>, Cloneable {
         m_sampleStop = sampleStop;
         m_amountOfSamples = sampleStop-sampleStart;
 
-        m_samples = new int[m_amountOfSamples];
+        m_samples = new double[m_amountOfSamples];
     }
 
     public Element(int amountOfSamples) {
         this(0, amountOfSamples);
     }
 
-    public Iterator<Integer> iterator() {
+    public Iterator<Double> iterator() {
         return new ElementIterator();
     }
 
-    public class ElementIterator implements Iterator<Integer> {
+    public class ElementIterator implements Iterator<Double> {
         /**
          * Current sample in element
          */
@@ -67,7 +70,7 @@ public class Element implements Iterable<Integer>, Cloneable {
         }
 
         @Override
-        public Integer next() throws NoSuchElementException{
+        public Double next() throws NoSuchElementException{
             if(!hasNext()) {
                 throw new NoSuchElementException();
             }
@@ -92,19 +95,19 @@ public class Element implements Iterable<Integer>, Cloneable {
         return m_sampleStop;
     }
 
-    public int getSample(int index) throws NoSuchElementException{
-        if(index < 0 || index > m_amountOfSamples) {
+    public double getSample(int index) throws NoSuchElementException{
+        if(index < m_sampleStart || index > m_sampleStop) {
             throw new NoSuchElementException();
         }
-        return m_samples[index];
+        return m_samples[index-m_sampleStart];
     }
 
-    public void setSample(int index, int sample)
+    public void setSample(int index, double sample)
         throws NoSuchElementException{
-        if(index < 0 || index > m_amountOfSamples) {
-            throw new NoSuchElementException();
+        if(index < m_sampleStart || index > m_sampleStop) {
+	    throw new NoSuchElementException();
         }
-        m_samples[index] = sample;
+        m_samples[index-m_sampleStart] = sample;
     }
 
     public Element clone() {
@@ -112,6 +115,6 @@ public class Element implements Iterable<Integer>, Cloneable {
         for (int i = m_sampleStart; i < m_sampleStop; i++) {
             ret.setSample(i,m_samples[i-m_sampleStart]);
         }
-	return ret;
+        return ret;
     }
 }
