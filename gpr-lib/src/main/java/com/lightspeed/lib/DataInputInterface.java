@@ -26,4 +26,10 @@ public interface DataInputInterface {
      * about this?
      */
     public void close();
+
+    /**
+     * Gets the name of the data input, used for gui interaction like opening/closing.
+     * For example, should return "File" or "Serial" so we can go open->File
+     */
+	public String getName();
 }

@@ -82,18 +82,35 @@ public class Average implements Filter{
         // set return element to incoming element minus running average.
         for (int i = ret.getSampleStart(); i < ret.getSampleStop(); i++) {
             ret.setSample(i, data.getSample(i)
-			  - m_runningAverage.getSample(i));
+                          - m_runningAverage.getSample(i));
         }
 
-        // add incoming data to buffer of average
-        m_averageQueue.add(data);
 
-        // add data to running average
+        // modify running average using incoming data
         for (int i = data.getSampleStart(); i < data.getSampleStop(); i++) {
             m_runningAverage.setSample(i, m_runningAverage.getSample(i)
                                        + (m_runningAverage.getSample(i)
                                           - data.getSample(i))/m_amountToAverage);
         }
+
+	// add the data to the running average queue
+	addToQueue(data);
+
+	// remove floating point errors by recalculating average
+	// instead of running average
+	if(m_elementCount > m_amountToAverage) {
+	    recalculateAverage();
+	    m_elementCount = 0;
+	} else {
+	    m_elementCount++;
+	}
+
+        return ret;
+    }
+
+    private void addToQueue(Element data) {
+        // add incoming data to buffer of average
+        m_averageQueue.add(data);
 
         // amount of elements exceeds set amount to average
         if(m_averageQueue.size() > m_amountToAverage) {
@@ -107,15 +124,6 @@ public class Average implements Filter{
             }
         }
 
-        // remove floating point errors by recalculating average
-        // instead of running average
-        if(m_elementCount > m_amountToAverage) {
-            recalculateAverage();
-        }
-
-        m_elementCount++;
-
-        return ret;
     }
 
     /**
