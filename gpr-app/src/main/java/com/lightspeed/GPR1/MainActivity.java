@@ -16,6 +16,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.MenuItem;
+import android.view.SurfaceView;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
@@ -24,6 +25,7 @@ import butterknife.Bind;
 public class MainActivity extends AppCompatActivity {
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
+    @Bind(R.id.render) SurfaceView m_render;
 
     ActionBarDrawerToggle m_abtog;
 
@@ -35,23 +37,24 @@ public class MainActivity extends AppCompatActivity {
         // expand the bindings
         ButterKnife.bind(this);
 
-	// setup the drawer listener
-	setupDrawerListener();
+        // setup the drawer listener
+        setupDrawerListener();
 
-	// make the toolbar (actionbar) transparent, so content shows behind
-	m_toolbar.getBackground().setAlpha(50);
-	m_toolbar.setTitle(""); // make the title blank
-	    setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
+        // make the toolbar (actionbar) transparent, so content shows behind
+        m_toolbar.getBackground().setAlpha(50);
+        m_toolbar.setTitle(""); // make the title blank
+        setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
 
-	    // show the hamburger
-	    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // show the hamburger
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-	    // set the hamburger to the current state of the drawer
-	    m_abtog.syncState();
+        // set the hamburger to the current state of the drawer
+        m_abtog.syncState();
+
     }
 
     private void setupDrawerListener() {
-	// make the listener
+        // make the listener
         m_abtog = new ActionBarDrawerToggle(this,
                                             m_drawerLayout,
                                             m_toolbar,
@@ -91,4 +94,5 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }

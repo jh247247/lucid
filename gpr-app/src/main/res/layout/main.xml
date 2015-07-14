@@ -4,10 +4,15 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent">
 
-  <LinearLayout
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="fill_parent"
-      android:id="@+id/rect">
-  </LinearLayout>
+  <!-- Main rendering surface -->
+  <SurfaceView android:id="@+id/render"
+	       android:layout_width="fill_parent"
+	       android:layout_height="0dp"
+	       android:layout_weight="1"/>
+
+  <!-- buttons 'n stuff goes here -->
+  <LinearLayout android:id="@+id/bottomLayout"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal"/>
 </LinearLayout>
