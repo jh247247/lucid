@@ -22,10 +22,15 @@ android {
             debuggable true
         }
     }
+
+    lintOptions {
+    		disable 'InvalidPackage'
+    }
 }
 
 buildscript {
     repositories {
+        mavenCentral()
         jcenter()
     }
     dependencies {
@@ -33,7 +38,15 @@ buildscript {
     }
 }
 
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
 dependencies {
+    // Butterknife for view injection
+    compile 'com.jakewharton:butterknife:7.0.1'
+
     compile project(':gpr-lib')
 
     // Google Play Services

@@ -10,30 +10,36 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.widget.LinearLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.MenuItem;
+
+import butterknife.ButterKnife;
+import butterknife.Bind;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
+    @Bind(R.id.drawer) DrawerLayout drawerLayout;
+    @Bind(R.id.toolbar) Toolbar toolbar;
+
+    ActionBarDrawerToggle m_abtog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my);
+	super.onCreate(savedInstanceState);
+	setContentView(R.layout.activity_my);
 
-        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
-        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.toolbar);
-        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
-										this,
-										drawerLayout,
-										toolbar,
-										R.string.open,
-										R.string.close
-										)
+	ButterKnife.bind(this);
 
-	    {
+	m_abtog = new ActionBarDrawerToggle(this,
+					    drawerLayout,
+					    toolbar,
+					    R.string.open,
+					    R.string.close){
+		@Override
 		public void onDrawerClosed(View view)
 		{
 		    super.onDrawerClosed(view);
@@ -41,6 +47,7 @@ public class MainActivity extends ActionBarActivity {
 		    syncState();
 		}
 
+		@Override
 		public void onDrawerOpened(View drawerView)
 		{
 		    super.onDrawerOpened(drawerView);
@@ -48,16 +55,28 @@ public class MainActivity extends ActionBarActivity {
 		    syncState();
 		}
 	    };
-        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+	drawerLayout.setDrawerListener(m_abtog);
 
-        //Set the custom toolbar
-        if (toolbar != null){
-	    toolbar.getBackground().setAlpha(50);
-            setSupportActionBar(toolbar);
-        }
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+	toolbar.getBackground().setAlpha(50);
+	setSupportActionBar(toolbar);
 
-        actionBarDrawerToggle.syncState();
+	getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+	m_abtog.syncState();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+	// Pass the event to ActionBarDrawerToggle
+	// If it returns true, then it has handled
+	// the nav drawer indicator touch event
+	if (m_abtog.onOptionsItemSelected(item)) {
+	    return true;
+	}
+
+	// Handle your other action bar items...
+
+	return super.onOptionsItemSelected(item);
     }
 }
