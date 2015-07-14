@@ -22,61 +22,73 @@ import butterknife.Bind;
 
 
 public class MainActivity extends AppCompatActivity {
-    @Bind(R.id.drawer) DrawerLayout drawerLayout;
-    @Bind(R.id.toolbar) Toolbar toolbar;
+    @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
+    @Bind(R.id.toolbar) Toolbar m_toolbar;
 
     ActionBarDrawerToggle m_abtog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-	super.onCreate(savedInstanceState);
-	setContentView(R.layout.activity_my);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_my);
 
-	ButterKnife.bind(this);
+        // expand the bindings
+        ButterKnife.bind(this);
 
-	m_abtog = new ActionBarDrawerToggle(this,
-					    drawerLayout,
-					    toolbar,
-					    R.string.open,
-					    R.string.close){
-		@Override
-		public void onDrawerClosed(View view)
-		{
-		    super.onDrawerClosed(view);
-		    invalidateOptionsMenu();
-		    syncState();
-		}
+	// setup the drawer listener
+	setupDrawerListener();
 
-		@Override
-		public void onDrawerOpened(View drawerView)
-		{
-		    super.onDrawerOpened(drawerView);
-		    invalidateOptionsMenu();
-		    syncState();
-		}
-	    };
-	drawerLayout.setDrawerListener(m_abtog);
+	// make the toolbar (actionbar) transparent, so content shows behind
+	m_toolbar.getBackground().setAlpha(50);
+	m_toolbar.setTitle(""); // make the title blank
+	    setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
 
+	    // show the hamburger
+	    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-	toolbar.getBackground().setAlpha(50);
-	setSupportActionBar(toolbar);
+	    // set the hamburger to the current state of the drawer
+	    m_abtog.syncState();
+    }
 
-	getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    private void setupDrawerListener() {
+	// make the listener
+        m_abtog = new ActionBarDrawerToggle(this,
+                                            m_drawerLayout,
+                                            m_toolbar,
+                                            R.string.open,
+                                            R.string.close){
+                @Override
+                public void onDrawerClosed(View view)
+                {
+                    super.onDrawerClosed(view);
+                    invalidateOptionsMenu();
+                    syncState();
+                }
 
-	m_abtog.syncState();
+                @Override
+                public void onDrawerOpened(View drawerView)
+                {
+                    super.onDrawerOpened(drawerView);
+                    invalidateOptionsMenu();
+                    syncState();
+                }
+            };
+        // set the listener to the one we just made
+        m_drawerLayout.setDrawerListener(m_abtog);
+
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-	// Pass the event to ActionBarDrawerToggle
-	// If it returns true, then it has handled
-	// the nav drawer indicator touch event
-	if (m_abtog.onOptionsItemSelected(item)) {
-	    return true;
-	}
+        // Pass the event to ActionBarDrawerToggle
+        // If it returns true, then it has handled
+        // the nav drawer indicator touch event
+        if (m_abtog.onOptionsItemSelected(item)) {
+            return true;
+        }
 
-	// Handle your other action bar items...
+        // Handle your other action bar items...
 
-	return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item);
     }
 }
