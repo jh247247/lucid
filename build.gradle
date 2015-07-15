@@ -1,15 +1,14 @@
 task wrapper(type: Wrapper) {
-     gradleVersion = '2.4'
+  gradleVersion = '2.4'
 }
 
 buildscript {
-	    repositories {
-	    	    mavenCentral()
-		    jcenter()
-	    }
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
 
-	    dependencies {
-	    		 classpath 'com.android.tools.build:gradle:1.2+'
-	    }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:1.2+'
+  }
 }
-
