@@ -25,7 +25,7 @@ import butterknife.Bind;
 public class MainActivity extends AppCompatActivity {
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
-    @Bind(R.id.render) SurfaceView m_render;
+    @Bind(R.id.render) Render m_render;
 
     ActionBarDrawerToggle m_abtog;
 
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         setupDrawerListener();
 
         // make the toolbar (actionbar) transparent, so content shows behind
-        m_toolbar.getBackground().setAlpha(50);
+        m_toolbar.getBackground().setAlpha(75);
         m_toolbar.setTitle(""); // make the title blank
         setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
 
@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
 
         // set the hamburger to the current state of the drawer
         m_abtog.syncState();
-
     }
 
     private void setupDrawerListener() {
