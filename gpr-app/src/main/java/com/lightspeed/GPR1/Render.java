@@ -10,6 +10,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
 
+import java.lang.Math;
+
 
 public class Render extends SurfaceView
     implements SurfaceHolder.Callback{
@@ -20,31 +22,49 @@ public class Render extends SurfaceView
     public Render(Context ctx) {
         super(ctx);
         threadInit();
+	uiInit();
     }
 
     public Render(Context ctx, AttributeSet attrs) {
 	super(ctx, attrs);
         threadInit();
+	uiInit();
     }
 
     public Render(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
         threadInit();
+	uiInit();
     }
 
     private void threadInit() {
         getHolder().addCallback(this);
         m_renderThread = new RenderThread(getHolder(), this);
+    }
+
+    private void uiInit() {
         setFocusable(true); // make sure we get events...
 	Log.v(LOGTAG,"Finished init!");
     }
 
     @Override
     protected void onDraw(Canvas c) {
-        Paint p = new Paint();
-        p.setColor(Color.WHITE);
-        c.drawRect(50,50,200,200,p);
-        Log.v(LOGTAG,"Drawing to canvas!");
+	if(c == null) {
+	    // this can still be called when the surface is destroyed,
+	    // so make sure that we aren't passed a null canvas
+		return;
+	}
+
+	final float xscale = 5;
+	final float yscale = c.getHeight()/255+1;
+	int col;
+	Paint p = new Paint();
+	for(int y = 0; y < 255; y++) {
+	    col = (int)(Math.random()*255);
+	    p.setARGB(255,col,col,col);
+	    c.drawRect(c.getWidth()-xscale,y*yscale,
+		       c.getWidth(),y*yscale+yscale,p);
+	}
     }
 
     @Override
@@ -57,8 +77,11 @@ public class Render extends SurfaceView
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        m_renderThread.setRunning(true);
-        m_renderThread.start();
+	// switching back to app can recreate this...
+	threadInit();
+	m_renderThread.setRunning(true);
+	m_renderThread.start();
+
         Log.v(LOGTAG,"Surface created");
     }
 
@@ -66,16 +89,22 @@ public class Render extends SurfaceView
     public void surfaceDestroyed(SurfaceHolder holder) {
         m_renderThread.setRunning(false);
 
-        boolean retry = true;
-        while(retry) {
+        while(m_renderThread != null) {
             try {
                 m_renderThread.join();
-                retry = false;
-            }
+		m_renderThread = null;
+	    }
             catch(InterruptedException e) {
                 // TODO:
             }
         }
         Log.v(LOGTAG,"Surface destroyed");
+    }
+
+    // stop the thread from running temporarily
+    public void stopView() {
+	if(m_renderThread != null) {
+	    m_renderThread.setRunning(false);
+	}
     }
 }
