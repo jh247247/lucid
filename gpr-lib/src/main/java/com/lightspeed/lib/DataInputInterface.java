@@ -15,6 +15,12 @@ public interface DataInputInterface {
     public boolean hasNext();
 
     /**
+     * This should rewind the data by some given amount, trying a
+     * local buffer (hopefully) then resorting to file if it doesn't exist.
+     */
+    public Element getPrevious(int offset);
+
+    /**
      * Attempts to open an interface, hide all the inner workings so
      * it can be a file, serial port or whatevs. Should be able to put
      * up it's own interface to work. ASSUME THIS BLOCKS
@@ -31,5 +37,5 @@ public interface DataInputInterface {
      * Gets the name of the data input, used for gui interaction like opening/closing.
      * For example, should return "File" or "Serial" so we can go open->File
      */
-	public String getName();
+    public String getName();
 }
