@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         setupDrawerListener();
 
         // make the toolbar (actionbar) transparent, so content shows behind
-        m_toolbar.getBackground().setAlpha(100); // TODO: fix magic number
+        m_toolbar.getBackground().setAlpha(0); // TODO: fix magic number
         m_toolbar.setTitle(""); // make the title blank
         setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
 

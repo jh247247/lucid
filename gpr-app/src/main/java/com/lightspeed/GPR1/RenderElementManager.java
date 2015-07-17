@@ -72,12 +72,23 @@ public class RenderElementManager {
             if(m_currentData.size() > m_maxCurrentData) {
                 moveCurrentToOlder(1);
             }
+
+
         }
     }
 
     public RenderElementBlitter getBlitter() {
         return m_blitter;
         // FIXME: privacy leak
+    }
+
+    public int getMaxElementLength() {
+        int maxCurrentElementLength = 0;
+        for (RenderElement re : m_currentData) {
+            maxCurrentElementLength = Math.max(re.getElementHeight(),
+					       maxCurrentElementLength);
+        }
+        return maxCurrentElementLength;
     }
 
     /**
@@ -180,7 +191,16 @@ public class RenderElementManager {
         m_blitter.setMaxElements(max);
     }
 
+    public int getMaxCurrentData() {
+        return m_maxCurrentData;
+    }
+
     public void setMaxNewerData(int max){
         m_maxNewerData = max;
     }
+
+    public int getMaxNewerData() {
+        return m_maxNewerData;
+    }
+
 }

@@ -9,13 +9,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+import android.view.WindowManager;
+import android.view.Display;
 
 import java.lang.Math;
 
 
 public class RenderView extends SurfaceView
     implements SurfaceHolder.Callback{
-    private static final String LOGTAG = "Render";
+    private static final String LOGTAG = "RenderView";
 
     private RenderThread m_renderThread;
 
@@ -56,9 +58,24 @@ public class RenderView extends SurfaceView
 
     private void renderInit() {
         m_in = new RandomDataInput();
-        m_manager = new RenderElementManager(m_in,200,0);
-        m_renderThread.setSurfaceDims(200,255); // FIXME:
+        m_manager = new RenderElementManager(m_in,255*16/9,0);
         m_blitter = m_manager.getBlitter();
+    }
+
+    private void initCanvas() {
+        int width = this.getWidth();
+        int height = this.getHeight();
+
+	Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
+	      height);
+
+        int newWidth = Math.min(m_manager.getMaxCurrentData()*3,
+				(width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
+        int newHeight = Math.min(3*255,(height/255)*255); // FIXME: magicsss
+
+	Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
+
+	m_renderThread.setSurfaceDims(newWidth,newHeight);
     }
 
     @Override
@@ -79,6 +96,8 @@ public class RenderView extends SurfaceView
                                int arg1,
                                int arg2) {
         // TODO: do something with this...
+	initCanvas();
+	m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
     }
 
     @Override
@@ -89,6 +108,8 @@ public class RenderView extends SurfaceView
         m_renderThread.start();
 
         Log.v(LOGTAG,"Surface created");
+	initCanvas();
+	m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
     }
 
     @Override
