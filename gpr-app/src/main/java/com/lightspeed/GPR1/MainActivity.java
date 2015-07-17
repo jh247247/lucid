@@ -25,7 +25,7 @@ import butterknife.Bind;
 public class MainActivity extends AppCompatActivity {
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
-    @Bind(R.id.render) Render m_render;
+    @Bind(R.id.render) RenderView m_render;
 
     ActionBarDrawerToggle m_abtog;
 
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         setupDrawerListener();
 
         // make the toolbar (actionbar) transparent, so content shows behind
-        m_toolbar.getBackground().setAlpha(75);
+        m_toolbar.getBackground().setAlpha(100); // TODO: fix magic number
         m_toolbar.setTitle(""); // make the title blank
         setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
 
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-	super.onPause();
-	m_render.stopView();
+        super.onPause();
+        m_render.stopView();
     }
 }

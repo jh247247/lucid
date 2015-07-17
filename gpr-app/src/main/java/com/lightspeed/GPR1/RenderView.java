@@ -13,28 +13,35 @@ import android.util.Log;
 import java.lang.Math;
 
 
-public class Render extends SurfaceView
+public class RenderView extends SurfaceView
     implements SurfaceHolder.Callback{
     private static final String LOGTAG = "Render";
 
     private RenderThread m_renderThread;
 
-    public Render(Context ctx) {
+    private RandomDataInput m_in;
+    private RenderElementBlitter m_blitter;
+    private RenderElementManager m_manager;
+
+    public RenderView(Context ctx) {
         super(ctx);
         threadInit();
-	uiInit();
+        uiInit();
+        renderInit();
     }
 
-    public Render(Context ctx, AttributeSet attrs) {
-	super(ctx, attrs);
+    public RenderView(Context ctx, AttributeSet attrs) {
+        super(ctx, attrs);
         threadInit();
-	uiInit();
+        uiInit();
+        renderInit();
     }
 
-    public Render(Context ctx, AttributeSet attrs, int defStyle) {
+    public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
         threadInit();
-	uiInit();
+        uiInit();
+        renderInit();
     }
 
     private void threadInit() {
@@ -44,27 +51,26 @@ public class Render extends SurfaceView
 
     private void uiInit() {
         setFocusable(true); // make sure we get events...
-	Log.v(LOGTAG,"Finished init!");
+        Log.v(LOGTAG,"Finished init!");
+    }
+
+    private void renderInit() {
+        m_in = new RandomDataInput();
+        m_manager = new RenderElementManager(m_in,200,0);
+        m_renderThread.setSurfaceDims(200,255); // FIXME:
+        m_blitter = m_manager.getBlitter();
     }
 
     @Override
     protected void onDraw(Canvas c) {
-	if(c == null) {
-	    // this can still be called when the surface is destroyed,
-	    // so make sure that we aren't passed a null canvas
-		return;
-	}
+        if(c == null) {
+            // this can still be called when the surface is destroyed,
+            // so make sure that we aren't passed a null canvas
+            return;
+        }
+        m_manager.updateInput();
 
-	final float xscale = 5;
-	final float yscale = c.getHeight()/255+1;
-	int col;
-	Paint p = new Paint();
-	for(int y = 0; y < 255; y++) {
-	    col = (int)(Math.random()*255);
-	    p.setARGB(255,col,col,col);
-	    c.drawRect(c.getWidth()-xscale,y*yscale,
-		       c.getWidth(),y*yscale+yscale,p);
-	}
+        m_blitter.blitToCanvas(c);
     }
 
     @Override
@@ -77,10 +83,10 @@ public class Render extends SurfaceView
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-	// switching back to app can recreate this...
-	threadInit();
-	m_renderThread.setRunning(true);
-	m_renderThread.start();
+        // switching back to app can recreate this...
+        threadInit();
+        m_renderThread.setRunning(true);
+        m_renderThread.start();
 
         Log.v(LOGTAG,"Surface created");
     }
@@ -92,8 +98,8 @@ public class Render extends SurfaceView
         while(m_renderThread != null) {
             try {
                 m_renderThread.join();
-		m_renderThread = null;
-	    }
+                m_renderThread = null;
+            }
             catch(InterruptedException e) {
                 // TODO:
             }
@@ -103,8 +109,8 @@ public class Render extends SurfaceView
 
     // stop the thread from running temporarily
     public void stopView() {
-	if(m_renderThread != null) {
-	    m_renderThread.setRunning(false);
-	}
+        if(m_renderThread != null) {
+            m_renderThread.setRunning(false);
+        }
     }
 }

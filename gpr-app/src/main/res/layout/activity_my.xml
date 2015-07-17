@@ -6,7 +6,7 @@
                                         android:id="@+id/drawer">
 
     <!-- Main rendering surface -->
-    <com.lightspeed.GPR1.Render android:id="@+id/render"
+    <com.lightspeed.GPR1.RenderView android:id="@+id/render"
                  android:layout_width="fill_parent"
                  android:layout_height="fill_parent"
                  android:layout_weight="1"/>

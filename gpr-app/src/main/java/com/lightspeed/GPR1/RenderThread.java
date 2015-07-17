@@ -7,12 +7,17 @@ import android.view.SurfaceView;
 
 public class RenderThread extends Thread{
     private SurfaceHolder m_surfHold;
-    private Render m_render;
+    private RenderView m_render;
     private boolean m_run = false;
 
-    public RenderThread(SurfaceHolder surfHold, Render render) {
+    public RenderThread(SurfaceHolder surfHold, RenderView render) {
         m_surfHold = surfHold;
         m_render = render;
+    }
+
+    public void setSurfaceDims(int width,
+			       int height) {
+	m_surfHold.setFixedSize(width, height);
     }
 
     public void setRunning(boolean state) {
