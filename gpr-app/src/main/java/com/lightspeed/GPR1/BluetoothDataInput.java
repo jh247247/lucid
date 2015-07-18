@@ -9,13 +9,16 @@ import io.palaima.smoothbluetooth.SmoothBluetooth;
 import android.content.Context;
 
 public class BluetoothDataInput implements DataInputInterface {
-    ArrayList<SoftReference<Element>> m_previous;
-    ArrayList<Element> m_new;
+    private ArrayList<SoftReference<Element>> m_previous;
+    private ArrayList<Element> m_new;
+    private SmoothBluetooth m_bluetooth;
+    private Context m_ctx;
     // TODO: write to file
 
-    public BluetoothDataInput() {
+    public BluetoothDataInput(Context ctx) {
         m_previous = new ArrayList<SoftReference<Element>>();
         m_new = new ArrayList<Element>();
+	m_bluetooth = new SmoothBluetooth(ctx);
     }
 
     public boolean hasNext() {
@@ -71,6 +74,6 @@ public class BluetoothDataInput implements DataInputInterface {
     }
 
     public String getName() {
-        return "Bluetooth"; // TODO: make this settable in xml
+        return m_ctx.getString(R.string.bluetooth);
     }
 }
