@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.MenuItem;
 import android.view.SurfaceView;
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onDrawerClosed(View view)
                 {
                     super.onDrawerClosed(view);
-                    invalidateOptionsMenu();
+                    ActivityCompat.invalidateOptionsMenu(getParent());
                     syncState();
                 }
 
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onDrawerOpened(View drawerView)
                 {
                     super.onDrawerOpened(drawerView);
-                    invalidateOptionsMenu();
+                    ActivityCompat.invalidateOptionsMenu(getParent());
                     syncState();
                 }
             };
