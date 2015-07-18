@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onDrawerClosed(View view)
                 {
                     super.onDrawerClosed(view);
-                    ActivityCompat.invalidateOptionsMenu(getParent());
+                    ActivityCompat.invalidateOptionsMenu(MainActivity.this);
                     syncState();
                 }
 
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onDrawerOpened(View drawerView)
                 {
                     super.onDrawerOpened(drawerView);
-                    ActivityCompat.invalidateOptionsMenu(getParent());
+                    ActivityCompat.invalidateOptionsMenu(MainActivity.this);
                     syncState();
                 }
             };
@@ -98,6 +98,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
+        m_render.stopView();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         m_render.stopView();
     }
 }

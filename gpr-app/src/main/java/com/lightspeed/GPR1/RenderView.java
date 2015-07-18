@@ -134,4 +134,11 @@ public class RenderView extends SurfaceView
             m_renderThread.setRunning(false);
         }
     }
+
+    public void startView() {
+        if(m_renderThread != null) {
+            m_renderThread.setRunning(true);
+        }
+
+    }
 }
