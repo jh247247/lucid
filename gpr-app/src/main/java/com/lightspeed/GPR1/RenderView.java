@@ -21,7 +21,7 @@ public class RenderView extends SurfaceView
 
     private RenderThread m_renderThread;
 
-    private RandomDataInput m_in;
+    private BluetoothDataInput m_in;
     private RenderElementBlitter m_blitter;
     private RenderElementManager m_manager;
 
@@ -57,7 +57,7 @@ public class RenderView extends SurfaceView
     }
 
     private void renderInit() {
-        m_in = new RandomDataInput();
+        m_in = new BluetoothDataInput(this.getContext());
         m_manager = new RenderElementManager(m_in,255*16/9,0);
         m_blitter = m_manager.getBlitter();
     }
