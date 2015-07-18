@@ -4,6 +4,7 @@ import android.view.SurfaceHolder;
 import android.util.AttributeSet;
 import android.graphics.Canvas;
 import android.view.SurfaceView;
+import android.annotation.SuppressLint;
 
 public class RenderThread extends Thread{
     private SurfaceHolder m_surfHold;
@@ -28,6 +29,7 @@ public class RenderThread extends Thread{
         return m_run;
     }
 
+    @SuppressLint("WrongCall")
     @Override
     public void run() {
         Canvas c = null;
