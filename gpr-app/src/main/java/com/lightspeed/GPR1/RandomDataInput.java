@@ -16,9 +16,9 @@ public class RandomDataInput implements DataInputInterface{
 
     private void trimPrevious() {
         while(m_previous.size() > 0 && // still have elements
-	      m_previous.get(m_previous.size()-1).get() == null) { // start element is expired
-	    m_previous.remove(m_previous.size()-1);
-	}
+              m_previous.get(m_previous.size()-1).get() == null) { // start element is expired
+            m_previous.remove(m_previous.size()-1);
+        }
     }
 
     public RandomDataInput() {
@@ -26,12 +26,12 @@ public class RandomDataInput implements DataInputInterface{
     }
 
     public boolean hasNext() {
-	return true;
+        return true;
     }
 
     public Element getNext(){
-	trimPrevious();
-	Element ret = new Element(START_ELEMENT,END_ELEMENT);
+        trimPrevious();
+        Element ret = new Element(START_ELEMENT,END_ELEMENT);
         for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
             ret.setSample(i,Math.random()*MAX_VAL);
         }
@@ -41,25 +41,19 @@ public class RandomDataInput implements DataInputInterface{
 
     public Element getPrevious(int offset) {
         Element ret = null;
-	trimPrevious();
-	if(offset > m_previous.size()-1) {
-	    // would load it from file, but cbf
-	    ret = new Element(START_ELEMENT,END_ELEMENT);
-	    for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
-		ret.setSample(i,Math.random()*MAX_VAL);
-	    }
-	    return ret;
-	}
-
-	if(m_previous.get(offset).get() == null) {
+        trimPrevious();
+        // definitely not stored.
+        if(offset > m_previous.size()-1 ||
+           m_previous.get(offset).get() == null) {
             // would load it from file, but cbf
             ret = new Element(START_ELEMENT,END_ELEMENT);
             for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
                 ret.setSample(i,Math.random()*MAX_VAL);
             }
-	    return ret;
-	}
-	return m_previous.get(offset).get();
+            return ret;
+        }
+	// woo! we still have it! return it.
+        return m_previous.get(offset).get();
     }
 
     public boolean open() {
