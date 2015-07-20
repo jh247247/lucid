@@ -27,8 +27,11 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
     @Bind(R.id.render) RenderView m_render;
+    @Bind(R.id.left_drawer) LinearLayout m_leftDrawer;
 
     ActionBarDrawerToggle m_abtog;
+
+    static final int TOOLBAR_MAX_ALPHA = 255;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,9 +78,18 @@ public class MainActivity extends AppCompatActivity {
                     ActivityCompat.invalidateOptionsMenu(MainActivity.this);
                     syncState();
                 }
+
+                @Override
+                public void onDrawerSlide(View drawerView, float slideOffset)
+                {
+                    super.onDrawerSlide(drawerView,slideOffset);
+                    m_toolbar.getBackground().setAlpha((int)(slideOffset*TOOLBAR_MAX_ALPHA));
+                }
+
             };
         // set the listener to the one we just made
         m_drawerLayout.setDrawerListener(m_abtog);
+        m_drawerLayout.setScrimColor(Color.TRANSPARENT);
 
     }
 
