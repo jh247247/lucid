@@ -5,40 +5,82 @@
                                         tools:context=".MyActivity"
                                         android:id="@+id/drawer">
 
-    <!-- Main rendering surface -->
-    <com.lightspeed.GPR1.RenderView android:id="@+id/render"
-                 android:layout_width="fill_parent"
-                 android:layout_height="fill_parent"
-                 android:layout_weight="1"/>
+
+
+
 
 
   <!-- The main content view -->
   <LinearLayout
-      android:id="@+id/content_frame"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent" >
+      android:orientation="vertical" android:layout_width="fill_parent"
+      android:layout_height="fill_parent">
 
-    <include layout="@layout/toolbar_custom"/>
+    <!-- Main rendering surface -->
+    <com.lightspeed.GPR1.RenderView android:id="@+id/render"
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="fill_parent"
+                                    android:layout_weight="1"/>
 
-    <!-- buttons 'n stuff goes here -->
-    <LinearLayout android:id="@+id/bottomLayout"
-                  android:layout_width="match_parent"
+    <!-- Controls Container -->
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:orientation="horizontal"
+		  android:layout_width="fill_parent"
                   android:layout_height="wrap_content"
-                  android:orientation="horizontal"/>
+		  android:layout_gravity="bottom"
+                  android:layout_weight=".1"
+		  android:paddingLeft="5dp"
+		  android:paddingRight="5dp"
+		  android:paddingBottom="5dp"
+		  >
+
+      <Button android:id="@+id/leftButton" android:text="Test"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:layout_gravity="left" />
+    </LinearLayout>
 
   </LinearLayout>
+  <!-- The main content view -->
+
+
+  <!-- buttons 'n stuff goes here -->
+  <LinearLayout android:id="@+id/bottomLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="bottom">
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test"
+        />
+  </LinearLayout>
+
+
+
+
+  <include layout="@layout/toolbar_custom"/>
 
   <!-- The navigation drawer -->
-  <ListView
+  <LinearLayout
       android:id="@+id/left_drawer"
       android:layout_marginTop="?attr/actionBarSize"
       android:layout_width="240dp"
       android:layout_height="match_parent"
       android:layout_gravity="start"
       android:choiceMode="singleChoice"
-      android:divider="@android:color/transparent"
+      android:divider="?attr/colorPrimary"
       android:dividerHeight="0dp"
-      android:background="#AAAAAA"/>
+      android:background="?attr/colorPrimary">
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp">
+      <include layout="@layout/input_selector_view"/>
+    </ScrollView>
+  </LinearLayout>
 
 
 </android.support.v4.widget.DrawerLayout>

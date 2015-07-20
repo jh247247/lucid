@@ -4,4 +4,8 @@
   <string name="open">Open</string>
   <string name="close">Close</string>
   <string name="bluetooth">Bluetooth</string>
+  <string name="record">Record</string>
+  <string name="inputTitle">Input Select</string>
+  <string name="source">Source: </string>
 </resources>
+xb

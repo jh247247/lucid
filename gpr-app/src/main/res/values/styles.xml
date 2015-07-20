@@ -14,6 +14,7 @@
         <item name="color">@android:color/white</item>
     </style>
 
-    <color name="primary">#333333</color>
-    <color name="primaryDarker">#222222</color>
+    <color name="primaryLighter">#CCCCCC</color>
+    <color name="primary">#AAAAAA</color>
+    <color name="primaryDarker">#999999</color>
 </resources>
