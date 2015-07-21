@@ -24,9 +24,13 @@ public class RandomDataInput implements DataInputInterface{
     public RandomDataInput() {
         m_previous = new ArrayList<WeakReference<Element>>();
     }
-
+    int test = 0;
     public boolean hasNext() {
-        return true;
+	if(test++ == 10) {
+	    test = 0;
+	    return false;
+	}
+	return true;
     }
 
     public Element getNext(){

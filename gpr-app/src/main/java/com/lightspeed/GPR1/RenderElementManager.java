@@ -60,21 +60,22 @@ public class RenderElementManager {
     }
 
     public void updateInput() {
-        if(m_input != null &&
-           m_input.hasNext()) {
-            m_newerData.add(m_newerData.size(),
-                            new RenderElement(m_input.getNext()));
+	if(m_input == null) {
+	    return;
+	}
+	while(m_input.hasNext()) {
+	    Log.v(LOGTAG,"Getting another element...");
+	    m_newerData.add(m_newerData.size(),
+			    new RenderElement(m_input.getNext()));
 
-            // check limitations
-            if(m_newerData.size() > m_maxNewerData) {
-                moveNewerToCurrent(1);
-            }
-            if(m_currentData.size() > m_maxCurrentData) {
-                moveCurrentToOlder(1);
-            }
-
-
-        }
+	    // check limitations
+	    if(m_newerData.size() > m_maxNewerData) {
+		moveNewerToCurrent(1);
+	    }
+	    if(m_currentData.size() > m_maxCurrentData) {
+		moveCurrentToOlder(1);
+	    }
+	}
     }
 
     public RenderElementBlitter getBlitter() {
