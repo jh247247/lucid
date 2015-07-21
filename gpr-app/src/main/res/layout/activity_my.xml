@@ -86,7 +86,7 @@
         android:layout_height="wrap_content"
         android:padding="5dp">
       <fragment
-	  android:name="com.lightspeed.GPR1.DataInputManager"
+	  android:name="com.lightspeed.GPR1.DataInputFragment"
           android:id="@+id/inputManager"
           android:layout_width="fill_parent"
           android:layout_height="wrap_content"/>

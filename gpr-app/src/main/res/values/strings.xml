@@ -6,6 +6,8 @@
   <string name="record">Record file</string>
   <string name="inputTitle">Input Select</string>
   <string name="bluetooth">Bluetooth</string>
+  <string name="file_select">Select</string>
+  <string name="file_select_none">No file selected!</string>
   <string-array name="input_options">
     <item>Bluetooth</item>
     <item>File</item>
