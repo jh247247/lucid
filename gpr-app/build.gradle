@@ -45,6 +45,9 @@ repositories {
 }
 
 dependencies {
+  // for fancy dialogs...
+  compile 'com.afollestad:material-dialogs:0.7.6.0'
+
   // smoothbluetooth for bluetooth comms
   compile 'io.palaima:smoothbluetooth:0.1.0'
 
