@@ -18,6 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.MenuItem;
 import android.view.SurfaceView;
+import android.widget.Spinner;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
@@ -90,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         // set the listener to the one we just made
         m_drawerLayout.setDrawerListener(m_abtog);
         m_drawerLayout.setScrimColor(Color.TRANSPARENT);
-
     }
 
     @Override

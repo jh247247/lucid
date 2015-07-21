@@ -3,8 +3,12 @@
   <string name="app_name">GPR</string>
   <string name="open">Open</string>
   <string name="close">Close</string>
-  <string name="bluetooth">Bluetooth</string>
-  <string name="record">Record</string>
+  <string name="record">Record file</string>
   <string name="inputTitle">Input Select</string>
-  <string name="source">Source: </string>
+  <string name="bluetooth">Bluetooth</string>
+  <string-array name="input_options">
+    <item>Bluetooth</item>
+    <item>File</item>
+    <item>Random</item>
+  </string-array>
 </resources>
