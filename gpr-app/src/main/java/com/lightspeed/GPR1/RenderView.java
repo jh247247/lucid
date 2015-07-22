@@ -11,6 +11,8 @@ import android.graphics.Paint;
 import android.util.Log;
 import android.view.WindowManager;
 import android.view.Display;
+import android.view.MotionEvent;
+import android.widget.Toast;
 
 import java.lang.Math;
 
@@ -25,15 +27,19 @@ public class RenderView extends SurfaceView
     private RenderElementBlitter m_blitter;
     private RenderElementManager m_manager;
 
+    private Context m_ctx;
+
     public RenderView(Context ctx) {
         super(ctx);
-        threadInit();
+	m_ctx = ctx;
+	threadInit();
         uiInit();
         renderInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
+	m_ctx = ctx;
         threadInit();
         uiInit();
         renderInit();
@@ -41,6 +47,7 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
+	m_ctx = ctx;
         threadInit();
         uiInit();
         renderInit();
@@ -66,16 +73,16 @@ public class RenderView extends SurfaceView
         int width = this.getWidth();
         int height = this.getHeight();
 
-	Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
-	      height);
+        Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
+              height);
 
         int newWidth = Math.min(m_manager.getMaxCurrentData()*3,
-				(width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
+                                (width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
         int newHeight = Math.min(3*255,(height/255)*255); // FIXME: magicsss
 
-	Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
+        Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
 
-	m_renderThread.setSurfaceDims(newWidth,newHeight);
+        m_renderThread.setSurfaceDims(newWidth,newHeight);
     }
 
     @Override
@@ -96,8 +103,8 @@ public class RenderView extends SurfaceView
                                int arg1,
                                int arg2) {
         // TODO: do something with this...
-	initCanvas();
-	m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
+        initCanvas();
+        m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
     }
 
     @Override
@@ -108,8 +115,8 @@ public class RenderView extends SurfaceView
         m_renderThread.start();
 
         Log.v(LOGTAG,"Surface created");
-	initCanvas();
-	m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
+        initCanvas();
+        m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
     }
 
     @Override
@@ -140,5 +147,16 @@ public class RenderView extends SurfaceView
             m_renderThread.setRunning(true);
         }
 
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        //this.mDetector.onTouchEvent(event);
+        // Be sure to call the superclass implementation
+        Toast mToast; // meh
+        mToast = Toast.makeText(m_ctx, "Touched!", Toast.LENGTH_SHORT);
+	mToast.show();
+
+	return super.onTouchEvent(event);
     }
 }
