@@ -43,9 +43,16 @@ public class RenderElement {
 	return m_data.getSampleStop();
     }
 
+    public void recycleBitmap() {
+	if(m_renderedData != null){
+	    m_renderedData.recycle();
+	}
+    }
+
     private Bitmap renderElement() {
-        if(m_data == null) {
-            // User must be stupid.
+        if(m_data == null ||
+	   (m_renderedData != null &&
+	    !m_renderedData.isRecycled())) {
             return null;
         }
 

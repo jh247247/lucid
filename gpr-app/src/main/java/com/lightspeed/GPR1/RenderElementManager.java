@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.lang.ref.SoftReference;
 import java.lang.Math;
 import android.util.Log;
+import android.view.View.OnTouchListener;
 
 public class RenderElementManager {
     static final String LOGTAG = "RenderElementManager";
@@ -60,22 +61,21 @@ public class RenderElementManager {
     }
 
     public void updateInput() {
-	if(m_input == null) {
-	    return;
-	}
-	while(m_input.hasNext()) {
-	    Log.v(LOGTAG,"Getting another element...");
-	    m_newerData.add(m_newerData.size(),
-			    new RenderElement(m_input.getNext()));
+        if(m_input == null) {
+            return;
+        }
+        while(m_input.hasNext()) {
+            Log.v(LOGTAG,"Getting another element...");
+            m_newerData.add(new RenderElement(m_input.getNext()));
 
-	    // check limitations
-	    if(m_newerData.size() > m_maxNewerData) {
-		moveNewerToCurrent(1);
-	    }
-	    if(m_currentData.size() > m_maxCurrentData) {
-		moveCurrentToOlder(1);
-	    }
-	}
+            // check limitations
+            if(m_newerData.size() > m_maxNewerData) {
+                moveNewerToCurrent(1);
+            }
+            if(m_currentData.size() > m_maxCurrentData) {
+                moveCurrentToOlder(1);
+            }
+        }
     }
 
     public RenderElementBlitter getBlitter() {
@@ -87,7 +87,7 @@ public class RenderElementManager {
         int maxCurrentElementLength = 0;
         for (RenderElement re : m_currentData) {
             maxCurrentElementLength = Math.max(re.getElementHeight(),
-					       maxCurrentElementLength);
+                                               maxCurrentElementLength);
         }
         return maxCurrentElementLength;
     }
@@ -102,9 +102,11 @@ public class RenderElementManager {
         if(offset < 0) {
             offset = moveNewerToCurrent(-offset);
             offset = moveCurrentToOlder(-offset);
+            m_maxNewerData -= offset;
         } else {
             offset = moveOlderToCurrent(offset);
             offset = moveCurrentToNewer(offset);
+            m_maxNewerData -= offset;
         }
         return offset;
     }
@@ -129,16 +131,24 @@ public class RenderElementManager {
         m_currentData.addAll(m_currentData.size(), m_newerData.subList(0, amount));
         m_newerData.subList(0, amount).clear();
 
+        // too many elements to render!
+        if(m_currentData.size() > m_maxCurrentData) {
+            moveCurrentToOlder(m_currentData.size()-m_maxCurrentData);
+        }
+
         // return amount actually moved
         return amount;
 
     }
 
     private int moveOlderToCurrent(int amount) {
-        // get the amount to actually move
-        amount = Math.min(amount, m_olderData.size());
+        int ret = 0;
         for(int i = 0; i < amount; i++) {
             RenderElement re = getNextOlder();
+            if(re == null) {
+                return ret;
+            }
+            ret++;
             m_currentData.add(0,re);
         }
 
@@ -160,26 +170,41 @@ public class RenderElementManager {
         trimOlder();
         if(m_olderData.size() == 0) {
             // all weakreferences are expired! resort to reading from disk.
+            Log.d(LOGTAG, "No more references, read from file");
+
             return new RenderElement(m_input.getPrevious(m_newerData.size() + m_currentData.size()));
         }
 
         // get least old element
-        RenderElement re = m_olderData.remove(m_olderData.size()).get();
-        if(re == null) {
-            // latest weakreference got gc'd, resort to disk.
-            return new RenderElement(m_input.getPrevious(m_newerData.size() + m_currentData.size()));
-        }
+	RenderElement re = null;
+	try {
+	    re = m_olderData.remove(m_olderData.size()).get();
+	} catch(Exception e) {
+	    // TODO: handle exception
+	}
+
+	if(re == null) {
+	    Log.d(LOGTAG, "Reference expired, read from file");
+	    // latest weakreference got gc'd, resort to disk.
+	    return new RenderElement(m_input.getPrevious(m_newerData.size() + m_currentData.size()));
+	}
         // can actually use weakreference! woo!
+        Log.d(LOGTAG, "Reference exists!");
         return re;
     }
 
     // trim expired older elements
-    private void trimOlder() {
-
+    private synchronized void trimOlder() {
         while(m_olderData.size() > 0 && // still have elements
               m_olderData.get(0).get() == null || // start element is expired
               m_olderData.size() > m_maxNewerData) { // force max of one screen storage.
-            m_olderData.remove(0);
+            try {
+                m_olderData.remove(0);
+            } catch(Exception e) {
+                Log.d(LOGTAG, "Miss trim");
+                return;
+                // TODO: handle?
+            }
         }
     }
 
@@ -203,5 +228,7 @@ public class RenderElementManager {
     public int getMaxNewerData() {
         return m_maxNewerData;
     }
+
+
 
 }

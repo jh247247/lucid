@@ -28,9 +28,9 @@ public class RandomDataInput implements DataInputInterface{
     public boolean hasNext() {
 	if(test++ == 10) {
 	    test = 0;
-	    return false;
+	    return true;
 	}
-	return true;
+	return false;
     }
 
     public Element getNext(){

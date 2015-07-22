@@ -13,6 +13,9 @@ import android.view.WindowManager;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.widget.Toast;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.support.v4.view.GestureDetectorCompat;
 
 import java.lang.Math;
 
@@ -28,18 +31,19 @@ public class RenderView extends SurfaceView
     private RenderElementManager m_manager;
 
     private Context m_ctx;
+    private GestureDetectorCompat m_gdetector;
 
     public RenderView(Context ctx) {
         super(ctx);
-	m_ctx = ctx;
-	threadInit();
+        m_ctx = ctx;
+        threadInit();
         uiInit();
         renderInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
-	m_ctx = ctx;
+        m_ctx = ctx;
         threadInit();
         uiInit();
         renderInit();
@@ -47,7 +51,7 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
-	m_ctx = ctx;
+        m_ctx = ctx;
         threadInit();
         uiInit();
         renderInit();
@@ -60,6 +64,11 @@ public class RenderView extends SurfaceView
 
     private void uiInit() {
         setFocusable(true); // make sure we get events...
+
+        // handle those events
+        m_gdetector = new GestureDetectorCompat(m_ctx, new
+                                                RenderGestureListener());
+
         Log.v(LOGTAG,"Finished init!");
     }
 
@@ -149,14 +158,58 @@ public class RenderView extends SurfaceView
 
     }
 
+    private class RenderGestureListener extends
+                                            GestureDetector.SimpleOnGestureListener
+    {
+        private static final String GESLIN_LOGTAG =
+            "RenderGestureListener";
+
+        private float m_dXacc = 0; // accumulator for dX
+        private float m_dYacc = 0;
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            Log.d(GESLIN_LOGTAG,"onDown: " + e.toString());
+            // reset accumulator so that we can track this scroll (if
+            // it is one...)
+            m_dXacc = 0;
+            m_dYacc = 0; // TODO: Y scrolling...
+
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2,
+                                float dX, float dY) {
+            Log.d(GESLIN_LOGTAG,"onScroll: " + dX + " " + dY);
+            m_dXacc += dX;
+            m_dYacc += dY;
+
+            //find out how many elements to move by
+
+            float pixelSize = (float)RenderView.this.getWidth()/(float)m_manager.getMaxCurrentData();
+
+            int xscroll = -(int)(m_dXacc/pixelSize);
+            if(xscroll != 0) { // have to move!
+                Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);
+                m_manager.moveCurrent(xscroll); // move viewport
+
+                // remove from accumulator
+                m_dXacc += xscroll*pixelSize;
+            }
+            return true;
+        }
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event){
         //this.mDetector.onTouchEvent(event);
         // Be sure to call the superclass implementation
-        Toast mToast; // meh
-        mToast = Toast.makeText(m_ctx, "Touched!", Toast.LENGTH_SHORT);
-	mToast.show();
+        boolean handled = super.onTouchEvent(event);
+        if(!handled) {
+            m_gdetector.onTouchEvent(event);
+        }
 
-	return super.onTouchEvent(event);
+        return true;
     }
 }

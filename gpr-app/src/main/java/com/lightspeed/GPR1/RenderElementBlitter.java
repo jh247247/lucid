@@ -28,7 +28,7 @@ public class RenderElementBlitter {
     }
 
     public void setMaxElements(int max) {
-        m_maxElements = max;
+	m_maxElements = max;
     }
 
 
@@ -39,13 +39,15 @@ public class RenderElementBlitter {
             // cannot render...
             return;
         }
-        int maxh = 0;
-        for (RenderElement el : m_elementsToRender) {
+	ArrayList<RenderElement> locElementsToRender = (ArrayList<RenderElement>)m_elementsToRender.clone();
+
+	int maxh = 0;
+        for (RenderElement el : locElementsToRender) {
             maxh = Math.max(maxh, el.getElementHeight());
         }
 
         int maxw = Math.max(m_maxElements,
-                            m_elementsToRender.size());
+                            locElementsToRender.size());
 
         // bitmap doesn't exist or dims change
         if(m_bm == null ||
@@ -66,9 +68,9 @@ public class RenderElementBlitter {
         // create tmp bitmap to render to
         Bitmap tbm = null;
         for(int i = Math.min(m_maxElements,
-                             m_elementsToRender.size()-1); i >= 0; i--) {
+                             locElementsToRender.size()-1); i >= 0; i--) {
             // render the bitmap
-            tbm = m_elementsToRender.get(i).getRenderedElement();
+            tbm = locElementsToRender.get(i).getRenderedElement();
             if(tbm == null) break;
 
             // blit bitmap to canvas
