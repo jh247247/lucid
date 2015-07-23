@@ -94,13 +94,13 @@ public class RenderElementCachedStack {
                 return ret;
             }
             ret++;
-            m_hardData.add(re);
+	    re.renderElement();
+	    m_hardData.add(re);
         }
         return ret;
     }
 
     private RenderElement getNextSoft() {
-        trimSoft();
         if(m_softData.size() == 0) { // all refs expired
             // TODO: log
             Element e = m_request.getOlder(0,m_hardData.size());

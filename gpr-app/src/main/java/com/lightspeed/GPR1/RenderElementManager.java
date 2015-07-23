@@ -75,8 +75,8 @@ public class RenderElementManager {
             return;
         }
         int index = m_input.getCurrentIndex()-m_currentData.size();
-        if(index > m_currentIndex) {
-            m_currentIndex += moveNewerToCurrent(index-m_currentIndex);
+        if(m_currentData.size() < m_maxCurrentData) {
+            m_currentIndex += moveNewerToCurrent(m_maxCurrentData - m_currentData.size());
         }
         if(m_currentData.size() > m_maxCurrentData) {
             moveCurrentToOlder(m_currentData.size() - m_maxCurrentData);
@@ -93,12 +93,14 @@ public class RenderElementManager {
         Log.d(LOGTAG, "moveCurrent: move " + offset + " elements");
         if(offset < 0) {
             offset = moveNewerToCurrent(-offset);
-            offset = moveCurrentToOlder(-offset);
-        } else {
-            offset = moveOlderToCurrent(offset);
-            offset = moveCurrentToNewer(offset);
-        }
-        m_currentIndex = Math.max(0, m_currentIndex - offset);
+            offset = moveCurrentToOlder(offset);
+	    //m_currentIndex += offset;
+	} else {
+	    offset = moveOlderToCurrent(offset);
+	    offset = moveCurrentToNewer(offset);
+	    //m_currentIndex -= offset;
+	}
+        m_currentIndex = Math.max(10, m_currentIndex);
         Log.d(LOGTAG, "Current index: " + m_currentIndex);
         return offset;
     }
@@ -146,7 +148,7 @@ public class RenderElementManager {
     private synchronized int moveNewerToCurrent(int amount) {
         RenderElement re = null;
         for(int i = 0; i < amount; i++) {
-            re = m_olderData.pop();
+            re = m_newerData.pop();
             if(re == null) { // no more elements in older
                 return i;
             }
@@ -178,7 +180,11 @@ public class RenderElementManager {
                 return null;
             }
 
-            return m_input.getPrevious(m_currentIndex - length - offset);
+            return m_input.getPrevious(m_currentIndex +
+                                       m_currentData.size() +
+                                       length +
+                                       offset);
+
         }
     }
 
@@ -189,10 +195,7 @@ public class RenderElementManager {
                 return null;
             }
 
-            return m_input.getPrevious(m_currentIndex +
-                                       m_currentData.size() +
-                                       length +
-                                       offset);
+            return m_input.getPrevious(m_currentIndex - length - offset);
         }
     }
 }
