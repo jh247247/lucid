@@ -26,77 +26,81 @@ public class BluetoothDataInput implements DataInputInterface {
 
 
     private SmoothBluetooth.Listener m_blistener = new
-	SmoothBluetooth.Listener() {
-	    @Override
-	    public void onBluetoothNotSupported() {
-		// device does not support bluetooth
-		// how did they even install it??
-	    }
+        SmoothBluetooth.Listener() {
+            @Override
+            public void onBluetoothNotSupported() {
+                // device does not support bluetooth
+                // how did they even install it??
+            }
 
-	    @Override
-	    public void onBluetoothNotEnabled() {
-		//bluetooth is disabled, probably call Intent request to enable bluetooth
-		Intent enableBluetooth = new
-		    Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            @Override
+            public void onBluetoothNotEnabled() {
+                //bluetooth is disabled, probably call Intent request to enable bluetooth
+                Intent enableBluetooth = new
+                    Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 
-		// this is disgusting, find a way to fix it.
-		((Activity)m_ctx).startActivityForResult(enableBluetooth, ENABLE_BT__REQUEST);
-	    }
+                // this is disgusting, find a way to fix it.
+                ((Activity)m_ctx).startActivityForResult(enableBluetooth, ENABLE_BT__REQUEST);
+            }
 
-	    @Override
-	    public void onConnecting(Device device) {
-		//called when connecting to particular device
-	    }
+            @Override
+            public void onConnecting(Device device) {
+                //called when connecting to particular device
+            }
 
-	    @Override
-	    public void onConnected(Device device) {
-		//called when connected to particular device
-	    }
+            @Override
+            public void onConnected(Device device) {
+                //called when connected to particular device
+            }
 
-	    @Override
-	    public void onDisconnected() {
-		//called when disconnected from device
-	    }
+            @Override
+            public void onDisconnected() {
+                //called when disconnected from device
+            }
 
-	    @Override
-	    public void onConnectionFailed(Device device) {
-		//called when connection failed to particular device
-	    }
+            @Override
+            public void onConnectionFailed(Device device) {
+                //called when connection failed to particular device
+            }
 
-	    @Override
-	    public void onDiscoveryStarted() {
-		//called when discovery is started
-	    }
+            @Override
+            public void onDiscoveryStarted() {
+                //called when discovery is started
+            }
 
-	    @Override
-	    public void onDiscoveryFinished() {
-		//called when discovery is finished
-	    }
+            @Override
+            public void onDiscoveryFinished() {
+                //called when discovery is finished
+            }
 
-	    @Override
-	    public void onNoDevicesFound() {
-		//called when no devices found
-	    }
+            @Override
+            public void onNoDevicesFound() {
+                //called when no devices found
+            }
 
-	    @Override
-	    public void onDevicesFound(final List<Device> deviceList,
-				       final SmoothBluetooth.ConnectionCallback connectionCallback) {
-		//receives discovered devices list and connection callback
-		//you can filter devices list and connect to specific one
-		//connectionCallback.connectTo(deviceList.get(position));
-	    }
+            @Override
+            public void onDevicesFound(final List<Device> deviceList,
+                                       final SmoothBluetooth.ConnectionCallback connectionCallback) {
+                //receives discovered devices list and connection callback
+                //you can filter devices list and connect to specific one
+                //connectionCallback.connectTo(deviceList.get(position));
+            }
 
-	    @Override
-	    public void onDataReceived(int data) {
-		//receives all bytes
-	    }
-	};
+            @Override
+            public void onDataReceived(int data) {
+                //receives all bytes
+            }
+        };
 
     public BluetoothDataInput(Context ctx) {
         m_previous = new ArrayList<SoftReference<Element>>();
         m_new = new ArrayList<Element>();
-	m_bluetooth = new SmoothBluetooth(ctx,m_blistener);
+        m_bluetooth = new SmoothBluetooth(ctx,m_blistener);
 
+    }
+
+    public int getCurrentIndex() {
+        return 0; // TODO:
     }
 
     public boolean hasNext() {
@@ -105,10 +109,10 @@ public class BluetoothDataInput implements DataInputInterface {
 
     public Element getNext() {
         // fifo, so remove from start
-	if(m_new.size() > 0) {
-	    return m_new.remove(0);
-	}
-	return null;
+        if(m_new.size() > 0) {
+            return m_new.remove(0);
+        }
+        return null;
     }
 
     private void trimPrevious() {
@@ -122,7 +126,7 @@ public class BluetoothDataInput implements DataInputInterface {
     public Element getPrevious(int offset) {
         trimPrevious();
         Element ret = null;
-        if(offset < 0) {
+        if(offset < 0 ) {
             return null; // cannot grab from future...
         }
 
@@ -144,7 +148,7 @@ public class BluetoothDataInput implements DataInputInterface {
 
 
     public boolean open() {
-	return true;
+        return true;
     }
 
     public void close() {

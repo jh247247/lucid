@@ -5,59 +5,71 @@ import com.lightspeed.gpr.lib.Element;
 import java.util.ArrayList;
 import java.lang.ref.WeakReference;
 import java.lang.Math;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import java.lang.Thread;
+import java.lang.Runnable;
+import android.util.Log;
 
 public class RandomDataInput implements DataInputInterface{
-    ArrayList<WeakReference<Element>> m_previous; // cbf writing to
-    // file
+    AtomicInteger m_index;
+    int m_oldIndex = 0;
+
 
     final int START_ELEMENT = 0;
     final int END_ELEMENT = 255;
     final int MAX_VAL = 255;
+    final int ELEMENT_RATE = 39;
 
-    private void trimPrevious() {
-        while(m_previous.size() > 0 && // still have elements
-              m_previous.get(m_previous.size()-1).get() == null) { // start element is expired
-            m_previous.remove(m_previous.size()-1);
-        }
-    }
 
     public RandomDataInput() {
-        m_previous = new ArrayList<WeakReference<Element>>();
+        m_index = new AtomicInteger(0);
+        Runnable r = new Runnable() {
+                public void run() {
+                    while(true) {
+                        try {
+                            Thread.sleep(1000/ELEMENT_RATE);
+                        } catch(Exception e) {
+                            // TODO: handle?
+                        }
+                        Log.d("RANDOM","generating element, index: " + m_index.get());
+                        m_index.addAndGet(1);
+                    }
+                }
+            };
+	new Thread(r).start();
     }
-    int test = 0;
+
+    public int getCurrentIndex() {
+        return m_index.get();
+    }
+
     public boolean hasNext() {
-	if(test++ == 10) {
-	    test = 0;
-	    return true;
-	}
-	return false;
+        boolean ret = m_index.get() == m_oldIndex;
+        m_oldIndex = m_index.get();
+        return !ret;
     }
 
     public Element getNext(){
-        trimPrevious();
         Element ret = new Element(START_ELEMENT,END_ELEMENT);
         for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
             ret.setSample(i,Math.random()*MAX_VAL);
         }
-        m_previous.add(0,new WeakReference<Element>(ret));
         return ret;
     }
 
+    // get an older element, probably one from file.
     public Element getPrevious(int offset) {
-        Element ret = null;
-        trimPrevious();
-        // definitely not stored.
-        if(offset > m_previous.size()-1 ||
-           m_previous.get(offset).get() == null) {
-            // would load it from file, but cbf
-            ret = new Element(START_ELEMENT,END_ELEMENT);
-            for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
-                ret.setSample(i,Math.random()*MAX_VAL);
-            }
-            return ret;
+        if(offset < 0 || offset > m_index.get()) {
+            return null;
         }
-	// woo! we still have it! return it.
-        return m_previous.get(offset).get();
+
+        // would load it from file, but cbf
+        Element ret = ret = new Element(START_ELEMENT,END_ELEMENT);
+        for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
+            ret.setSample(i,Math.random()*MAX_VAL);
+        }
+        return ret;
     }
 
     public boolean open() {

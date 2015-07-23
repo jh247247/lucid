@@ -1,19 +1,23 @@
 package com.lightspeed.GPR1;
 
 import java.util.ArrayList;
+import java.util.List;
 import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import java.lang.Math;
 import android.util.Log;
+import java.util.LinkedList;
 
 public class RenderElementBlitter {
-    ArrayList<RenderElement> m_elementsToRender = null;
+    static final String LOGTAG = "RenderElementBlitter";
+
+    List<RenderElement> m_elementsToRender = null;
     int m_maxElements;
     Bitmap m_bm;
     Canvas m_cbm;
 
-    public RenderElementBlitter(ArrayList<RenderElement> rearr) {
+    public RenderElementBlitter(List<RenderElement> rearr) {
         m_elementsToRender = rearr;
         // TODO: Throw exception if rearr is null
         m_maxElements = 0; // auto scale...
@@ -28,7 +32,7 @@ public class RenderElementBlitter {
     }
 
     public void setMaxElements(int max) {
-	m_maxElements = max;
+        m_maxElements = max;
     }
 
 
@@ -39,9 +43,17 @@ public class RenderElementBlitter {
             // cannot render...
             return;
         }
-	ArrayList<RenderElement> locElementsToRender = (ArrayList<RenderElement>)m_elementsToRender.clone();
+        // make local copy to elements to render, just in case things
+        // change beneath us
+        List<RenderElement> locElementsToRender = null;
 
-	int maxh = 0;
+        synchronized(m_elementsToRender) {
+            locElementsToRender = new LinkedList<RenderElement>(m_elementsToRender);
+        }
+
+
+        // get max height of element
+        int maxh = 0;
         for (RenderElement el : locElementsToRender) {
             maxh = Math.max(maxh, el.getElementHeight());
         }
@@ -52,7 +64,8 @@ public class RenderElementBlitter {
         // bitmap doesn't exist or dims change
         if(m_bm == null ||
            maxh != m_bm.getHeight() ||
-           m_bm.getWidth() != c.getWidth()) {
+           maxw != m_bm.getWidth()) {
+            Log.d(LOGTAG, "Making bitmap of " + maxw + " " + maxh);
             Bitmap.Config conf = Bitmap.Config.ARGB_8888;
             m_bm = Bitmap.createBitmap(maxw,
                                        maxh,conf);

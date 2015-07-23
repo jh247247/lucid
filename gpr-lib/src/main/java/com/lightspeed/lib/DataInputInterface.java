@@ -3,6 +3,11 @@ import com.lightspeed.gpr.lib.Element;
 
 public interface DataInputInterface {
     /**
+     * Gets the current index relative to the start of the file buffer
+     */
+    public int getCurrentIndex();
+
+    /**
      * Should return null if there is no data to grab
      * Otherwise should pop off the next element of data
      */
