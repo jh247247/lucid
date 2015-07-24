@@ -11,7 +11,6 @@ import java.lang.Thread;
 import java.lang.Runnable;
 
 public class RenderElementCachedStack {
-    List<SoftReference<RenderElement>> m_softData;
     List<RenderElement> m_hardData;
     int m_hardDataAmount;
     InputRequest m_request;
@@ -24,56 +23,52 @@ public class RenderElementCachedStack {
     public RenderElementCachedStack(InputRequest r,
                                     int hardAmount) {
         m_hardDataAmount = hardAmount;
-        m_softData = new ArrayList(); // soft data is not sync
         // hard data is synced, since it is referenced more often
         m_hardData = Collections.synchronizedList(new ArrayList());
         m_request = r;
     }
 
     public void push(RenderElement re) {
-	setHardBufferSize(m_hardDataAmount);
+        setHardBufferSize(m_hardDataAmount);
         m_hardData.add(0,re);
         moveHardToSoft(1);
     }
 
     public RenderElement pop() {
-	setHardBufferSize(m_hardDataAmount);
-	moveSoftToHard(1);
-	if(m_hardData.size() > 0) {
-	    return m_hardData.remove(0);
-	}
-	return null;
+        setHardBufferSize(m_hardDataAmount);
+        moveSoftToHard(1);
+        if(m_hardData.size() > 0) {
+            return m_hardData.remove(0);
+        }
+        return null;
     }
 
     public void setInputRequestCallback(InputRequest r) {
-        m_request = r;
+	m_request = r;
     }
 
     public void setHardBufferSize(int size) {
         final int delta = size - m_hardData.size();
         m_hardDataAmount = size;
 
-	// change hard data list size by amount in a seperate thread.
-	Runnable r = new Runnable() {
-		public void run() {
-		    if(delta > 0) {
-			moveSoftToHard(delta);
-		    } else {
-			moveHardToSoft(delta);
-		    }
-		}
-	    };
+        // change hard data list size by amount in a seperate thread.
+        Runnable r = new Runnable() {
+                public void run() {
+                    if(delta > 0) {
+                        moveSoftToHard(delta);
+                    } else {
+                        moveHardToSoft(delta);
+                    }
+                }
+            };
     }
 
 
     private int moveHardToSoft(int amount) {
         amount = Math.min(amount, m_hardData.size());
         for(int i = 0; i < amount; i++) {
-            SoftReference re = new
-                SoftReference(m_hardData.remove(0));
-            m_softData.add(0,re);
+            m_hardData.remove(0);
         }
-        trimSoft();
         return amount;
     }
 
@@ -82,67 +77,30 @@ public class RenderElementCachedStack {
     // buffer or the amount in the soft buffer, whichever is smaller.
     // return the amount moved
     private int moveSoftToHard(int amount) {
-        trimSoft();
 
-	if(m_request == null) {
-	    return 0;
-	}
-	int ret = 0;
+        if(m_request == null) {
+            return 0;
+        }
+        int ret = 0;
         for(int i = 0; i < amount; i++) {
             RenderElement re = getNextSoft();
             if(re == null) {
                 return ret;
             }
             ret++;
-	    re.renderElement();
-	    m_hardData.add(re);
+            re.renderElement();
+            m_hardData.add(re);
         }
         return ret;
     }
 
     private RenderElement getNextSoft() {
-        if(m_softData.size() == 0) { // all refs expired
-            // TODO: log
-            Element e = m_request.getOlder(0,m_hardData.size());
-	    if(e == null) {
-		return null;
-	    } else {
-		return new RenderElement(e);
-	    }
-	}
-
-        RenderElement re = null;
-        try {
-            re = m_softData.remove(0).get();
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
-
-        if(re == null) { // looks like this ref is dead
-            // TODO: log
-            Element e = m_request.getOlder(0,m_hardData.size());
-	    if(e == null) {
-		return null;
-	    } else {
-		return new RenderElement(e);
-	    }
-
-        }
         // TODO: log
-        return re;
-    }
-
-    private synchronized void trimSoft() {
-        while(m_softData.size() > 0 &&
-              m_softData.get(m_softData.size()-1).get() == null) {
-            try {
-                m_softData.remove(m_softData.size()-1);
-            }
-            catch(Exception e) {
-                // TODO: handle
-                return;
-            }
+        Element e = m_request.getOlder(0,m_hardData.size());
+        if(e != null) {
+	    return new RenderElement(e);
         }
+	return null;
     }
 
     public interface InputRequest {

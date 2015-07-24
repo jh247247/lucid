@@ -75,11 +75,13 @@ public class RenderElementManager {
             return;
         }
         int index = m_input.getCurrentIndex()-m_currentData.size();
-        if(m_currentData.size() < m_maxCurrentData) {
-            m_currentIndex += moveNewerToCurrent(m_maxCurrentData - m_currentData.size());
-        }
-        if(m_currentData.size() > m_maxCurrentData) {
-            moveCurrentToOlder(m_currentData.size() - m_maxCurrentData);
+        synchronized(m_currentData) {
+            if(m_currentData.size() < m_maxCurrentData) {
+                m_currentIndex += moveNewerToCurrent(m_maxCurrentData - m_currentData.size());
+            }
+            if(m_currentData.size() > m_maxCurrentData) {
+                moveCurrentToOlder(m_currentData.size() - m_maxCurrentData);
+            }
         }
     }
 
@@ -91,15 +93,17 @@ public class RenderElementManager {
      */
     public synchronized int moveCurrent(int offset) {
         Log.d(LOGTAG, "moveCurrent: move " + offset + " elements");
-        if(offset < 0) {
-            offset = moveNewerToCurrent(-offset);
-            offset = moveCurrentToOlder(offset);
-	    //m_currentIndex += offset;
-	} else {
-	    offset = moveOlderToCurrent(offset);
-	    offset = moveCurrentToNewer(offset);
-	    //m_currentIndex -= offset;
-	}
+        synchronized(m_currentData) {
+            if(offset < 0) {
+                offset = moveNewerToCurrent(-offset);
+                offset = moveCurrentToOlder(offset);
+                //m_currentIndex += offset;
+            } else {
+                offset = moveOlderToCurrent(offset);
+                offset = moveCurrentToNewer(offset);
+                //m_currentIndex -= offset;
+            }
+        }
         m_currentIndex = Math.max(10, m_currentIndex);
         Log.d(LOGTAG, "Current index: " + m_currentIndex);
         return offset;
