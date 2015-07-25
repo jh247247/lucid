@@ -15,11 +15,13 @@ public class RandomDataInput implements DataInputInterface{
     AtomicInteger m_index;
     int m_oldIndex = 0;
 
+    InputUpdateCallback m_callback;
+
 
     final int START_ELEMENT = 0;
     final int END_ELEMENT = 255;
     final int MAX_VAL = 255;
-    final int ELEMENT_RATE = 39;
+    final int ELEMENT_RATE = 10;
 
 
     public RandomDataInput() {
@@ -32,12 +34,17 @@ public class RandomDataInput implements DataInputInterface{
                         } catch(Exception e) {
                             // TODO: handle?
                         }
-                        Log.d("RANDOM","generating element, index: " + m_index.get());
+                        Log.d("RANDOM","generating element, index: " +
+                              m_index.get());
                         m_index.addAndGet(1);
+                        if(m_callback != null) {
+                            m_callback.updateInput();
+                        }
+
                     }
                 }
             };
-	new Thread(r).start();
+        new Thread(r).start();
     }
 
     public int getCurrentIndex() {
@@ -78,6 +85,10 @@ public class RandomDataInput implements DataInputInterface{
 
     public void close() {
         return;
+    }
+
+    public void setUpdateCallback(DataInputInterface.InputUpdateCallback call) {
+        m_callback = call;
     }
 
     public String getName() {

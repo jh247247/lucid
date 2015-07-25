@@ -145,7 +145,9 @@ public class BluetoothDataInput implements DataInputInterface {
         return m_previous.get(offset).get();
     }
 
+    public void setUpdateCallback(InputUpdateCallback call) {
 
+    }
 
     public boolean open() {
         return true;

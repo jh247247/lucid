@@ -43,4 +43,14 @@ public interface DataInputInterface {
      * For example, should return "File" or "Serial" so we can go open->File
      */
     public String getName();
+
+    public void setUpdateCallback(DataInputInterface.InputUpdateCallback call);
+
+    /**
+     * This callback should be called whenever a new element of data
+     * is taken in.
+     */
+    public interface InputUpdateCallback {
+	public void updateInput();
+    }
 }

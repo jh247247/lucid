@@ -35,11 +35,12 @@ public class DataInputFragment extends Fragment {
     @Bind(R.id.inputOptionLayout) LinearLayout m_inputOption;
 
     DataInputManagerCallback m_callback;
+    DataInputInterface m_input;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
-			     ViewGroup container,
-			     Bundle savedInstanceState) {
+                             ViewGroup container,
+                             Bundle savedInstanceState) {
         // inflate layout...
         View ret = inflater.inflate(R.layout.input_selector_view,
                                     container, false);
@@ -79,8 +80,8 @@ public class DataInputFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-	super.onDestroyView();
-	ButterKnife.unbind(this);
+        super.onDestroyView();
+        ButterKnife.unbind(this);
     }
 
     public void setupInputUI(int selection) {
@@ -88,9 +89,7 @@ public class DataInputFragment extends Fragment {
             getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = null;
 
-	DataInputInterface newIn = null;
-
-	m_inputOption.removeAllViews();
+        m_inputOption.removeAllViews();
 
         switch(selection) {
         case 0: // should be bluetooth, is there a better way to do this?
@@ -104,32 +103,36 @@ public class DataInputFragment extends Fragment {
             m_inputOption.addView(v,0);
 
             Button b =
-            ButterKnife.findById(v,R.id.file_select_button);
-	    b.setOnClickListener(new View.OnClickListener(){
-		    public void onClick(View v) {
-			new MaterialDialog.Builder(getActivity())
-			    .content("WOO TEST")
-			    .positiveText("YEAH")
-			    .negativeText("NAH")
-			    .show();
-		    }
-		});
-		
-	    break;
+                ButterKnife.findById(v,R.id.file_select_button);
+            b.setOnClickListener(new View.OnClickListener(){
+                    public void onClick(View v) {
+                        new MaterialDialog.Builder(getActivity())
+                            .content("WOO TEST")
+                            .positiveText("YEAH")
+                            .negativeText("NAH")
+                            .show();
+                    }
+                });
+
+            break;
         case 2: // should be random (for now...)
-	    newIn = new RandomDataInput();
-	    break;
+            m_input = new RandomDataInput();
+            break;
         default:
             // wtf.
             break;
         }
-	if(m_callback != null) {
-	    m_callback.updateDataInput(newIn);
-	}
+        if(m_callback != null) {
+            m_callback.updateDataInput(m_input);
+        }
     }
 
     public void setDataManagerCallback(DataInputManagerCallback call){
-	m_callback = call;
+        m_callback = call;
+        if(m_input != null &&
+           m_callback != null) {
+            m_callback.updateDataInput(m_input);
+        }
     }
 
     // when the ui gets updated, this gets called so that the rest of
