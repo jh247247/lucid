@@ -80,14 +80,16 @@ public class RenderElementBlitter {
 
         // create tmp bitmap to render to
         Bitmap tbm = null;
-        for(int i = Math.min(m_maxElements,
-                             locElementsToRender.size()-1); i >= 0; i--) {
+        int amountToRender = Math.min(m_maxElements,
+                                      locElementsToRender.size()-1);
+
+        for(int i =  amountToRender; i >= 0; i--) {
             // render the bitmap
             tbm = locElementsToRender.get(i).getRenderedElement();
             if(tbm == null) break;
 
             // blit bitmap to canvas
-            m_cbm.drawBitmap(tbm, i, 0, null);
+            m_cbm.drawBitmap(tbm, m_cbm.getWidth()-amountToRender+i, 0, null);
         }
         // stop rendering
 
