@@ -87,7 +87,7 @@
         android:padding="5dp">
       <fragment
 	  android:name="com.lightspeed.GPR1.DataInputFragment"
-          android:id="@+id/inputManager"
+          android:id="@+id/input_manager"
           android:layout_width="fill_parent"
           android:layout_height="wrap_content"/>
     </ScrollView>

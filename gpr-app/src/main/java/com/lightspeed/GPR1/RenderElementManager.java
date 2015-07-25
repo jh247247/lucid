@@ -164,6 +164,14 @@ public class RenderElementManager {
 
     public void setDataInput(DataInputInterface in) {
         m_input = in;
+
+        // clean out data from old interface
+        m_olderData = new RenderElementCachedStack(new olderInputRequest());
+        m_newerData = new RenderElementCachedStack(new newerInputRequest());
+
+        m_currentData.clear();
+        m_currentIndex = 0;
+
     }
 
     public void setMaxCurrentData(int max){

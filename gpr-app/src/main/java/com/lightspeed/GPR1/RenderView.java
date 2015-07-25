@@ -1,5 +1,7 @@
 package com.lightspeed.GPR1;
 
+import com.lightspeed.gpr.lib.DataInputInterface;
+
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -26,7 +28,7 @@ public class RenderView extends SurfaceView
 
     private RenderThread m_renderThread;
 
-    private RandomDataInput m_in;
+    private DataInputInterface m_in;
     private RenderElementBlitter m_blitter;
     private RenderElementManager m_manager;
 
@@ -73,8 +75,8 @@ public class RenderView extends SurfaceView
     }
 
     private void renderInit() {
-        m_in = new RandomDataInput();
-        m_manager = new RenderElementManager(m_in,255*16/9);
+        m_in = null;
+	m_manager = new RenderElementManager(m_in,255*16/9);
         m_blitter = m_manager.getBlitter();
     }
 
@@ -211,5 +213,9 @@ public class RenderView extends SurfaceView
         }
 
         return true;
+    }
+
+    public void setDataInput(DataInputInterface in) {
+	m_manager.setDataInput(in);
     }
 }

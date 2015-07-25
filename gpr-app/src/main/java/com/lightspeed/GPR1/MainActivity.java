@@ -1,5 +1,7 @@
 package com.lightspeed.GPR1;
 
+import com.lightspeed.gpr.lib.DataInputInterface;
+
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -30,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.render) RenderView m_render;
     @Bind(R.id.left_drawer) LinearLayout m_leftDrawer;
 
+    DataInputFragment m_inputManager;
+
     ActionBarDrawerToggle m_abtog;
 
     static final int TOOLBAR_MAX_ALPHA = 255;
@@ -55,6 +59,17 @@ public class MainActivity extends AppCompatActivity {
 
         // set the hamburger to the current state of the drawer
         m_abtog.syncState();
+
+	// setup the callback for the input manager fragment
+        m_inputManager = (DataInputFragment)
+            getSupportFragmentManager().findFragmentById(R.id.input_manager);
+
+	m_inputManager.setDataManagerCallback(new
+					      DataInputFragment.DataInputManagerCallback(){
+		public void updateDataInput(DataInputInterface in) {
+		    m_render.setDataInput(in);
+		}
+	    });
     }
 
     private void setupDrawerListener() {

@@ -1,5 +1,7 @@
 package com.lightspeed.GPR1;
 
+import com.lightspeed.gpr.lib.DataInputInterface;
+
 import android.app.Activity;
 
 import android.content.Context;
@@ -32,10 +34,12 @@ public class DataInputFragment extends Fragment {
     @Bind(R.id.inputSpinner) Spinner m_inputSpinner;
     @Bind(R.id.inputOptionLayout) LinearLayout m_inputOption;
 
+    DataInputManagerCallback m_callback;
+
     @Override
     public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container,
-                             Bundle savedInstanceState) {
+			     ViewGroup container,
+			     Bundle savedInstanceState) {
         // inflate layout...
         View ret = inflater.inflate(R.layout.input_selector_view,
                                     container, false);
@@ -73,12 +77,20 @@ public class DataInputFragment extends Fragment {
         return ret;
     }
 
+    @Override
+    public void onDestroyView() {
+	super.onDestroyView();
+	ButterKnife.unbind(this);
+    }
+
     public void setupInputUI(int selection) {
         LayoutInflater inflater = (LayoutInflater)
             getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = null;
 
-        m_inputOption.removeAllViews();
+	DataInputInterface newIn = null;
+
+	m_inputOption.removeAllViews();
 
         switch(selection) {
         case 0: // should be bluetooth, is there a better way to do this?
@@ -105,31 +117,24 @@ public class DataInputFragment extends Fragment {
 		
 	    break;
         case 2: // should be random (for now...)
-            // no ui...
-            break;
+	    newIn = new RandomDataInput();
+	    break;
         default:
             // wtf.
             break;
         }
+	if(m_callback != null) {
+	    m_callback.updateDataInput(newIn);
+	}
     }
 
-    public Bundle getCurrentConfig() {
-	Bundle b = new Bundle();
-	// return the current bundle config...
-	switch(m_inputSpinner.getSelectedItemPosition()) {
-	case 0:
-	    break;
-	case 1:
-	    break;
-	case 2:
-	    break;
-	}
-	return b;
+    public void setDataManagerCallback(DataInputManagerCallback call){
+	m_callback = call;
     }
 
     // when the ui gets updated, this gets called so that the rest of
     // the app has an idea that something happened.
     public interface DataInputManagerCallback {
-        public void updateDataInputConfig(Bundle b);
+        public void updateDataInput(DataInputInterface in);
     }
 }
