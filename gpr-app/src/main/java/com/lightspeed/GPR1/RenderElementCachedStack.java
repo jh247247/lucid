@@ -10,65 +10,80 @@ import java.util.Collections;
 import java.lang.Thread;
 import java.lang.Runnable;
 
+import android.util.Log;
+
 public class RenderElementCachedStack {
     List<RenderElement> m_hardData;
     int m_hardDataAmount;
     InputRequest m_request;
 
+    boolean m_threadRunning;
+
     public RenderElementCachedStack(InputRequest r) {
-        // make everything soft because we aren't given a value
-        this(r,0);
+        // hard data is synced, since it is referenced more often
+        m_hardData = Collections.synchronizedList(new ArrayList());
+        m_request = r;
+
     }
 
     public RenderElementCachedStack(InputRequest r,
                                     int hardAmount) {
-        m_hardDataAmount = hardAmount;
-        // hard data is synced, since it is referenced more often
-        m_hardData = Collections.synchronizedList(new ArrayList());
-        m_request = r;
+        this(r);
+        setHardBufferSize(hardAmount);
+        Log.d("RECS", "INIT Wanted size: " + m_hardDataAmount);
     }
 
     public void push(RenderElement re) {
         setHardBufferSize(m_hardDataAmount);
         m_hardData.add(0,re);
-        moveHardToSoft(1);
     }
 
     public RenderElement pop() {
         setHardBufferSize(m_hardDataAmount);
-        moveSoftToHard(1);
         if(m_hardData.size() > 0) {
             return m_hardData.remove(0);
         }
         return null;
     }
 
+    // set the callback for when we need more info
     public void setInputRequestCallback(InputRequest r) {
-	m_request = r;
+        m_request = r;
     }
 
     public void setHardBufferSize(int size) {
-        final int delta = size - m_hardData.size();
         m_hardDataAmount = size;
 
         // change hard data list size by amount in a seperate thread.
-        Runnable r = new Runnable() {
-                public void run() {
-                    if(delta > 0) {
-                        moveSoftToHard(delta);
-                    } else {
-                        moveHardToSoft(delta);
+        if(!m_threadRunning) {
+
+            Thread run = new Thread(new Runnable(){
+                    public void run() {
+                        int delta = m_hardDataAmount - m_hardData.size();
+
+                        Log.d("RECS", "DELTA: " + delta);
+                        if(delta > 0) {
+                            moveSoftToHard(delta);
+                        } else {
+                            moveHardToSoft(delta);
+                        }
+                        m_threadRunning = false;
                     }
-                }
-            };
+                });
+	    run.start();
+	    m_threadRunning = true;
+        }
     }
 
 
     private int moveHardToSoft(int amount) {
+
         amount = Math.min(amount, m_hardData.size());
         for(int i = 0; i < amount; i++) {
             m_hardData.remove(0);
         }
+        Log.d("RECS", "removed " + amount + " from hard buffer");
+        Log.d("RECS", "Current size: " + m_hardData.size());
         return amount;
     }
 
@@ -91,16 +106,18 @@ public class RenderElementCachedStack {
             re.renderElement();
             m_hardData.add(re);
         }
+        Log.d("RECS", "Added " + amount + " to hard buffer");
+        Log.d("RECS", "Current size: " + m_hardData.size());
         return ret;
     }
 
     private RenderElement getNextSoft() {
-        // TODO: log
+        Log.d("RECS", "Getting next soft element");
         Element e = m_request.getOlder(0,m_hardData.size());
         if(e != null) {
-	    return new RenderElement(e);
+            return new RenderElement(e);
         }
-	return null;
+        return null;
     }
 
     public interface InputRequest {
