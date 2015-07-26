@@ -19,6 +19,7 @@ public class RenderElementCachedStack {
 
     boolean m_threadRunning;
 
+
     public RenderElementCachedStack(InputRequest r) {
         // hard data is synced, since it is referenced more often
         m_hardData = Collections.synchronizedList(new ArrayList());
@@ -65,13 +66,13 @@ public class RenderElementCachedStack {
                         if(delta > 0) {
                             moveSoftToHard(delta);
                         } else {
-                            moveHardToSoft(delta);
+                            moveHardToSoft(-delta);
                         }
                         m_threadRunning = false;
                     }
                 });
-	    run.start();
-	    m_threadRunning = true;
+            run.start();
+            m_threadRunning = true;
         }
     }
 
@@ -126,4 +127,5 @@ public class RenderElementCachedStack {
         // should return null if at the end of the input
         public Element getOlder(int offset, int length);
     }
+
 }

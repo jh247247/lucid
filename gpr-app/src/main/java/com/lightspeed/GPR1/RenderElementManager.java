@@ -9,6 +9,7 @@ import java.lang.ref.SoftReference;
 import java.lang.Math;
 import android.util.Log;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RenderElementManager implements DataInputInterface.InputUpdateCallback{
     static final String LOGTAG = "RenderElementManager";
@@ -35,18 +36,28 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
 
     DataInputInterface m_input;
 
+    // this flag makes the manager keep the data at the start of the input
+    boolean m_startLock;
+
+    // if this is true, data has changed since (hasDataChanged) has
+    // been called
+    AtomicBoolean m_dataChanged;
+
     public RenderElementManager() {
         m_input = null;
 
         m_olderData = new RenderElementCachedStack(new
-						   olderInputRequest(), MAX_CACHE);
+                                                   olderInputRequest(), MAX_CACHE);
         m_currentData = Collections.synchronizedList(new LinkedList<RenderElement>());
         m_newerData = new RenderElementCachedStack(new
-						   newerInputRequest(),
-						   MAX_CACHE);
+                                                   newerInputRequest(),
+                                                   MAX_CACHE);
 
 
         m_blitter = new RenderElementBlitter(m_currentData);
+
+        m_startLock = true;
+	m_dataChanged = new AtomicBoolean();
     }
 
     public RenderElementManager(int maxCurrentData) {
@@ -79,7 +90,13 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
         if(m_input == null) {
             return;
         }
+        int deltaIndex = m_input.getCurrentIndex() - m_currentIndex;
+
+        // make sure the screen is full of data
         synchronized(m_currentData) {
+            if(deltaIndex != 0 && m_currentData.size() == m_maxCurrentData) {
+                m_currentIndex += moveNewerToCurrent(deltaIndex);
+            }
             if(m_currentData.size() < m_maxCurrentData) {
                 moveNewerToCurrent(m_maxCurrentData - m_currentData.size());
             }
@@ -87,6 +104,7 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
                 moveCurrentToOlder(m_currentData.size() - m_maxCurrentData);
             }
         }
+	m_dataChanged.lazySet(true);
     }
 
     /**
@@ -170,18 +188,18 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
         m_input = in;
 
         // clean out data from old interface
-	// TODO: fix magic numbers
-	    m_olderData = new RenderElementCachedStack(new
-						       olderInputRequest(), MAX_CACHE);
-	    m_newerData = new RenderElementCachedStack(new
-						       newerInputRequest(), MAX_CACHE);
+        // TODO: fix magic numbers
+        m_olderData = new RenderElementCachedStack(new
+                                                   olderInputRequest(), MAX_CACHE);
+        m_newerData = new RenderElementCachedStack(new
+                                                   newerInputRequest(), MAX_CACHE);
 
-	    m_currentData.clear();
-	    m_currentIndex = 0;
+        m_currentData.clear();
+        m_currentIndex = 0;
 
-	    if(m_input != null) {
-		m_input.setUpdateCallback(this);
-	    }
+        if(m_input != null) {
+            m_input.setUpdateCallback(this);
+        }
     }
 
     public void setMaxCurrentData(int max){
@@ -193,20 +211,35 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
         return m_maxCurrentData;
     }
 
-    private class newerInputRequest implements RenderElementCachedStack.InputRequest {
-        public Element getOlder(int offset, int length) {
-            // input not defined, return null
-            if(m_input == null) {
-                return null;
-            }
-
-            return m_input.getPrevious(m_currentIndex +
-                                       m_currentData.size() +
-                                       length +
-                                       offset + 1);
-
-        }
+    // passing in true to this sets the manager to lock the renderer
+    // to the start of the incoming data
+    public void setStartLock(boolean lock){
+        m_startLock = lock;
     }
+
+    public boolean getStartLock() {
+        return m_startLock;
+    }
+
+    public boolean hasDataChanged() {
+	return m_dataChanged.getAndSet(false);
+    }
+	
+
+private class newerInputRequest implements RenderElementCachedStack.InputRequest {
+    public Element getOlder(int offset, int length) {
+	// input not defined, return null
+	if(m_input == null) {
+	    return null;
+	}
+
+	return m_input.getPrevious(m_currentIndex +
+				   m_currentData.size() +
+				   length +
+				   offset + 1);
+
+    }
+}
 
     private class olderInputRequest implements RenderElementCachedStack.InputRequest {
         public Element getOlder(int offset, int length) {
@@ -216,7 +249,8 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
             }
 
             return m_input.getPrevious(m_currentIndex - length -
-				       offset - 1);
+                                       offset - 1);
         }
     }
+
 }

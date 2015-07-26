@@ -62,7 +62,7 @@ public class RenderView extends SurfaceView
     private void threadInit() {
         getHolder().addCallback(this);
         m_renderThread = new RenderThread(getHolder(), this);
-	m_renderThread.setPriority(Thread.MAX_PRIORITY);
+        m_renderThread.setPriority(Thread.MAX_PRIORITY);
     }
 
     private void uiInit() {
@@ -77,7 +77,7 @@ public class RenderView extends SurfaceView
 
     private void renderInit() {
         m_in = null;
-	m_manager = new RenderElementManager(m_in,255*16/9);
+        m_manager = new RenderElementManager(m_in,255*16/9);
         m_blitter = m_manager.getBlitter();
     }
 
@@ -97,6 +97,7 @@ public class RenderView extends SurfaceView
         m_renderThread.setSurfaceDims(newWidth,newHeight);
     }
 
+
     @Override
     protected void onDraw(Canvas c) {
         if(c == null) {
@@ -104,7 +105,7 @@ public class RenderView extends SurfaceView
             // so make sure that we aren't passed a null canvas
             return;
         }
-	m_blitter.blitToCanvas(c);
+        m_blitter.blitToCanvas(c);
     }
 
     @Override
@@ -155,8 +156,8 @@ public class RenderView extends SurfaceView
     public void startView() {
         if(m_renderThread != null) {
             m_renderThread.setRunning(true);
-	    m_renderThread.start();
-	}
+            m_renderThread.start();
+        }
 
     }
 
@@ -192,7 +193,7 @@ public class RenderView extends SurfaceView
             float pixelSize = (float)RenderView.this.getWidth()/(float)m_manager.getMaxCurrentData();
 
             int xscroll = -(int)(m_dXacc/pixelSize);
-            if(xscroll != 0) { // have to move!
+            if(xscroll != 0 && !m_manager.getStartLock()) { // have to move!
                 //Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);
                 m_manager.moveCurrent(xscroll); // move viewport
 
@@ -216,6 +217,6 @@ public class RenderView extends SurfaceView
     }
 
     public void setDataInput(DataInputInterface in) {
-	m_manager.setDataInput(in);
+        m_manager.setDataInput(in);
     }
 }
