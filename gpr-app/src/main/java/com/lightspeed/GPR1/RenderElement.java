@@ -6,7 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.lang.Thread;
 import java.lang.Runnable;
 
