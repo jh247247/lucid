@@ -90,38 +90,45 @@ public class DataInputFragment extends Fragment {
         View v = null;
 
         m_inputOption.removeAllViews();
+	//setDataManagerCallback(null);
+	if(m_input != null) {
+	    m_input.close();
+	}
 
-        switch(selection) {
-        case 0: // should be bluetooth, is there a better way to do this?
-            v = inflater.inflate(R.layout.bluetooth_input_ui,
-                                 m_inputOption, false);
-            m_inputOption.addView(v,0);
-            break;
-        case 1: // should be file
-            v = inflater.inflate(R.layout.file_input_ui,
-                                 m_inputOption, false);
-            m_inputOption.addView(v,0);
 
-            Button b =
-                ButterKnife.findById(v,R.id.file_select_button);
-            b.setOnClickListener(new View.OnClickListener(){
-                    public void onClick(View v) {
-                        new MaterialDialog.Builder(getActivity())
-                            .content("WOO TEST")
-                            .positiveText("YEAH")
-                            .negativeText("NAH")
-                            .show();
-                    }
-                });
+	switch(selection) {
+	case 0: // should be bluetooth, is there a better way to do this?
+	    v = inflater.inflate(R.layout.bluetooth_input_ui,
+				 m_inputOption, false);
+	    m_inputOption.addView(v,0);
+	    break;
+	case 1: // should be file
+	    v = inflater.inflate(R.layout.file_input_ui,
+				 m_inputOption, false);
+	    m_inputOption.addView(v,0);
 
-            break;
-        case 2: // should be random (for now...)
-            m_input = new RandomDataInput();
-            break;
-        default:
-            // wtf.
-            break;
-        }
+	    Button b =
+		ButterKnife.findById(v,R.id.file_select_button);
+	    b.setOnClickListener(new View.OnClickListener(){
+		    public void onClick(View v) {
+			new MaterialDialog.Builder(getActivity())
+			    .content("WOO TEST")
+			    .positiveText("YEAH")
+			    .negativeText("NAH")
+			    .show();
+		    }
+		});
+
+	    m_input = new BluetoothDataInput(getActivity());
+
+	    break;
+	case 2: // should be random (for now...)
+	    m_input = new RandomDataInput();
+	    break;
+	default:
+	    // wtf.
+	    break;
+	}
         if(m_callback != null) {
             m_callback.updateDataInput(m_input);
         }

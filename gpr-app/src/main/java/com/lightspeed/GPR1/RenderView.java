@@ -62,6 +62,7 @@ public class RenderView extends SurfaceView
     private void threadInit() {
         getHolder().addCallback(this);
         m_renderThread = new RenderThread(getHolder(), this);
+	m_renderThread.setPriority(Thread.MAX_PRIORITY);
     }
 
     private void uiInit() {

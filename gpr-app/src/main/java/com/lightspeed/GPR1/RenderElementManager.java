@@ -12,6 +12,7 @@ import java.util.Collections;
 
 public class RenderElementManager implements DataInputInterface.InputUpdateCallback{
     static final String LOGTAG = "RenderElementManager";
+    static final int MAX_CACHE = 100;
 
     RenderElementBlitter m_blitter;
 
@@ -37,9 +38,13 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
     public RenderElementManager() {
         m_input = null;
 
-        m_olderData = new RenderElementCachedStack(new olderInputRequest());
+        m_olderData = new RenderElementCachedStack(new
+						   olderInputRequest(), MAX_CACHE);
         m_currentData = Collections.synchronizedList(new LinkedList<RenderElement>());
-        m_newerData = new RenderElementCachedStack(new newerInputRequest());
+        m_newerData = new RenderElementCachedStack(new
+						   newerInputRequest(),
+						   MAX_CACHE);
+
 
         m_blitter = new RenderElementBlitter(m_currentData);
     }
@@ -165,22 +170,23 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
         m_input = in;
 
         // clean out data from old interface
-        m_olderData = new RenderElementCachedStack(new olderInputRequest());
-        m_newerData = new RenderElementCachedStack(new newerInputRequest());
+	// TODO: fix magic numbers
+	    m_olderData = new RenderElementCachedStack(new
+						       olderInputRequest(), MAX_CACHE);
+	    m_newerData = new RenderElementCachedStack(new
+						       newerInputRequest(), MAX_CACHE);
 
-        m_currentData.clear();
-        m_currentIndex = 0;
+	    m_currentData.clear();
+	    m_currentIndex = 0;
 
-	if(m_input != null) {
-	    m_input.setUpdateCallback(this);
-	}
+	    if(m_input != null) {
+		m_input.setUpdateCallback(this);
+	    }
     }
 
     public void setMaxCurrentData(int max){
         m_maxCurrentData = max;
         m_blitter.setMaxElements(max);
-        m_newerData.setHardBufferSize(max);
-        m_olderData.setHardBufferSize(max);
     }
 
     public int getMaxCurrentData() {

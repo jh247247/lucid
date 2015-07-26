@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.lang.Thread;
 import java.lang.Runnable;
 
+import android.graphics.BitmapFactory;
+
 
 public class RenderElement {
     /**
@@ -24,16 +26,14 @@ public class RenderElement {
      */
     Bitmap m_renderedData;
     AtomicBoolean m_rendered;
-    Thread m_renderThread;
 
     public RenderElement(Element e) {
-	if(e != null) {
-	    // why...
-	    m_data = e.clone();
-	}
+        if(e != null) {
+            // why...
+            m_data = e.clone();
+        }
         // render the element when this is created just in case
         m_renderedData = null;
-        m_renderThread = null;
         m_rendered = new AtomicBoolean();
     }
 
@@ -47,11 +47,6 @@ public class RenderElement {
             return m_renderedData;
         }
         renderElement();
-        try {
-            m_renderThread.join();
-        } catch (Exception e) {
-            // TODO: handle
-        }
 
         return m_renderedData;
     }
@@ -68,39 +63,33 @@ public class RenderElement {
     }
 
     public void renderElement() {
-	if(m_data == null ||
-	   (m_renderedData != null &&
-	    !m_renderedData.isRecycled())) {
-	    return;
-	}
+        if(m_data == null ||
+           (m_renderedData != null)) {
+            return;
+        }
 
-	// make a thread so we can do useful things at the same time.
-	Runnable r = new Runnable() {
-		public void run() {
-		    // make the paint, bitmap and canvas so we can actually render
-		    // the element
-		    Paint p = new Paint();
-		    Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-		    Bitmap tmp = Bitmap.createBitmap(1,
-						     m_data.getAmountOfSamples(),
-						     conf);
-		    Canvas c = new Canvas(tmp);
-		    for(int i = m_data.getSampleStart();
-			i < m_data.getSampleStop(); i++) {
-			p.setARGB(255,
-				  (int)m_data.getSample(i),
-				  (int)m_data.getSample(i),
-				  (int)m_data.getSample(i));
-			c.drawPoint(0,i,p);
-		    }
-		    m_renderedData = tmp;
-		    m_rendered.set(true);
-		    Log.d("RenderElement", "DONE RENDERING");
-		}
-	    };
-	m_renderThread = new Thread(r);
-	m_renderThread.start();
-
-	Log.d("RenderElement", "RENDERING");
+        Log.d("RenderElement", "RENDERING");
+        // make the paint, bitmap and canvas so we can actually render
+        // the element
+        Paint p = new Paint();
+        Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+        Bitmap tmp = Bitmap.createBitmap(1,
+                                         m_data.getAmountOfSamples(),
+                                         conf);
+        Canvas c = new Canvas(tmp);
+        for(int i = m_data.getSampleStart();
+            i < m_data.getSampleStop(); i++) {
+            p.setARGB(255,
+                      (int)m_data.getSample(i),
+                      (int)m_data.getSample(i),
+                      (int)m_data.getSample(i));
+            c.drawPoint(0,i,p);
+        }
+        m_renderedData = tmp;
+        m_rendered.set(true);
+        Log.d("RenderElement", "DONE RENDERING");
     }
+
+
+
 }

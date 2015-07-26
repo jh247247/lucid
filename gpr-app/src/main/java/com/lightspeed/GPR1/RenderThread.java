@@ -39,7 +39,8 @@ public class RenderThread extends Thread{
                 synchronized (m_surfHold) {
                     m_render.onDraw(c);
                 }
-            } finally {
+		yield();
+	    } finally {
                 // if exception is thrown above, make sure that
                 // surface is not left in an inconsistent state.
                 if(c != null) {

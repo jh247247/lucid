@@ -96,7 +96,7 @@ public class BluetoothDataInput implements DataInputInterface {
         m_previous = new ArrayList<SoftReference<Element>>();
         m_new = new ArrayList<Element>();
         m_bluetooth = new SmoothBluetooth(ctx,m_blistener);
-
+	m_bluetooth.tryConnection();
     }
 
     public int getCurrentIndex() {
