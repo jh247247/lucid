@@ -17,8 +17,8 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
 
     RenderElementBlitter m_blitter;
 
-    RenderElementCachedStack m_olderData;
-    RenderElementCachedStack m_newerData;
+    CachedStack<RenderElement> m_olderData;
+    CachedStack<RenderElement> m_newerData;
 
     /**
      * These keep track of the data that is current and newer than the
@@ -46,17 +46,17 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
     public RenderElementManager() {
         m_input = null;
 
-        m_olderData = new RenderElementCachedStack(new
-                                                   olderInputRequest(), MAX_CACHE);
+        m_olderData = new CachedStack<RenderElement>(new
+						     olderInputRequest(), MAX_CACHE);
         m_currentData = Collections.synchronizedList(new LinkedList<RenderElement>());
-        m_newerData = new RenderElementCachedStack(new
-                                                   newerInputRequest(),
-                                                   MAX_CACHE);
+        m_newerData = new CachedStack<RenderElement>(new
+						     newerInputRequest(),
+						     MAX_CACHE);
 
 
         m_blitter = new RenderElementBlitter(m_currentData);
 
-        m_startLock = true;
+        m_startLock = false;
 	m_dataChanged = new AtomicBoolean();
     }
 
@@ -94,7 +94,9 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
 
         // make sure the screen is full of data
         synchronized(m_currentData) {
-            if(deltaIndex != 0 && m_currentData.size() == m_maxCurrentData) {
+            if(m_startLock && // following data
+	       deltaIndex != 0 && // new data
+	       m_currentData.size() == m_maxCurrentData) { // screen full
                 m_currentIndex += moveNewerToCurrent(deltaIndex);
             }
             if(m_currentData.size() < m_maxCurrentData) {
@@ -189,10 +191,10 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
 
         // clean out data from old interface
         // TODO: fix magic numbers
-        m_olderData = new RenderElementCachedStack(new
-                                                   olderInputRequest(), MAX_CACHE);
-        m_newerData = new RenderElementCachedStack(new
-                                                   newerInputRequest(), MAX_CACHE);
+        m_olderData = new CachedStack<RenderElement>(new
+						     olderInputRequest(), MAX_CACHE);
+        m_newerData = new CachedStack<RenderElement>(new
+						     newerInputRequest(), MAX_CACHE);
 
         m_currentData.clear();
         m_currentIndex = 0;
@@ -226,31 +228,45 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
     }
 	
 
-private class newerInputRequest implements RenderElementCachedStack.InputRequest {
-    public Element getOlder(int offset, int length) {
-	// input not defined, return null
-	if(m_input == null) {
+    private class newerInputRequest implements CachedStack.InputRequest<RenderElement> {
+	public RenderElement getOlder(int offset, int length) {
+	    // input not defined, return null
+	    if(m_input == null) {
+		return null;
+	    }
+
+
+	    Element e = m_input.getPrevious(m_currentIndex +
+					    m_currentData.size() +
+					    length +
+					    offset + 1);
+
+	    if(e != null) {
+		RenderElement re = new RenderElement(e);
+		re.renderElement();
+		return re;
+	    }
 	    return null;
 	}
-
-	return m_input.getPrevious(m_currentIndex +
-				   m_currentData.size() +
-				   length +
-				   offset + 1);
-
     }
-}
 
-    private class olderInputRequest implements RenderElementCachedStack.InputRequest {
-        public Element getOlder(int offset, int length) {
+    private class olderInputRequest implements CachedStack.InputRequest<RenderElement> {
+        public RenderElement getOlder(int offset, int length) {
             // input not defined, return null
             if(m_input == null) {
                 return null;
             }
 
-            return m_input.getPrevious(m_currentIndex - length -
-                                       offset - 1);
-        }
+	    // TODO: render?
+	    Element e = m_input.getPrevious(m_currentIndex - length -
+					    offset - 1);
+	    if(e != null) {
+		RenderElement re = new RenderElement(e);
+		re.renderElement();
+		return re;
+	    }
+	    return null;
+	}
     }
-
+    
 }

@@ -21,12 +21,16 @@ import android.view.View;
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
 
+import java.io.File;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+							FileDialog.FileDialogCallback
+{
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
     @Bind(R.id.render) RenderView m_render;
@@ -40,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my);
+	super.onCreate(savedInstanceState);
+	setContentView(R.layout.activity_my);
 
         // expand the bindings
         ButterKnife.bind(this);
@@ -60,16 +64,19 @@ public class MainActivity extends AppCompatActivity {
         // set the hamburger to the current state of the drawer
         m_abtog.syncState();
 
-	// setup the callback for the input manager fragment
+        // setup the callback for the input manager fragment
         m_inputManager = (DataInputFragment)
             getSupportFragmentManager().findFragmentById(R.id.input_manager);
 
-	m_inputManager.setDataManagerCallback(new
-					      DataInputFragment.DataInputManagerCallback(){
-		public void updateDataInput(DataInputInterface in) {
-		    m_render.setDataInput(in);
-		}
-	    });
+        m_inputManager.setDataManagerCallback(new
+                                              DataInputFragment.DataInputManagerCallback(){
+                public void updateDataInput(DataInputInterface in) {
+                    m_render.setDataInput(in);
+                }
+            });
+
+	// TEST FOR DIALOGFRAGMENT
+	new FileDialog().show(MainActivity.this);
     }
 
     private void setupDrawerListener() {
@@ -132,5 +139,14 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         m_render.stopView();
+    }
+
+    /**
+     * TEST FOR DIALOG FRAGMENT
+     */
+
+    @Override
+    public void onFileSelection(File f) {
+	Toast.makeText(this, f.toString(), Toast.LENGTH_SHORT).show();
     }
 }
