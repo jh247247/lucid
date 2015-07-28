@@ -10,8 +10,10 @@ import java.lang.Math;
 import android.util.Log;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
+import de.greenrobot.event.EventBus;
 
-public class RenderElementManager implements DataInputInterface.InputUpdateCallback{
+public class RenderElementManager implements
+				      DataInputInterface.InputUpdateCallback {
     static final String LOGTAG = "RenderElementManager";
     static final int MAX_CACHE = 100;
 
@@ -47,17 +49,19 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
         m_input = null;
 
         m_olderData = new CachedStack<RenderElement>(new
-						     olderInputRequest(), MAX_CACHE);
+                                                     olderInputRequest(), MAX_CACHE);
         m_currentData = Collections.synchronizedList(new LinkedList<RenderElement>());
         m_newerData = new CachedStack<RenderElement>(new
-						     newerInputRequest(),
-						     MAX_CACHE);
+                                                     newerInputRequest(),
+                                                     MAX_CACHE);
 
 
         m_blitter = new RenderElementBlitter(m_currentData);
 
         m_startLock = false;
-	m_dataChanged = new AtomicBoolean();
+        m_dataChanged = new AtomicBoolean();
+
+	EventBus.getDefault().register(this);
     }
 
     public RenderElementManager(int maxCurrentData) {
@@ -95,8 +99,8 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
         // make sure the screen is full of data
         synchronized(m_currentData) {
             if(m_startLock && // following data
-	       deltaIndex != 0 && // new data
-	       m_currentData.size() == m_maxCurrentData) { // screen full
+               deltaIndex != 0 && // new data
+               m_currentData.size() == m_maxCurrentData) { // screen full
                 m_currentIndex += moveNewerToCurrent(deltaIndex);
             }
             if(m_currentData.size() < m_maxCurrentData) {
@@ -106,7 +110,7 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
                 moveCurrentToOlder(m_currentData.size() - m_maxCurrentData);
             }
         }
-	m_dataChanged.lazySet(true);
+        m_dataChanged.lazySet(true);
     }
 
     /**
@@ -192,14 +196,14 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
         // clean out data from old interface
         // TODO: fix magic numbers
         m_olderData = new CachedStack<RenderElement>(new
-						     olderInputRequest(), MAX_CACHE);
+                                                     olderInputRequest(), MAX_CACHE);
         m_newerData = new CachedStack<RenderElement>(new
-						     newerInputRequest(), MAX_CACHE);
+                                                     newerInputRequest(), MAX_CACHE);
 
         m_currentData.clear();
         m_currentIndex = 0;
 
-        if(m_input != null) {
+	if(m_input != null) {
             m_input.setUpdateCallback(this);
         }
     }
@@ -224,30 +228,30 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
     }
 
     public boolean hasDataChanged() {
-	return m_dataChanged.getAndSet(false);
+        return m_dataChanged.getAndSet(false);
     }
-	
+
 
     private class newerInputRequest implements CachedStack.InputRequest<RenderElement> {
-	public RenderElement getOlder(int offset, int length) {
-	    // input not defined, return null
-	    if(m_input == null) {
-		return null;
-	    }
+        public RenderElement getOlder(int offset, int length) {
+            // input not defined, return null
+            if(m_input == null) {
+                return null;
+            }
 
 
-	    Element e = m_input.getPrevious(m_currentIndex +
-					    m_currentData.size() +
-					    length +
-					    offset + 1);
+            Element e = m_input.getPrevious(m_currentIndex +
+                                            m_currentData.size() +
+                                            length +
+                                            offset + 1);
 
-	    if(e != null) {
-		RenderElement re = new RenderElement(e);
-		re.renderElement();
-		return re;
-	    }
-	    return null;
-	}
+            if(e != null) {
+                RenderElement re = new RenderElement(e);
+                re.renderElement();
+                return re;
+            }
+            return null;
+        }
     }
 
     private class olderInputRequest implements CachedStack.InputRequest<RenderElement> {
@@ -257,16 +261,21 @@ public class RenderElementManager implements DataInputInterface.InputUpdateCallb
                 return null;
             }
 
-	    // TODO: render?
-	    Element e = m_input.getPrevious(m_currentIndex - length -
-					    offset - 1);
-	    if(e != null) {
-		RenderElement re = new RenderElement(e);
-		re.renderElement();
-		return re;
-	    }
-	    return null;
-	}
+            // TODO: render?
+            Element e = m_input.getPrevious(m_currentIndex - length -
+                                            offset - 1);
+            if(e != null) {
+                RenderElement re = new RenderElement(e);
+                re.renderElement();
+                return re;
+            }
+            return null;
+        }
+    }
+
+    // input changed! set via our handy function...
+    public void onEvent(DataInputFragment.InputChangeEvent e) {
+	setDataInput(e.input);
     }
     
 }

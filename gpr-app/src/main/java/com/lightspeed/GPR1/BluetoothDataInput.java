@@ -36,11 +36,11 @@ public class BluetoothDataInput implements DataInputInterface {
             @Override
             public void onBluetoothNotEnabled() {
                 //bluetooth is disabled, probably call Intent request to enable bluetooth
-                Intent enableBluetooth = new
-                    Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                // Intent enableBluetooth = new
+                //     Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 
                 // this is disgusting, find a way to fix it.
-                ((Activity)m_ctx).startActivityForResult(enableBluetooth, ENABLE_BT__REQUEST);
+                //((Activity)m_ctx).startActivityForResult(enableBluetooth, ENABLE_BT__REQUEST);
             }
 
             @Override

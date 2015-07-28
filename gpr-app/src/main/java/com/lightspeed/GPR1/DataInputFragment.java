@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
+import android.util.Log;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
@@ -30,17 +31,18 @@ import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
 import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
 import com.afollestad.materialdialogs.util.DialogUtils;
 
+import de.greenrobot.event.EventBus;
+
 public class DataInputFragment extends Fragment {
     @Bind(R.id.inputSpinner) Spinner m_inputSpinner;
     @Bind(R.id.inputOptionLayout) LinearLayout m_inputOption;
 
-    DataInputManagerCallback m_callback;
     DataInputInterface m_input;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container,
-                             Bundle savedInstanceState) {
+			     ViewGroup container,
+			     Bundle savedInstanceState) {
         // inflate layout...
         View ret = inflater.inflate(R.layout.input_selector_view,
                                     container, false);
@@ -75,6 +77,7 @@ public class DataInputFragment extends Fragment {
         // TODO: get back last setting...
 
         setupInputUI(m_inputSpinner.getSelectedItemPosition());
+
         return ret;
     }
 
@@ -90,61 +93,63 @@ public class DataInputFragment extends Fragment {
         View v = null;
 
         m_inputOption.removeAllViews();
-	//setDataManagerCallback(null);
-	if(m_input != null) {
-	    m_input.close();
-	}
-
-
-	switch(selection) {
-	case 0: // should be bluetooth, is there a better way to do this?
-	    v = inflater.inflate(R.layout.bluetooth_input_ui,
-				 m_inputOption, false);
-	    m_inputOption.addView(v,0);
-	    break;
-	case 1: // should be file
-	    v = inflater.inflate(R.layout.file_input_ui,
-				 m_inputOption, false);
-	    m_inputOption.addView(v,0);
-
-	    Button b =
-		ButterKnife.findById(v,R.id.file_select_button);
-	    b.setOnClickListener(new View.OnClickListener(){
-		    public void onClick(View v) {
-			new MaterialDialog.Builder(getActivity())
-			    .content("WOO TEST")
-			    .positiveText("YEAH")
-			    .negativeText("NAH")
-			    .show();
-		    }
-		});
-
-	    m_input = new BluetoothDataInput(getActivity());
-
-	    break;
-	case 2: // should be random (for now...)
-	    m_input = new RandomDataInput();
-	    break;
-	default:
-	    // wtf.
-	    break;
-	}
-        if(m_callback != null) {
-            m_callback.updateDataInput(m_input);
+        if(m_input != null) {
+            // this should make the inputs stop all associated threads
+            // and whatever
+            m_input.close();
         }
+
+
+        switch(selection) {
+        case 0: // should be bluetooth, is there a better way to do this?
+            v = inflater.inflate(R.layout.bluetooth_input_ui,
+                                 m_inputOption, false);
+            m_inputOption.addView(v,0);
+
+
+
+            m_input = new BluetoothDataInput(getActivity());
+
+            break;
+        case 1: // should be file
+            v = inflater.inflate(R.layout.file_input_ui,
+                                 m_inputOption, false);
+            m_inputOption.addView(v,0);
+	    
+            Button b =
+                ButterKnife.findById(v,R.id.file_select_button);
+            b.setOnClickListener(new View.OnClickListener(){
+                    public void onClick(View v) {
+                        new MaterialDialog.Builder(getActivity())
+                            .content("WOO TEST")
+                            .positiveText("YEAH")
+                            .negativeText("NAH")
+                            .show();
+                    }
+                });
+
+            m_input = null;
+            break;
+        case 2: // should be random (for now...)
+            m_input = new RandomDataInput();
+            break;
+        default:
+            // wtf.
+            break;
+        }
+
+        // send new input to receivers
+
+	EventBus.getDefault().post(new InputChangeEvent(m_input));
     }
 
-    public void setDataManagerCallback(DataInputManagerCallback call){
-        m_callback = call;
-        if(m_input != null &&
-           m_callback != null) {
-            m_callback.updateDataInput(m_input);
+    /**
+     * This object contains the new input type, sent to receivers.
+     */
+    public class InputChangeEvent {
+        public final DataInputInterface input;
+        public InputChangeEvent(DataInputInterface in) {
+            this.input = in;
         }
-    }
-
-    // when the ui gets updated, this gets called so that the rest of
-    // the app has an idea that something happened.
-    public interface DataInputManagerCallback {
-        public void updateDataInput(DataInputInterface in);
     }
 }

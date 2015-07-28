@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import java.lang.Thread;
 import java.lang.Runnable;
+
 import android.util.Log;
 
 public class RandomDataInput implements DataInputInterface{
@@ -16,6 +17,10 @@ public class RandomDataInput implements DataInputInterface{
     int m_oldIndex = 0;
 
     InputUpdateCallback m_callback;
+
+    // generator thread
+    Thread m_genThread;
+    boolean m_genThreadRun;
 
 
     final int START_ELEMENT = 0;
@@ -26,25 +31,27 @@ public class RandomDataInput implements DataInputInterface{
 
     public RandomDataInput() {
         m_index = new AtomicInteger(0);
-        Runnable r = new Runnable() {
-                public void run() {
-                    while(true) {
-                        try {
-                            Thread.sleep(1000/ELEMENT_RATE);
-                        } catch(Exception e) {
-                            // TODO: handle?
-                        }
-                        Log.d("RANDOM","generating element, index: " +
-                              m_index.get());
-                        m_index.addAndGet(1);
-                        if(m_callback != null) {
-                            m_callback.updateInput();
-                        }
 
-                    }
-                }
-            };
-        new Thread(r).start();
+	// setup thread
+	m_genThreadRun = true;
+	Runnable r = new Runnable() {
+		public void run() {
+		    while(m_genThreadRun) {
+			try {
+			    Thread.sleep(1000/ELEMENT_RATE);
+			} catch(Exception e) {
+			    // TODO: handle?
+			}
+			m_index.addAndGet(1);
+			if(m_callback != null) {
+			    m_callback.updateInput();
+			}
+
+		    }
+		}
+	    };
+        m_genThread = new Thread(r);
+        m_genThread.start();
     }
 
     public int getCurrentIndex() {
@@ -84,7 +91,18 @@ public class RandomDataInput implements DataInputInterface{
     }
 
     public void close() {
-        return;
+        m_genThreadRun = false;
+        while(m_genThread != null) {
+            try {
+                m_genThread.join();
+                m_genThread = null;
+            }
+            catch(InterruptedException e) {
+                // TODO:
+            }
+        }
+        Log.v("RANDOM","Random data thread stopped");
+	return;
     }
 
     public void setUpdateCallback(DataInputInterface.InputUpdateCallback call) {

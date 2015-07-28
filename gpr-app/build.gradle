@@ -46,6 +46,9 @@ repositories {
 }
 
 dependencies {
+  // For a complete arch change...
+  compile 'de.greenrobot:eventbus:2.4.0'
+
   // for fancy dialogs...
   compile 'com.afollestad:material-dialogs:0.7.6.0'
 

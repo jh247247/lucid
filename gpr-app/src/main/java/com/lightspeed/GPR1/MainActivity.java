@@ -29,7 +29,7 @@ import butterknife.Bind;
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity implements
-							FileDialog.FileDialogCallback
+                                                        FileDialog.FileDialogCallback
 {
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
@@ -44,8 +44,8 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-	super.onCreate(savedInstanceState);
-	setContentView(R.layout.activity_my);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_my);
 
         // expand the bindings
         ButterKnife.bind(this);
@@ -64,19 +64,13 @@ public class MainActivity extends AppCompatActivity implements
         // set the hamburger to the current state of the drawer
         m_abtog.syncState();
 
-        // setup the callback for the input manager fragment
+        // setup the data input manager/fragment thing
         m_inputManager = (DataInputFragment)
             getSupportFragmentManager().findFragmentById(R.id.input_manager);
 
-        m_inputManager.setDataManagerCallback(new
-                                              DataInputFragment.DataInputManagerCallback(){
-                public void updateDataInput(DataInputInterface in) {
-                    m_render.setDataInput(in);
-                }
-            });
 
-	// TEST FOR DIALOGFRAGMENT
-	new FileDialog().show(MainActivity.this);
+        // TEST FOR DIALOGFRAGMENT
+        //new FileDialog().show(MainActivity.this);
     }
 
     private void setupDrawerListener() {
@@ -147,6 +141,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onFileSelection(File f) {
-	Toast.makeText(this, f.toString(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, f.toString(), Toast.LENGTH_SHORT).show();
     }
 }
