@@ -8,6 +8,7 @@ import android.graphics.Matrix;
 import java.lang.Math;
 import android.util.Log;
 import java.util.LinkedList;
+import android.graphics.Color;
 
 public class RenderElementBlitter {
     static final String LOGTAG = "RenderElementBlitter";
@@ -50,10 +51,13 @@ public class RenderElementBlitter {
         synchronized(m_elementsToRender) {
             locElementsToRender = new LinkedList<RenderElement>(m_elementsToRender);
         }
+	// if elements are empty, might as well clear all the pixels...
+	if(locElementsToRender.isEmpty()) {
+	    c.drawColor(Color.BLACK);
+	}
 
-
-        // get max height of element
-        int maxh = 0;
+	// get max height of element
+	int maxh = 0;
         for (RenderElement el : locElementsToRender) {
             maxh = Math.max(maxh, el.getElementHeight());
         }

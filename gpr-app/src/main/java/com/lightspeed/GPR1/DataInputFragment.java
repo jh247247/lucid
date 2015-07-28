@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.widget.Spinner;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 import android.view.ViewGroup;
@@ -120,13 +121,9 @@ public class DataInputFragment extends Fragment {
                 ButterKnife.findById(v,R.id.file_select_button);
             b.setOnClickListener(new View.OnClickListener(){
                     public void onClick(View v) {
-                        new MaterialDialog.Builder(getActivity())
-                            .content("WOO TEST")
-                            .positiveText("YEAH")
-                            .negativeText("NAH")
-                            .show();
-                    }
-                });
+			new FileDialog().show(getActivity());
+		    }
+		    });
 
             m_input = null;
             break;

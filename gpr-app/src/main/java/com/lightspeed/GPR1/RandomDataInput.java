@@ -95,7 +95,7 @@ public class RandomDataInput implements DataInputInterface{
         while(m_genThread != null) {
             try {
                 m_genThread.join();
-                m_genThread = null;
+		m_genThread = null;
             }
             catch(InterruptedException e) {
                 // TODO:

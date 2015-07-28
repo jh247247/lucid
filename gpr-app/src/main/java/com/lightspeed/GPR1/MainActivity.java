@@ -68,9 +68,6 @@ public class MainActivity extends AppCompatActivity implements
         m_inputManager = (DataInputFragment)
             getSupportFragmentManager().findFragmentById(R.id.input_manager);
 
-
-        // TEST FOR DIALOGFRAGMENT
-        //new FileDialog().show(MainActivity.this);
     }
 
     private void setupDrawerListener() {

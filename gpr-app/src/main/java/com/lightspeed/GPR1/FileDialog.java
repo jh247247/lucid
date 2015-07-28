@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import de.greenrobot.event.EventBus;
 
 public class FileDialog extends DialogFragment implements MaterialDialog.ListCallback{
     private File m_parentFolder;
@@ -84,23 +87,23 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
                 return;
             } else {
                 m_parentFolder = m_parentContents[m_canGoUp ? i - 1 : i];
-		m_canGoUp = true;
-	    }
+                m_canGoUp = true;
+            }
 
-	}
+        }
         m_parentContents = m_parentFolder.listFiles();
-	MaterialDialog dialog = (MaterialDialog) getDialog();
-	dialog.setTitle(m_parentFolder.getAbsolutePath());
-	dialog.setItems(getContentsArray());
+        MaterialDialog dialog = (MaterialDialog) getDialog();
+        dialog.setTitle(m_parentFolder.getAbsolutePath());
+        dialog.setItems(getContentsArray());
     }
 
-@Override
-public void onAttach(Activity activity) {
-    super.onAttach(activity);
-    m_callback = (FileDialogCallback) activity;
-}
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        m_callback = (FileDialogCallback) activity;
+    }
 
-    public void show(AppCompatActivity context) {
+    public void show(FragmentActivity context) {
         show(context.getSupportFragmentManager(), "FILE_SELECTOR");
     }
 
