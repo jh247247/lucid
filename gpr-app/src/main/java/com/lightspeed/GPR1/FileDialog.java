@@ -23,7 +23,6 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
     private File m_parentFolder;
     private File[] m_parentContents;
     private boolean m_canGoUp;
-    private FileDialogCallback m_callback;
 
     /**
      * Callbacks for dialog we are hosting.
@@ -81,9 +80,9 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
             m_canGoUp = m_parentFolder.getParent() != null;
         } else {
             File curr = m_parentContents[m_canGoUp ? i-1 : i];
-            if(!curr.isDirectory() && m_callback != null){
-                m_callback.onFileSelection(curr);
-                materialDialog.dismiss();
+            if(!curr.isDirectory()){
+		EventBus.getDefault().post(new FileChangedEvent(curr));
+		materialDialog.dismiss();
                 return;
             } else {
                 m_parentFolder = m_parentContents[m_canGoUp ? i - 1 : i];
@@ -100,7 +99,6 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        m_callback = (FileDialogCallback) activity;
     }
 
     public void show(FragmentActivity context) {
@@ -112,5 +110,13 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
         public int compare(File lhs, File rhs) {
             return lhs.getName().compareTo(rhs.getName());
         }
+    }
+
+    // object to pass as a message
+    public class FileChangedEvent {
+	final public File file;
+	public FileChangedEvent(File f) {
+	    this.file = f;
+	}
     }
 }

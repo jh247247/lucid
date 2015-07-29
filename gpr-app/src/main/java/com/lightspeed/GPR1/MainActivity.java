@@ -28,9 +28,7 @@ import butterknife.Bind;
 
 import java.io.File;
 
-public class MainActivity extends AppCompatActivity implements
-                                                        FileDialog.FileDialogCallback
-{
+public class MainActivity extends AppCompatActivity {
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
     @Bind(R.id.render) RenderView m_render;
@@ -130,14 +128,5 @@ public class MainActivity extends AppCompatActivity implements
     public void onResume() {
         super.onResume();
         m_render.stopView();
-    }
-
-    /**
-     * TEST FOR DIALOG FRAGMENT
-     */
-
-    @Override
-    public void onFileSelection(File f) {
-        Toast.makeText(this, f.toString(), Toast.LENGTH_SHORT).show();
     }
 }

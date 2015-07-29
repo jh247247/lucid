@@ -2,16 +2,20 @@ package com.lightspeed.GPR1;
 
 import com.lightspeed.gpr.lib.DataInputInterface;
 import com.lightspeed.gpr.lib.Element;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.ref.SoftReference;
 import java.lang.Math;
-import io.palaima.smoothbluetooth.SmoothBluetooth;
-import io.palaima.smoothbluetooth.Device;
+import java.io.File;
+
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
+import android.widget.Toast;
+
+import de.greenrobot.event.EventBus;
 
 public class FileDataInput implements DataInputInterface {
 
@@ -19,12 +23,15 @@ public class FileDataInput implements DataInputInterface {
 
     private ArrayList<SoftReference<Element>> m_previous;
     private ArrayList<Element> m_new;
-    private SmoothBluetooth m_bluetooth;
+
     private Context m_ctx;
 
     public FileDataInput(Context ctx) {
         m_previous = new ArrayList<SoftReference<Element>>();
         m_new = new ArrayList<Element>();
+	m_ctx = ctx;
+
+	EventBus.getDefault().register(this);
     }
 
     public int getCurrentIndex() {
@@ -87,5 +94,9 @@ public class FileDataInput implements DataInputInterface {
 
     public String getName() {
         return m_ctx.getString(R.string.bluetooth);
+    }
+
+    public void onEvent(FileDialog.FileChangedEvent e) {
+	Toast.makeText(m_ctx, e.file.toString(), Toast.LENGTH_SHORT).show();
     }
 }

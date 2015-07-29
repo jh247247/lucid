@@ -18,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
 import android.util.Log;
+import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
@@ -42,8 +43,8 @@ public class DataInputFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater,
-			     ViewGroup container,
-			     Bundle savedInstanceState) {
+                             ViewGroup container,
+                             Bundle savedInstanceState) {
         // inflate layout...
         View ret = inflater.inflate(R.layout.input_selector_view,
                                     container, false);
@@ -106,26 +107,27 @@ public class DataInputFragment extends Fragment {
             v = inflater.inflate(R.layout.bluetooth_input_ui,
                                  m_inputOption, false);
             m_inputOption.addView(v,0);
+	    try {
+		m_input = new BluetoothDataInput(getActivity());
+	    } catch(Exception e) {
+		Toast.makeText(getActivity(), "Cannot use bluetooth?", Toast.LENGTH_SHORT).show();
+	    }
 
-
-
-            m_input = new BluetoothDataInput(getActivity());
-
-            break;
+	    break;
         case 1: // should be file
             v = inflater.inflate(R.layout.file_input_ui,
                                  m_inputOption, false);
             m_inputOption.addView(v,0);
-	    
+
             Button b =
                 ButterKnife.findById(v,R.id.file_select_button);
             b.setOnClickListener(new View.OnClickListener(){
                     public void onClick(View v) {
-			new FileDialog().show(getActivity());
-		    }
-		    });
+                        new FileDialog().show(getActivity());
+                    }
+                });
 
-            m_input = null;
+            m_input = new FileDataInput(getActivity());
             break;
         case 2: // should be random (for now...)
             m_input = new RandomDataInput();
@@ -137,7 +139,7 @@ public class DataInputFragment extends Fragment {
 
         // send new input to receivers
 
-	EventBus.getDefault().post(new InputChangeEvent(m_input));
+        EventBus.getDefault().post(new InputChangeEvent(m_input));
     }
 
     /**
