@@ -113,6 +113,11 @@ public class FileDataInput implements DataInputInterface {
 
 	    // read file
 	    while(m_progress != MAX_PROGRESS) {
+		try {
+		    Thread.sleep(50);
+		} catch(Exception e) {
+		    // TODO: handle
+			}
 		m_progress++;
 		m_dialog.setProgress(m_progress);
 	    }
