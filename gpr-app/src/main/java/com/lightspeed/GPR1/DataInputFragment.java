@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.view.ViewGroup;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -40,6 +41,8 @@ public class DataInputFragment extends Fragment {
     @Bind(R.id.inputOptionLayout) LinearLayout m_inputOption;
 
     DataInputInterface m_input;
+
+    View m_inputView; // view that the interface exposes
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -80,6 +83,8 @@ public class DataInputFragment extends Fragment {
 
         setupInputUI(m_inputSpinner.getSelectedItemPosition());
 
+        EventBus.getDefault().register(this);
+
         return ret;
     }
 
@@ -92,7 +97,7 @@ public class DataInputFragment extends Fragment {
     public void setupInputUI(int selection) {
         LayoutInflater inflater = (LayoutInflater)
             getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = null;
+        m_inputView = null;
 
         m_inputOption.removeAllViews();
         if(m_input != null) {
@@ -104,23 +109,23 @@ public class DataInputFragment extends Fragment {
 
         switch(selection) {
         case 0: // should be bluetooth, is there a better way to do this?
-            v = inflater.inflate(R.layout.bluetooth_input_ui,
-                                 m_inputOption, false);
-            m_inputOption.addView(v,0);
-	    try {
-		m_input = new BluetoothDataInput(getActivity());
-	    } catch(Exception e) {
-		Toast.makeText(getActivity(), "Cannot use bluetooth?", Toast.LENGTH_SHORT).show();
-	    }
+            m_inputView = inflater.inflate(R.layout.bluetooth_input_ui,
+                                           m_inputOption, false);
+            m_inputOption.addView(m_inputView,0);
+            try {
+                m_input = new BluetoothDataInput(getActivity());
+            } catch(Exception e) {
+                Toast.makeText(getActivity(), "Cannot use bluetooth?", Toast.LENGTH_SHORT).show();
+            }
 
-	    break;
+            break;
         case 1: // should be file
-            v = inflater.inflate(R.layout.file_input_ui,
-                                 m_inputOption, false);
-            m_inputOption.addView(v,0);
+            m_inputView = inflater.inflate(R.layout.file_input_ui,
+                                           m_inputOption, false);
+            m_inputOption.addView(m_inputView,0);
 
             Button b =
-                ButterKnife.findById(v,R.id.file_select_button);
+                ButterKnife.findById(m_inputView,R.id.file_select_button);
             b.setOnClickListener(new View.OnClickListener(){
                     public void onClick(View v) {
                         new FileDialog().show(getActivity());
@@ -140,6 +145,19 @@ public class DataInputFragment extends Fragment {
         // send new input to receivers
 
         EventBus.getDefault().post(new InputChangeEvent(m_input));
+    }
+
+    public void onEvent(FileDialog.FileChangedEvent e) {
+        TextView t = null;
+        if(m_inputView != null) {
+            t = ButterKnife.findById(m_inputView,R.id.file_select_text);
+        }
+
+        if(t != null) {
+            // TODO: make this saved between switching interfaces?
+	    String f = e.file.toString();
+	    t.setText(f);
+        }
     }
 
     /**
