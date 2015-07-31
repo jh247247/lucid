@@ -15,7 +15,7 @@ import de.greenrobot.event.EventBus;
 public class RenderElementManager implements
 				      DataInputInterface.InputUpdateCallback {
     static final String LOGTAG = "RenderElementManager";
-    static final int MAX_CACHE = 100;
+    static final int MAX_CACHE = 1000;
 
     RenderElementBlitter m_blitter;
 
@@ -120,7 +120,9 @@ public class RenderElementManager implements
      * Returns the successful amount of offset applied.
      */
     public synchronized int moveCurrent(int offset) {
-        Log.d(LOGTAG, "moveCurrent: move " + offset + " elements");
+	updateInput();
+
+	Log.d(LOGTAG, "moveCurrent: move " + offset + " elements");
         synchronized(m_currentData) {
             if(offset < 0) {
                 offset = moveNewerToCurrent(-offset);

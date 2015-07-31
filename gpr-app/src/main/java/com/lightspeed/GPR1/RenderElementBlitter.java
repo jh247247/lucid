@@ -39,9 +39,9 @@ public class RenderElementBlitter {
 
 
     public void blitToCanvas(Canvas c) {
-        if(m_elementsToRender == null ||
-           m_elementsToRender.size() == 0) {
+        if(m_elementsToRender == null) {
             // cannot render...
+	    Log.e("RenderElementBlitter","Cannot render!");
             return;
         }
         // make local copy to elements to render, just in case things
@@ -51,9 +51,12 @@ public class RenderElementBlitter {
         synchronized(m_elementsToRender) {
             locElementsToRender = new LinkedList<RenderElement>(m_elementsToRender);
         }
+
 	// if elements are empty, might as well clear all the pixels...
 	if(locElementsToRender.isEmpty()) {
 	    c.drawColor(Color.BLACK);
+	    Log.w("RenderElementBlitter","No elements!");
+	    return;
 	}
 
 	// get max height of element
@@ -87,14 +90,16 @@ public class RenderElementBlitter {
         int amountToRender = Math.min(m_maxElements,
                                       locElementsToRender.size()-1);
 
-        for(int i = amountToRender; i >= 0; i--) {
-            // render the bitmap
-            tbm = locElementsToRender.get(i).getRenderedElement();
-            if(tbm == null) break;
+	Log.d("RenderElementBlitter","Rendered " + amountToRender + " elements");
 
-            // blit bitmap to canvas
-            m_cbm.drawBitmap(tbm, m_cbm.getWidth()-amountToRender+i-1, 0, null);
-        }
+	for(int i = amountToRender; i >= 0; i--) {
+	    // render the bitmap
+	    tbm = locElementsToRender.get(i).getRenderedElement();
+	    if(tbm == null) break;
+
+	    // blit bitmap to canvas
+	    m_cbm.drawBitmap(tbm, m_cbm.getWidth()-amountToRender+i-1, 0, null);
+	}
         // stop rendering
 
         Matrix matrix = new Matrix();
