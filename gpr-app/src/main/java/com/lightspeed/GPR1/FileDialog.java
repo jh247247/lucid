@@ -50,6 +50,7 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
     public FileDialog() {
         m_parentFolder = Environment.getExternalStorageDirectory();
         m_parentContents = m_parentFolder.listFiles(); // TODO:
+	m_canGoUp = m_parentFolder.getParent() != null;
     }
 
     @Override
