@@ -60,7 +60,6 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
             .itemsCallback(this)
             .callback(m_buttonCallback)
             .autoDismiss(false)
-            //.positiveText(R.string.choose)
             .negativeText(android.R.string.cancel)
             .build();
     }

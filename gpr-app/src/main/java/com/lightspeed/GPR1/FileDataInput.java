@@ -14,24 +14,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
 import android.widget.Toast;
+import android.util.Log;
+
+import android.content.DialogInterface;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.GravityEnum;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
+import com.afollestad.materialdialogs.ThemeSingleton;
+import com.afollestad.materialdialogs.internal.MDTintHelper;
+import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
+import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
+import com.afollestad.materialdialogs.util.DialogUtils;
 
 import de.greenrobot.event.EventBus;
 
 public class FileDataInput implements DataInputInterface {
-
-    public static final int ENABLE_BT__REQUEST = 1;
-
-    private ArrayList<SoftReference<Element>> m_previous;
-    private ArrayList<Element> m_new;
+    ArrayList<Integer> m_indexes;
 
     private Context m_ctx;
 
     public FileDataInput(Context ctx) {
-        m_previous = new ArrayList<SoftReference<Element>>();
-        m_new = new ArrayList<Element>();
-	m_ctx = ctx;
+        m_indexes = null;
+        m_ctx = ctx;
 
-	EventBus.getDefault().register(this);
+        EventBus.getDefault().register(this);
     }
 
     public int getCurrentIndex() {
@@ -39,45 +46,16 @@ public class FileDataInput implements DataInputInterface {
     }
 
     public boolean hasNext() {
-        return !m_new.isEmpty();
+        return false;
     }
 
     public Element getNext() {
-        // fifo, so remove from start
-        if(m_new.size() > 0) {
-            return m_new.remove(0);
-        }
         return null;
-    }
-
-    private void trimPrevious() {
-        while(m_previous.size() > 0 && // still have elements
-              m_previous.get(m_previous.size()-1).get() == null) { // start element is expired
-            m_previous.remove(m_previous.size()-1);
-        }
     }
 
 
     public Element getPrevious(int offset) {
-        trimPrevious();
-        Element ret = null;
-        if(offset < 0 ) {
-            return null; // cannot grab from future...
-        }
-
-        // definitely not stored. have to reload... (FIXME)
-        if(offset > m_previous.size()-1 ||
-           m_previous.get(offset).get() == null) {
-            // would load it from file, but cbf generate random var.
-            ret = new Element(0,255);
-            for(int i = 0; i < 255; i++) {
-                ret.setSample(i,Math.random()*255);
-            }
-            return ret;
-        }
-
-        // woo! we still have it! return it.
-        return m_previous.get(offset).get();
+        return null;
     }
 
     public void setUpdateCallback(InputUpdateCallback call) {
@@ -97,6 +75,55 @@ public class FileDataInput implements DataInputInterface {
     }
 
     public void onEvent(FileDialog.FileChangedEvent e) {
-	Toast.makeText(m_ctx, e.file.toString(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(m_ctx, e.file.toString(), Toast.LENGTH_SHORT).show();
+        new FileIndexer(e.file);
+    }
+
+
+    private class FileIndexer implements Runnable {
+        final static int MAX_PROGRESS = 100; // amount of discreteness
+
+        int m_progress; // current progress of reading the file
+        File m_currFile;
+        Thread m_thr;
+        MaterialDialog m_dialog;
+
+        public FileIndexer(File f) {
+            Log.d("INDEX", "Starting file index...");
+
+            m_currFile = f;
+
+
+            new MaterialDialog.Builder(m_ctx)
+                .title(R.string.file_read)
+                .progress(false, MAX_PROGRESS, false)
+                .showListener(new DialogInterface.OnShowListener() {
+                        @Override
+                        public void onShow(DialogInterface dialog) {
+                            m_dialog = (MaterialDialog) dialog;
+                            m_thr = new Thread(FileIndexer.this);
+                            m_thr.start();
+                        }
+                    }).show();
+        }
+
+        // read back the file, update progress as it goes along.
+        public void run() {
+            long fileLen = m_currFile.length();
+
+            // read file
+            while(m_progress != MAX_PROGRESS) {
+
+                m_dialog.setProgress(m_progress);
+            }
+
+            // dismiss dialog
+            ((Activity)m_ctx).runOnUiThread(new Runnable() {
+                    public void run() {
+                        m_dialog.dismiss();
+                    }
+                });
+            Log.d("INDEX", "Finished file index!");
+        }
     }
 }

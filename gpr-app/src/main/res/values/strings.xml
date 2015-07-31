@@ -11,6 +11,7 @@
   <string name="file_select_none">No file selected!</string>
   <string name="start">Start</string>
   <string name="stop">Stop</string>
+  <string name="file_read">Reading File...</string>
   <string-array name="input_options">
     <item>Bluetooth</item>
     <item>File</item>
