@@ -8,6 +8,14 @@ import java.util.List;
 import java.lang.ref.SoftReference;
 import java.lang.Math;
 import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.RandomAccessFile;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -30,23 +38,34 @@ import com.afollestad.materialdialogs.util.DialogUtils;
 import de.greenrobot.event.EventBus;
 
 public class FileDataInput implements DataInputInterface {
-    ArrayList<Integer> m_indexes;
+    final static int ELEMENT_HEADER_LEN = 6;
+    final static int TIMESTAMP_LEN = 7;
+    final static byte TYPE_ELEMENT = 0;
+    final static byte TYPE_TIMESTAMP = 1;
+
+    File m_file;
+    RandomAccessFile m_raf;
+
+    private ArrayList<Integer> m_elementIndex;
+    private ArrayList<Integer> m_timestampIndex;
+
+    InputUpdateCallback m_callback;
 
     private Context m_ctx;
 
     public FileDataInput(Context ctx) {
-        m_indexes = null;
         m_ctx = ctx;
 
         EventBus.getDefault().register(this);
     }
 
     public int getCurrentIndex() {
-        return 0; // TODO:
-    }
+        // get the index of the last element, don't know how useful it will be...
+        return m_elementIndex.get(m_elementIndex.size()-1);
 
+    }
     public boolean hasNext() {
-	return false;
+        return false; // no more in the future, so return false.
     }
 
     public Element getNext() {
@@ -55,28 +74,110 @@ public class FileDataInput implements DataInputInterface {
 
 
     public Element getPrevious(int offset) {
-        return null;
+        // make sure that we don't try to read anything that doesn't exist.
+        if(m_raf == null || // make sure that we actually have the file open
+           m_elementIndex == null ||
+           offset < 0 ||
+           offset > m_elementIndex.size()){
+            if(m_elementIndex != null){
+                Log.e("FileDataInput", "Error reading previous! " + (m_raf == null) + " " +
+                      (m_elementIndex == null) + " " + (offset < 0) + " " + (offset > m_elementIndex.size()));
+            }
+            return null;
+        }
+        // offset from the end of the file...
+        int index = m_elementIndex.get(offset);
+
+        // seek to position
+        try {
+            m_raf.seek(index);
+        } catch(IOException e) {
+            Log.e("FileDataInput", "IO exception when seeking!");
+        }
+        byte type;
+        try {
+            type = m_raf.readByte();
+        } catch(IOException e) {
+            Log.e("FileDataInput", "Error reading type byte!");
+            return null;
+        }
+
+        if(type != TYPE_ELEMENT) {
+            Log.e("FileDataInput", "Seek'd to non-element! Expected: " + TYPE_ELEMENT +
+                  " Recieved: " + type + " @ " + index);
+            return null;
+        }
+
+        short start;
+        short stop;
+        byte bps;
+
+        try {
+            start = m_raf.readShort(); // start of element
+            stop = m_raf.readShort(); // stop element
+            bps = m_raf.readByte(); // bytes per sample
+        } catch(IOException e) {
+            Log.e("FileDataInput", "Error reading element header!");
+            return null;
+        }
+
+
+        Element el = new Element(start, stop);
+        try{
+            for(int i = start; i < stop; i++) {
+                switch(bps) {
+                case 1:
+                    el.setSample(i, m_raf.readByte());
+                    break;
+                case 2:
+                    el.setSample(i, m_raf.readShort());
+                    break;
+                case 4:
+                    el.setSample(i, m_raf.readInt());
+                    break;
+                case 8:
+                    el.setSample(i, m_raf.readDouble());
+                    break;
+                default:
+                    Log.wtf("FileDataInput", "Invalid sample size!");
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            Log.e("FileDataInput", "IOException while reading samples!");
+            return null;
+        }
+
+	Log.v("FileDataInput", "Get element " + offset + "SUCCESS");
+        return el;
     }
 
     public void setUpdateCallback(InputUpdateCallback call) {
-
+	m_callback = call;
     }
 
     public boolean open() {
+        if(m_file == null) {
+            return false;
+        }
+        // index the file for us, should really do some callback, but idk.
+        new FileIndexer(m_file);
+
         return true;
     }
 
     public void close() {
-
+        m_raf = null;
     }
 
     public String getName() {
-        return m_ctx.getString(R.string.bluetooth);
+        return m_ctx.getString(R.string.file);
     }
 
     public void onEvent(FileDialog.FileChangedEvent e) {
         Toast.makeText(m_ctx, e.file.toString(), Toast.LENGTH_SHORT).show();
-	new FileIndexer(e.file);
+        m_file = e.file;
+        open();
     }
 
 
@@ -89,11 +190,15 @@ public class FileDataInput implements DataInputInterface {
         MaterialDialog m_dialog;
 
         public FileIndexer(File f) {
-	    Log.d("INDEX", "Starting file index...");
+            Log.d("INDEX", "Starting file index...");
 
-	    m_currFile = f;
+            m_currFile = f;
+            if(m_currFile == null) {
+                // do nothing, wait for death.
+                return;
+            }
 
-
+            // make the dialog so the user thinks that something is actually going on...
             new MaterialDialog.Builder(m_ctx)
                 .title(R.string.file_read)
                 .progress(false, MAX_PROGRESS, false)
@@ -109,26 +214,88 @@ public class FileDataInput implements DataInputInterface {
 
         // read back the file, update progress as it goes along.
         public void run() {
-	    long fileLen = m_currFile.length();
+            long fileLen = m_currFile.length();
+            int offset = 0;
+            byte type = 0;
+            Log.d("INDEX","Input file length: " + fileLen);
+            ArrayList<Integer> locIndexList = new ArrayList<Integer>();
+            ArrayList<Integer> locTimeStampList = new ArrayList<Integer>();
+            DataInputStream in = null;
+            try {
+                in = new DataInputStream(new BufferedInputStream(new FileInputStream(m_currFile)));
+            } catch(FileNotFoundException e) {
+                // TODO: handle
+            }
 
-	    // read file
-	    while(m_progress != MAX_PROGRESS) {
-		try {
-		    Thread.sleep(50);
-		} catch(Exception e) {
-		    // TODO: handle
-			}
-		m_progress++;
-		m_dialog.setProgress(m_progress);
-	    }
 
-            // dismiss dialog
+            // read in file, get indexes of files
+            try{
+                while(offset < fileLen) {
+                    type = in.readByte();
+                    switch(type) {
+                    case TYPE_ELEMENT:
+                        // add element to local list
+                        locIndexList.add(offset);
+                        Log.d("INDEX","Element starting at " + offset);
+
+                        // calculate how much data to skip
+                        short start = in.readShort();
+                        short stop = in.readShort();
+                        short bytesPerSample = in.readByte();
+                        in.skip((stop-start)*bytesPerSample);
+                        offset += ELEMENT_HEADER_LEN + (stop-start)*bytesPerSample;
+                        break;
+
+                    case TYPE_TIMESTAMP:
+                        // add to local timestamp list
+                        locTimeStampList.add(offset);
+                        Log.d("INDEX","Timestamp starting at " + offset);
+                        offset += TIMESTAMP_LEN + 1;
+                        in.skip(TIMESTAMP_LEN);
+                        break;
+
+                    default:
+                        Log.e("INDEX","Unknown type byte found!");
+                        // TODO: show user "invalid file" dialog or something
+                        break;
+                    }
+
+                    // figure out if ui needs updating
+                    if(m_progress != (int)(((double)offset/(double)fileLen)*MAX_PROGRESS)) {
+                        Log.d("INDEX","Progress: " + (int)(((double)offset/(double)fileLen)*MAX_PROGRESS));
+                        m_progress = (int)(((double)offset/(double)fileLen)*MAX_PROGRESS);
+                        m_dialog.setProgress(m_progress);
+                    }
+
+                }
+            }
+            catch(EOFException e) {
+                Log.v("INDEX","End of file reached!");
+                // if I had to close the file, I would put the code here
+            }
+            catch(Exception e) {
+                Log.e("INDEX","Generic error...");
+                // TODO: proper handle...
+            }
+
+            // close the dialog, since the file is indexed
             ((Activity)m_ctx).runOnUiThread(new Runnable() {
                     public void run() {
                         m_dialog.dismiss();
                     }
                 });
-	    Log.d("INDEX", "Finished file index!");
-        }
+
+            // update the outer class so that we can actually parse the data
+            FileDataInput.this.m_elementIndex = locIndexList;
+            FileDataInput.this.m_timestampIndex = locTimeStampList;
+            Log.d("INDEX", "Finished file index!");
+
+	    // make random access file thingo
+            try {
+                m_raf = new RandomAccessFile(m_file, "r");
+            } catch (FileNotFoundException e) {
+                Log.wtf("FileDataInput", "File disspeared between indexing and opening. wtf.");
+            }
+	}
     }
 }
