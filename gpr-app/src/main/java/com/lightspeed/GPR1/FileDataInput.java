@@ -46,7 +46,7 @@ public class FileDataInput implements DataInputInterface {
     }
 
     public boolean hasNext() {
-        return false;
+	return false;
     }
 
     public Element getNext() {
@@ -76,7 +76,7 @@ public class FileDataInput implements DataInputInterface {
 
     public void onEvent(FileDialog.FileChangedEvent e) {
         Toast.makeText(m_ctx, e.file.toString(), Toast.LENGTH_SHORT).show();
-        new FileIndexer(e.file);
+	new FileIndexer(e.file);
     }
 
 
@@ -89,9 +89,9 @@ public class FileDataInput implements DataInputInterface {
         MaterialDialog m_dialog;
 
         public FileIndexer(File f) {
-            Log.d("INDEX", "Starting file index...");
+	    Log.d("INDEX", "Starting file index...");
 
-            m_currFile = f;
+	    m_currFile = f;
 
 
             new MaterialDialog.Builder(m_ctx)
@@ -109,13 +109,13 @@ public class FileDataInput implements DataInputInterface {
 
         // read back the file, update progress as it goes along.
         public void run() {
-            long fileLen = m_currFile.length();
+	    long fileLen = m_currFile.length();
 
-            // read file
-            while(m_progress != MAX_PROGRESS) {
-
-                m_dialog.setProgress(m_progress);
-            }
+	    // read file
+	    while(m_progress != MAX_PROGRESS) {
+		m_progress++;
+		m_dialog.setProgress(m_progress);
+	    }
 
             // dismiss dialog
             ((Activity)m_ctx).runOnUiThread(new Runnable() {
@@ -123,7 +123,7 @@ public class FileDataInput implements DataInputInterface {
                         m_dialog.dismiss();
                     }
                 });
-            Log.d("INDEX", "Finished file index!");
+	    Log.d("INDEX", "Finished file index!");
         }
     }
 }
