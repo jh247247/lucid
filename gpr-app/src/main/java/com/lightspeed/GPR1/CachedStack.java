@@ -81,7 +81,7 @@ public class CachedStack<T> {
 
         amount = Math.min(amount, m_hardData.size());
         for(int i = 0; i < amount; i++) {
-            m_hardData.remove(0);
+            m_hardData.remove(m_hardData.size()-1);
         }
         Log.d("RECS", "removed " + amount + " from hard buffer");
         Log.d("RECS", "Current size: " + m_hardData.size());
