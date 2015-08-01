@@ -105,7 +105,8 @@ public class RenderView extends SurfaceView
             // so make sure that we aren't passed a null canvas
             return;
         }
-        m_blitter.blitToCanvas(c);
+	m_manager.updateInput();
+	m_blitter.blitToCanvas(c);
     }
 
     @Override

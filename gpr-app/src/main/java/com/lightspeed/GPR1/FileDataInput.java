@@ -44,7 +44,6 @@ public class FileDataInput implements DataInputInterface {
     final static byte TYPE_TIMESTAMP = 1;
 
     File m_file;
-    RandomAccessFile m_raf;
 
     private ArrayList<Integer> m_elementIndex;
     private ArrayList<Integer> m_timestampIndex;
@@ -61,7 +60,10 @@ public class FileDataInput implements DataInputInterface {
 
     public int getCurrentIndex() {
         // get the index of the last element, don't know how useful it will be...
-        return m_elementIndex.get(m_elementIndex.size()-1);
+        if(m_elementIndex != null) {
+            return m_elementIndex.get(m_elementIndex.size()-1);
+        }
+        return 0;
 
     }
     public boolean hasNext() {
@@ -73,30 +75,40 @@ public class FileDataInput implements DataInputInterface {
     }
 
 
-    public Element getPrevious(int offset) {
+    public  Element getPrevious(int offset) {
+        DataInputStream in = null;
+        try {
+            in = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
+        } catch(FileNotFoundException e) {
+            // TODO: handle
+        } catch (Exception e) {
+
+        }
+
+
         // make sure that we don't try to read anything that doesn't exist.
-        if(m_raf == null || // make sure that we actually have the file open
+        if(in == null || // make sure that we actually have the file open
            m_elementIndex == null ||
            offset < 0 ||
            offset > m_elementIndex.size()){
             if(m_elementIndex != null){
-                Log.e("FileDataInput", "Error reading previous! " + (m_raf == null) + " " +
+                Log.e("FileDataInput", "Error reading previous! " + (in == null) + " " +
                       (m_elementIndex == null) + " " + (offset < 0) + " " + (offset > m_elementIndex.size()));
             }
             return null;
         }
         // offset from the end of the file...
-        int index = m_elementIndex.get(offset);
+        int index = m_elementIndex.get(m_elementIndex.size()-1-offset);
 
         // seek to position
         try {
-            m_raf.seek(index);
+            in.skip(index);
         } catch(IOException e) {
             Log.e("FileDataInput", "IO exception when seeking!");
         }
         byte type;
         try {
-            type = m_raf.readByte();
+            type = in.readByte();
         } catch(IOException e) {
             Log.e("FileDataInput", "Error reading type byte!");
             return null;
@@ -113,30 +125,29 @@ public class FileDataInput implements DataInputInterface {
         byte bps;
 
         try {
-            start = m_raf.readShort(); // start of element
-            stop = m_raf.readShort(); // stop element
-            bps = m_raf.readByte(); // bytes per sample
+            start = in.readShort(); // start of element
+            stop = in.readShort(); // stop element
+            bps = in.readByte(); // bytes per sample
         } catch(IOException e) {
             Log.e("FileDataInput", "Error reading element header!");
             return null;
         }
-
 
         Element el = new Element(start, stop);
         try{
             for(int i = start; i < stop; i++) {
                 switch(bps) {
                 case 1:
-                    el.setSample(i, m_raf.readByte());
+                    el.setSample(i, in.readByte());
                     break;
                 case 2:
-                    el.setSample(i, m_raf.readShort());
+                    el.setSample(i, in.readShort());
                     break;
                 case 4:
-                    el.setSample(i, m_raf.readInt());
+                    el.setSample(i, in.readInt());
                     break;
                 case 8:
-                    el.setSample(i, m_raf.readDouble());
+                    el.setSample(i, in.readDouble());
                     break;
                 default:
                     Log.wtf("FileDataInput", "Invalid sample size!");
@@ -148,12 +159,13 @@ public class FileDataInput implements DataInputInterface {
             return null;
         }
 
-	Log.v("FileDataInput", "Get element " + offset + "SUCCESS");
+        Log.v("FileDataInput", "Get element " + offset + " @ " +
+              index+" SUCCESS");
         return el;
     }
 
     public void setUpdateCallback(InputUpdateCallback call) {
-	m_callback = call;
+        m_callback = call;
     }
 
     public boolean open() {
@@ -167,7 +179,7 @@ public class FileDataInput implements DataInputInterface {
     }
 
     public void close() {
-        m_raf = null;
+        //m_raf = null;
     }
 
     public String getName() {
@@ -289,13 +301,6 @@ public class FileDataInput implements DataInputInterface {
             FileDataInput.this.m_elementIndex = locIndexList;
             FileDataInput.this.m_timestampIndex = locTimeStampList;
             Log.d("INDEX", "Finished file index!");
-
-	    // make random access file thingo
-            try {
-                m_raf = new RandomAccessFile(m_file, "r");
-            } catch (FileNotFoundException e) {
-                Log.wtf("FileDataInput", "File disspeared between indexing and opening. wtf.");
-            }
-	}
+        }
     }
 }

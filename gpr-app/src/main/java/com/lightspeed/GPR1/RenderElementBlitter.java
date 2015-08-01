@@ -46,10 +46,10 @@ public class RenderElementBlitter {
         }
         // make local copy to elements to render, just in case things
         // change beneath us
-        List<RenderElement> locElementsToRender = null;
+        ArrayList<RenderElement> locElementsToRender = null;
 
         synchronized(m_elementsToRender) {
-            locElementsToRender = new LinkedList<RenderElement>(m_elementsToRender);
+            locElementsToRender = new ArrayList<RenderElement>(m_elementsToRender);
         }
 
 	// if elements are empty, might as well clear all the pixels...
@@ -90,7 +90,7 @@ public class RenderElementBlitter {
         int amountToRender = Math.min(m_maxElements,
                                       locElementsToRender.size()-1);
 
-	Log.d("RenderElementBlitter","Rendered " + amountToRender + " elements");
+	//Log.d("RenderElementBlitter","Rendered " + amountToRender + " elements");
 
 	for(int i = amountToRender; i >= 0; i--) {
 	    // render the bitmap
