@@ -37,12 +37,21 @@ import com.afollestad.materialdialogs.util.DialogUtils;
 import de.greenrobot.event.EventBus;
 
 public class DataInputFragment extends Fragment {
+    static final String SPINNER_POS_SAVE = "spinnerPos";
+    static final String FILENAME_SAVE = "filename";
+
     @Bind(R.id.inputSpinner) Spinner m_inputSpinner;
     @Bind(R.id.inputOptionLayout) LinearLayout m_inputOption;
 
     DataInputInterface m_input;
 
     View m_inputView; // view that the interface exposes
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -79,18 +88,31 @@ public class DataInputFragment extends Fragment {
                 }
             });
 
-        // TODO: get back last setting...
+	// reset the spinner
+	if(savedInstanceState != null) {
+	    m_inputSpinner.setSelection(savedInstanceState.getInt(SPINNER_POS_SAVE,0));
+	}
 
-        setupInputUI(m_inputSpinner.getSelectedItemPosition());
+	setupInputUI(m_inputSpinner.getSelectedItemPosition());
 
+	// setup mini-ui
+
+	// register on the event bus..
         EventBus.getDefault().register(this);
 
         return ret;
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("spinnerPos", m_inputSpinner.getSelectedItemPosition());
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
+        EventBus.getDefault().unregister(this);
         ButterKnife.unbind(this);
     }
 
@@ -155,8 +177,8 @@ public class DataInputFragment extends Fragment {
 
         if(t != null) {
             // TODO: make this saved between switching interfaces?
-	    String f = e.file.toString();
-	    t.setText(f);
+            String f = e.file.toString();
+            t.setText(f);
         }
     }
 
