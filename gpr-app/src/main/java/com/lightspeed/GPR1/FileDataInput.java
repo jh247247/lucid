@@ -163,6 +163,9 @@ public class FileDataInput implements DataInputInterface {
 
         Log.v("FileDataInput", "Get element " + offset + " @ " +
               index+" SUCCESS");
+
+        // this should be handy?
+        m_callback.updateInput();
         return el;
     }
 

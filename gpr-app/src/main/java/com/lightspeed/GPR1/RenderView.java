@@ -26,13 +26,31 @@ public class RenderView extends SurfaceView
     implements SurfaceHolder.Callback{
     private static final String LOGTAG = "RenderView";
 
+    /**
+     * Thread for rendering, artificially calls the onDraw method of
+     * this view to blit all the elements to the screen.
+     */
+
+
     private RenderThread m_renderThread;
 
-    private DataInputInterface m_in;
+    /**
+     * These should be in their own fragment, so they get retained on
+     * configuration changes.
+     */
     private RenderElementBlitter m_blitter;
     private RenderElementManager m_manager;
 
+    /**
+     * Might want to try and get rid of this, since it makes this view
+     * retain a pointer to the activity. Memory leak on config change...
+     */
     private Context m_ctx;
+
+    /**
+     * I don't know what happens with this, does it get destroyed? I
+     * dunno, since it has a reference to the context...
+     */
     private GestureDetectorCompat m_gdetector;
 
     public RenderView(Context ctx) {
@@ -76,9 +94,9 @@ public class RenderView extends SurfaceView
     }
 
     private void renderInit() {
-        m_in = null;
-        m_manager = new RenderElementManager(m_in,255*16/9);
-        m_blitter = m_manager.getBlitter();
+	// TODO: Make sure that max data set gets called upon surface creation/change...
+	m_manager = new RenderElementManager();
+	m_blitter = m_manager.getBlitter();
     }
 
     private void initCanvas() {
@@ -105,7 +123,6 @@ public class RenderView extends SurfaceView
             // so make sure that we aren't passed a null canvas
             return;
         }
-	m_manager.updateInput();
 	m_blitter.blitToCanvas(c);
     }
 
