@@ -13,27 +13,49 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import de.greenrobot.event.EventBus;
 
 public class RenderElementManager implements
-				      DataInputInterface.InputUpdateCallback {
+                                      DataInputInterface.InputUpdateCallback {
     static final String LOGTAG = "RenderElementManager";
     static final int MAX_CACHE = 1000;
 
+    /**
+     * This is a reference for the blitter used for rendering to the
+     * screen. Mostly used for actually setting the render
+     * dimensions. Maybe replaced by event bus. MARK
+     */
     RenderElementBlitter m_blitter;
 
+    /**
+     * This is the cache for what is "Left" and "Right" of the
+     * screen. Has callbacks to the class to actually load past and
+     * future from the input. We have to act as a "translator" between
+     * these and the input.
+     */
     CachedStack<RenderElement> m_olderData;
     CachedStack<RenderElement> m_newerData;
 
     /**
-     * These keep track of the data that is current and newer than the
-     * current. Strong references since we really don't want to lose this data.
+     * This is a list of whatever is on the screen. "Has" to be passed
+     * to the renderer somehow. Should probably be passed in by
+     * eventbus.
+     * Is that a privacy leak? Idk.
      */
     List<RenderElement> m_currentData;
+
+    /**
+     * Amount of elements we should limit the list to.
+     */
     int m_maxCurrentData = 0;
+
+    /**
+     * The current index for whatever is on the "left" of the screen
+     * (i.e the start of the list). Should enforce this somehow...
+     */
     int m_currentIndex = 0;
 
 
     /**
      * This is where all the data comes in, can come from anything, we
-     * really don't care.
+     * really don't care. Should only be ever set by eventbus. MARK
      */
 
     DataInputInterface m_input;
@@ -43,6 +65,11 @@ public class RenderElementManager implements
 
     // if this is true, data has changed since (hasDataChanged) has
     // been called
+    // MARK: This should probably be set in the blitter for
+    // re-rendering, since we don't want peoples phones going
+    // flat. How am I going to deal with the double buffering though?
+    // IDEA: have it render X amount of times whenever the data
+    // changes to fix this. There should be a better way to do this though.
     AtomicBoolean m_dataChanged;
 
     public RenderElementManager() {
@@ -55,32 +82,38 @@ public class RenderElementManager implements
                                                      newerInputRequest(),
                                                      MAX_CACHE);
 
-
+        // FIXME: Should have this handled externally...
         m_blitter = new RenderElementBlitter(m_currentData);
 
         m_startLock = false;
         m_dataChanged = new AtomicBoolean();
 
-	EventBus.getDefault().register(this);
+        // TODO: Remember to unregister...
+        EventBus.getDefault().register(this);
     }
 
+    // TODO: Make this load from file somehow.
     public RenderElementManager(int maxCurrentData) {
         this();
         setMaxCurrentData(maxCurrentData);
-
     }
 
+    // FIXME: Deprecated, since input should only ever be set via eventbus.
     public RenderElementManager(DataInputInterface in,
                                 int maxCurrentData) {
         this(maxCurrentData);
         setDataInput(in);
     }
 
+    // FIXME: Deprecated! Get rid of this entirely.
     public RenderElementBlitter getBlitter() {
         return m_blitter;
         // FIXME: privacy leak
     }
 
+    /**
+     * Get the maximum current element length shown on the screen.
+     */
     public int getMaxElementLength() {
         int maxCurrentElementLength = 0;
         for (RenderElement re : m_currentData) {
@@ -90,6 +123,10 @@ public class RenderElementManager implements
         return maxCurrentElementLength;
     }
 
+    /**
+     * Update whatever is displayed on the screen, should probably be
+     * made more modular. MARK
+     */
     public void updateInput() {
         if(m_input == null) {
             return;
@@ -120,9 +157,9 @@ public class RenderElementManager implements
      * Returns the successful amount of offset applied.
      */
     public synchronized int moveCurrent(int offset) {
-	updateInput();
+        updateInput();
 
-	Log.d(LOGTAG, "moveCurrent: move " + offset + " elements");
+        Log.d(LOGTAG, "moveCurrent: move " + offset + " elements");
         synchronized(m_currentData) {
             if(offset < 0) {
                 offset = moveNewerToCurrent(-offset);
@@ -139,6 +176,11 @@ public class RenderElementManager implements
         return offset;
     }
 
+    /**
+     * Next 4 functions should really be made so that we can move from
+     * X to Y since we pretty much have 2 copies of 2 functions, which
+     * kinda grates on me right now.
+     */
     private synchronized int moveCurrentToNewer(int amount) {
         Log.d(LOGTAG, "Attempt to move " + amount + " elements to newer");
         amount = Math.min(amount, m_currentData.size());
@@ -192,6 +234,12 @@ public class RenderElementManager implements
         return amount;
     }
 
+
+    /**
+     * Set the input to a new data stream. Is it worth is making new
+     * objects for the caches? Simplest solution, I guess the simplest
+     * solution is the best.
+     */
     public void setDataInput(DataInputInterface in) {
         m_input = in;
 
@@ -205,11 +253,14 @@ public class RenderElementManager implements
         m_currentData.clear();
         m_currentIndex = 0;
 
-	if(m_input != null) {
+        if(m_input != null) {
             m_input.setUpdateCallback(this);
         }
     }
 
+    /**
+     * Set the maximum amount of data to show on the screen.
+     */
     public void setMaxCurrentData(int max){
         m_maxCurrentData = max;
         m_blitter.setMaxElements(max);
@@ -229,12 +280,21 @@ public class RenderElementManager implements
         return m_startLock;
     }
 
+    /**
+     * DEPRECATED: Should not need data changed, notify the blitter
+     * via eventbus
+     */
     public boolean hasDataChanged() {
         return m_dataChanged.getAndSet(false);
     }
 
 
-    private class newerInputRequest implements CachedStack.InputRequest<RenderElement> {
+    /**
+     * Callbacks for getting past and future elements from the input.
+     * TODO: Elements are currently rendered as they come in, is there
+     * a better (faster) way to do this/
+     */
+	private class newerInputRequest implements CachedStack.InputRequest<RenderElement> {
         public RenderElement getOlder(int offset, int length) {
             // input not defined, return null
             if(m_input == null) {
@@ -277,7 +337,7 @@ public class RenderElementManager implements
 
     // input changed! set via our handy function...
     public void onEvent(DataInputFragment.InputChangeEvent e) {
-	setDataInput(e.input);
+        setDataInput(e.input);
     }
-    
+
 }
