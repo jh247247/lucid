@@ -114,7 +114,6 @@ public class RenderView extends SurfaceView
                                int arg0,
                                int arg1,
                                int arg2) {
-        // TODO: do something with this...
         initCanvas();
         m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
     }
@@ -128,7 +127,8 @@ public class RenderView extends SurfaceView
 
         Log.v(LOGTAG,"Surface created");
         initCanvas();
-        m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
+	// TODO: Setup proper calculations for this, eventbus?
+	m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
     }
 
     @Override
@@ -162,8 +162,11 @@ public class RenderView extends SurfaceView
 
     }
 
+    // TODO: Make this an external class?
+    // I don't like how this clutters up the class, so it might be a
+    // good idea to make it external...
     private class RenderGestureListener extends
-                                            GestureDetector.SimpleOnGestureListener
+					    GestureDetector.SimpleOnGestureListener
     {
         private static final String GESLIN_LOGTAG =
             "RenderGestureListener";

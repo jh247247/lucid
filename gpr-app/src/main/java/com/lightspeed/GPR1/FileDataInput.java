@@ -50,6 +50,7 @@ public class FileDataInput implements DataInputInterface {
 
     InputUpdateCallback m_callback;
 
+    // TODO: Remove this, since we really should not have to keep a reference to the context at this point...
     private Context m_ctx;
 
     public FileDataInput(Context ctx) {
@@ -74,7 +75,8 @@ public class FileDataInput implements DataInputInterface {
         return null;
     }
 
-
+    // TODO: Buffering of the datastream so that we don't reopen the
+    // file every single time
     public  Element getPrevious(int offset) {
         DataInputStream in = null;
         try {
