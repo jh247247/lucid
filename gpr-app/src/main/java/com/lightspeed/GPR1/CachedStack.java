@@ -22,7 +22,7 @@ public class CachedStack<T> {
 
     public CachedStack(InputRequest r) {
         // hard data is synced, since it is referenced more often
-        m_hardData = Collections.synchronizedList(new ArrayList());
+        m_hardData = Collections.synchronizedList(new ArrayList<T>());
         m_request = r;
 
     }
