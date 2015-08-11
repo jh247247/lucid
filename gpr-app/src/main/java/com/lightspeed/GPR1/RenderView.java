@@ -106,9 +106,16 @@ public class RenderView extends SurfaceView
         Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
               height);
 
-        int newWidth = Math.min(m_manager.getMaxCurrentData()*3,
-                                (width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
+        int newWidth;
         int newHeight = Math.min(3*255,(height/255)*255); // FIXME: magicsss
+        if(m_manager.getMaxCurrentData() != 0){
+            newWidth = Math.min(m_manager.getMaxCurrentData()*3,
+                                (width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
+        } else {
+            // hackyyyy
+            newWidth = newHeight;
+        }
+
 
         Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
 
