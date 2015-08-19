@@ -5,7 +5,7 @@ import com.lightspeed.gpr.lib.Element;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.lang.Math;
 import java.io.File;
 import java.io.BufferedInputStream;
@@ -50,13 +50,13 @@ public class FileDataInput implements DataInputInterface {
 
     InputUpdateCallback m_callback;
 
-    // TODO: Remove this, since we really should not have to keep a reference to the context at this point...
-    private Context m_ctx;
+    WeakReference<Context> m_ctx;
+    String m_inputName;
 
     public FileDataInput(Context ctx) {
-        m_ctx = ctx;
-
         EventBus.getDefault().register(this);
+        m_inputName =  ctx.getString(R.string.file);
+        m_ctx = new WeakReference<Context>(ctx);
     }
 
     public int getCurrentIndex() {
@@ -188,11 +188,17 @@ public class FileDataInput implements DataInputInterface {
     }
 
     public String getName() {
-        return m_ctx.getString(R.string.file);
+        return m_inputName;
     }
 
     public void onEvent(FileDialog.FileChangedEvent e) {
-        Toast.makeText(m_ctx, e.file.toString(), Toast.LENGTH_SHORT).show();
+        if(m_ctx.get() == null) {
+            // what to do? Have to request new context or something
+            // TODO:
+            return;
+        }
+        Toast.makeText(m_ctx.get(), e.file.toString(),
+                       Toast.LENGTH_SHORT).show();
         m_file = e.file;
         open();
     }
@@ -210,13 +216,15 @@ public class FileDataInput implements DataInputInterface {
             Log.d("INDEX", "Starting file index...");
 
             m_currFile = f;
-            if(m_currFile == null) {
+            if(m_currFile == null ||
+               m_ctx.get() == null) {
                 // do nothing, wait for death.
                 return;
             }
 
-            // make the dialog so the user thinks that something is actually going on...
-            new MaterialDialog.Builder(m_ctx)
+            // make the dialog so the user thinks that something is
+            // actually going on...
+            new MaterialDialog.Builder(m_ctx.get())
                 .title(R.string.file_read)
                 .progress(false, MAX_PROGRESS, false)
                 .showListener(new DialogInterface.OnShowListener() {
@@ -253,7 +261,7 @@ public class FileDataInput implements DataInputInterface {
                     case TYPE_ELEMENT:
                         // add element to local list
                         locIndexList.add(offset);
-                        Log.d("INDEX","Element starting at " + offset);
+                        //Log.d("INDEX","Element starting at " + offset);
 
                         // calculate how much data to skip
                         short start = in.readShort();
@@ -266,13 +274,13 @@ public class FileDataInput implements DataInputInterface {
                     case TYPE_TIMESTAMP:
                         // add to local timestamp list
                         locTimeStampList.add(offset);
-                        Log.d("INDEX","Timestamp starting at " + offset);
+                        //Log.d("INDEX","Timestamp starting at " + offset);
                         offset += TIMESTAMP_LEN + 1;
                         in.skip(TIMESTAMP_LEN);
                         break;
 
                     default:
-                        Log.e("INDEX","Unknown type byte found!");
+                        //Log.e("INDEX","Unknown type byte found!");
                         // TODO: show user "invalid file" dialog or something
                         break;
                     }
@@ -295,12 +303,18 @@ public class FileDataInput implements DataInputInterface {
                 // TODO: proper handle...
             }
 
-            // close the dialog, since the file is indexed
-            ((Activity)m_ctx).runOnUiThread(new Runnable() {
-                    public void run() {
-                        m_dialog.dismiss();
-                    }
-                });
+            try{
+                // close the dialog, since the file is indexed
+                ((Activity)m_ctx.get()).runOnUiThread(new Runnable() {
+                        public void run() {
+                            m_dialog.dismiss();
+                        }
+                    });
+            } catch (NullPointerException e) {
+                // Sheeeeiiiittttt. User rotated while we were
+                // loading! How do we close the dialog now?
+                Log.e("INDEX", "Config changed when trying to close dialog!");
+            }
 
             // update the outer class so that we can actually parse the data
             FileDataInput.this.m_elementIndex = locIndexList;

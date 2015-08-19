@@ -36,8 +36,6 @@ public class RenderElementBlitter {
         m_maxElements = max;
     }
 
-
-
     public void blitToCanvas(Canvas c) {
         if(m_elementsToRender == null) {
             // cannot render...

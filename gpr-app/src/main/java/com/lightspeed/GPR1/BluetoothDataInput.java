@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.lang.ref.SoftReference;
 import java.lang.Math;
+import java.lang.ref.WeakReference;
 import io.palaima.smoothbluetooth.SmoothBluetooth;
 import io.palaima.smoothbluetooth.Device;
 import android.bluetooth.BluetoothAdapter;
@@ -20,7 +21,7 @@ public class BluetoothDataInput implements DataInputInterface {
     private ArrayList<SoftReference<Element>> m_previous;
     private ArrayList<Element> m_new;
     private SmoothBluetooth m_bluetooth;
-    private Context m_ctx;
+    private WeakReference<Context> m_ctx;
     // TODO: write to file
 
 
@@ -97,6 +98,8 @@ public class BluetoothDataInput implements DataInputInterface {
         m_new = new ArrayList<Element>();
         m_bluetooth = new SmoothBluetooth(ctx,m_blistener);
 	m_bluetooth.tryConnection();
+
+	m_ctx = new WeakReference<Context>(ctx);
     }
 
     public int getCurrentIndex() {
@@ -158,6 +161,6 @@ public class BluetoothDataInput implements DataInputInterface {
     }
 
     public String getName() {
-        return m_ctx.getString(R.string.bluetooth);
+        return m_ctx.get().getString(R.string.bluetooth);
     }
 }

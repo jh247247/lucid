@@ -17,12 +17,6 @@ public class RenderElementManager implements
     static final String LOGTAG = "RenderElementManager";
     static final int MAX_CACHE = 1000;
 
-    /**
-     * This is a reference for the blitter used for rendering to the
-     * screen. Mostly used for actually setting the render
-     * dimensions. Maybe replaced by event bus. MARK
-     */
-    RenderElementBlitter m_blitter;
 
     /**
      * This is the cache for what is "Left" and "Right" of the
@@ -83,7 +77,7 @@ public class RenderElementManager implements
                                                      MAX_CACHE);
 
         // FIXME: Should have this handled externally...
-        m_blitter = new RenderElementBlitter(m_currentData);
+
 
         m_startLock = false;
         m_dataChanged = new AtomicBoolean();
@@ -92,23 +86,9 @@ public class RenderElementManager implements
         EventBus.getDefault().register(this);
     }
 
-    // TODO: Make this load from file somehow.
-    public RenderElementManager(int maxCurrentData) {
-        this();
-        setMaxCurrentData(maxCurrentData);
-    }
-
-    // FIXME: Deprecated, since input should only ever be set via eventbus.
-    public RenderElementManager(DataInputInterface in,
-                                int maxCurrentData) {
-        this(maxCurrentData);
-        setDataInput(in);
-    }
-
     // FIXME: Deprecated! Get rid of this entirely.
     public RenderElementBlitter getBlitter() {
-        return m_blitter;
-        // FIXME: privacy leak
+	return new RenderElementBlitter(m_currentData);
     }
 
     /**
@@ -263,7 +243,9 @@ public class RenderElementManager implements
      */
     public void setMaxCurrentData(int max){
         m_maxCurrentData = max;
-        m_blitter.setMaxElements(max);
+	// TODO: communicate new maximum with blitter...
+       
+        //m_blitter.setMaxElements(max);
     }
 
     public int getMaxCurrentData() {

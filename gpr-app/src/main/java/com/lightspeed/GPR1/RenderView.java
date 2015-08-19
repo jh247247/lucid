@@ -94,9 +94,9 @@ public class RenderView extends SurfaceView
     }
 
     private void renderInit() {
-	// TODO: Make sure that max data set gets called upon surface creation/change...
-	m_manager = new RenderElementManager();
-	m_blitter = m_manager.getBlitter();
+        // TODO: Make sure that max data set gets called upon surface creation/change...
+        m_manager = new RenderElementManager();
+        m_blitter = m_manager.getBlitter();
     }
 
     private void initCanvas() {
@@ -130,7 +130,7 @@ public class RenderView extends SurfaceView
             // so make sure that we aren't passed a null canvas
             return;
         }
-	m_blitter.blitToCanvas(c);
+        m_blitter.blitToCanvas(c);
     }
 
     @Override
@@ -151,8 +151,8 @@ public class RenderView extends SurfaceView
 
         Log.v(LOGTAG,"Surface created");
         initCanvas();
-	// TODO: Setup proper calculations for this, eventbus?
-	m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
+        // TODO: Setup proper calculations for this, eventbus?
+        m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
     }
 
     @Override
@@ -190,7 +190,7 @@ public class RenderView extends SurfaceView
     // I don't like how this clutters up the class, so it might be a
     // good idea to make it external...
     private class RenderGestureListener extends
-					    GestureDetector.SimpleOnGestureListener
+                                            GestureDetector.SimpleOnGestureListener
     {
         private static final String GESLIN_LOGTAG =
             "RenderGestureListener";

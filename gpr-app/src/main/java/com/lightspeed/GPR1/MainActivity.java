@@ -129,4 +129,10 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         m_render.stopView();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // TODO: Send an message to destroy all background threads...
+    }
 }
