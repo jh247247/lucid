@@ -150,45 +150,50 @@ public class DataInputFragment extends Fragment {
                 ButterKnife.findById(m_inputView,R.id.file_select_button);
             b.setOnClickListener(new View.OnClickListener(){
                     public void onClick(View v) {
-                        new FileDialog().show(getActivity());
-                    }
-                });
+			try {
+			    new FileDialog().show(getActivity());
+			}
+			catch (Exception e) {
+			    Log.e("FILE_DIALOG", "CANNOT GET EXTERNAL DIRECTORY");
+			}
+		    }
+		});
 
-            m_input = new FileDataInput(getActivity());
-            break;
-        case 2: // should be random (for now...)
-            m_input = new RandomDataInput();
-            break;
-        default:
-            // wtf.
-            break;
-        }
+	    m_input = new FileDataInput(getActivity());
+		break;
+	    case 2: // should be random (for now...)
+		m_input = new RandomDataInput();
+		break;
+	    default:
+		// wtf.
+		break;
+		}
 
-        // send new input to receivers
+		// send new input to receivers
 
-        EventBus.getDefault().post(new InputChangeEvent(m_input));
+		EventBus.getDefault().post(new InputChangeEvent(m_input));
+	}
+
+	public void onEvent(FileDialog.FileChangedEvent e) {
+	    TextView t = null;
+	    if(m_inputView != null) {
+		t = ButterKnife.findById(m_inputView,R.id.file_select_text);
+	    }
+
+	    if(t != null) {
+		// TODO: make this saved between switching interfaces?
+		String f = e.file.toString();
+		t.setText(f);
+	    }
+	}
+
+	/**
+	 * This object contains the new input type, sent to receivers.
+	 */
+	public class InputChangeEvent {
+	    public final DataInputInterface input;
+	    public InputChangeEvent(DataInputInterface in) {
+		this.input = in;
+	    }
+	}
     }
-
-    public void onEvent(FileDialog.FileChangedEvent e) {
-        TextView t = null;
-        if(m_inputView != null) {
-            t = ButterKnife.findById(m_inputView,R.id.file_select_text);
-        }
-
-        if(t != null) {
-            // TODO: make this saved between switching interfaces?
-            String f = e.file.toString();
-            t.setText(f);
-        }
-    }
-
-    /**
-     * This object contains the new input type, sent to receivers.
-     */
-    public class InputChangeEvent {
-        public final DataInputInterface input;
-        public InputChangeEvent(DataInputInterface in) {
-            this.input = in;
-        }
-    }
-}
