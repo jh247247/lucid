@@ -82,9 +82,12 @@ public class FileDataInput implements DataInputInterface {
         try {
             in = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
         } catch(FileNotFoundException e) {
-            // TODO: handle
-        } catch (Exception e) {
-
+	    Log.e("FileDataInput","Cannot open the file!");
+	    return null;
+	    // TODO: handle
+	} catch (Exception e) {
+	    Log.e("FileDataInput","General error!");
+	    return null;
         }
 
 

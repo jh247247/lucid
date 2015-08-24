@@ -53,7 +53,7 @@ public class RenderElementBlitter {
 	// if elements are empty, might as well clear all the pixels...
 	if(locElementsToRender.isEmpty()) {
 	    c.drawColor(Color.BLACK);
-	    Log.w("RenderElementBlitter","No elements!");
+	    //Log.w("RenderElementBlitter","No elements!");
 	    return;
 	}
 

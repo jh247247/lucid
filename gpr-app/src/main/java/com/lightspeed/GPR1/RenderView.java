@@ -102,24 +102,27 @@ public class RenderView extends SurfaceView
     private void initCanvas() {
         int width = this.getWidth();
         int height = this.getHeight();
+	m_manager.setMaxCurrentData(100); // FIXME: have this scale
+        // depending on display/elementsize
 
-        Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
-              height);
+	     Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
+		   height);
 
-        int newWidth;
-        int newHeight = Math.min(3*255,(height/255)*255); // FIXME: magicsss
-        if(m_manager.getMaxCurrentData() != 0){
-            newWidth = Math.min(m_manager.getMaxCurrentData()*3,
-                                (width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
-        } else {
-            // hackyyyy
-            newWidth = newHeight;
-        }
+	int newWidth;
+	int newHeight = Math.min(3*255,(height/255)*255); // FIXME: magicsss
+	if(m_manager.getMaxCurrentData() != 0){
+	    newWidth = Math.min(m_manager.getMaxCurrentData()*3,
+				(width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
+	} else {
+	    // hackyyyy
+	    newWidth = newHeight;
+
+	}
 
 
-        Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
+	Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
 
-        m_renderThread.setSurfaceDims(newWidth,newHeight);
+	m_renderThread.setSurfaceDims(newWidth,newHeight);
     }
 
 
@@ -130,7 +133,9 @@ public class RenderView extends SurfaceView
             // so make sure that we aren't passed a null canvas
             return;
         }
-        m_blitter.blitToCanvas(c);
+        m_manager.updateInput(); // TODO: REMOVE, have this dependent
+	// on the input data rate!
+	m_blitter.blitToCanvas(c);
     }
 
     @Override
