@@ -29,10 +29,16 @@ public class RenderThread extends Thread{
         return m_run;
     }
 
+    public void kill() {
+	m_run = false;
+	m_render = null;
+	m_surfHold = null;
+    }
+
     @SuppressLint("WrongCall")
     @Override
     public void run() {
-        Canvas c = null;
+	Canvas c = null;
         while(m_run) {
             try {
                 c = m_surfHold.lockCanvas(null);
@@ -45,7 +51,7 @@ public class RenderThread extends Thread{
                 // surface is not left in an inconsistent state.
                 if(c != null) {
                     m_surfHold.unlockCanvasAndPost(c);
-                }
+		}
             }
         }
     }

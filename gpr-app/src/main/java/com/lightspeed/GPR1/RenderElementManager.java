@@ -17,7 +17,6 @@ public class RenderElementManager implements
     static final String LOGTAG = "RenderElementManager";
     static final int MAX_CACHE = 1000;
 
-
     /**
      * This is the cache for what is "Left" and "Right" of the
      * screen. Has callbacks to the class to actually load past and
@@ -88,7 +87,7 @@ public class RenderElementManager implements
 
     // FIXME: Deprecated! Get rid of this entirely.
     public RenderElementBlitter getBlitter() {
-	return new RenderElementBlitter(m_currentData);
+	return new RenderElementBlitter(m_currentData, m_maxCurrentData);
     }
 
     /**

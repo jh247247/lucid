@@ -50,7 +50,6 @@ public class DataInputFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
     }
 
     @Override
@@ -88,16 +87,16 @@ public class DataInputFragment extends Fragment {
                 }
             });
 
-	// reset the spinner
-	if(savedInstanceState != null) {
-	    m_inputSpinner.setSelection(savedInstanceState.getInt(SPINNER_POS_SAVE,0));
-	}
+        // reset the spinner
+        if(savedInstanceState != null) {
+            m_inputSpinner.setSelection(savedInstanceState.getInt(SPINNER_POS_SAVE,0));
+        }
 
-	setupInputUI(m_inputSpinner.getSelectedItemPosition());
+        setupInputUI(m_inputSpinner.getSelectedItemPosition());
 
-	// setup mini-ui
+        // setup mini-ui
 
-	// register on the event bus..
+        // register on the event bus..
         EventBus.getDefault().register(this);
 
         return ret;
@@ -112,9 +111,14 @@ public class DataInputFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        EventBus.getDefault().unregister(this);
+	if(m_input != null) {
+	    m_input.close();
+	}
+	
+	EventBus.getDefault().unregister(this);
         ButterKnife.unbind(this);
     }
+
 
     public void setupInputUI(int selection) {
         LayoutInflater inflater = (LayoutInflater)
@@ -150,50 +154,54 @@ public class DataInputFragment extends Fragment {
                 ButterKnife.findById(m_inputView,R.id.file_select_button);
             b.setOnClickListener(new View.OnClickListener(){
                     public void onClick(View v) {
-			try {
-			    new FileDialog().show(getActivity());
-			}
-			catch (Exception e) {
-			    Log.e("FILE_DIALOG", "CANNOT GET EXTERNAL DIRECTORY");
-			}
-		    }
-		});
+                        try {
+                            new FileDialog().show(getActivity());
+                        }
+                        catch (Exception e) {
+                            Log.e("FILE_DIALOG", "CANNOT GET EXTERNAL DIRECTORY");
+                        }
+                    }
+                });
 
-	    m_input = new FileDataInput(getActivity());
-		break;
-	    case 2: // should be random (for now...)
-		m_input = new RandomDataInput();
-		break;
-	    default:
-		// wtf.
-		break;
-		}
+            m_input = new FileDataInput(getActivity());
+            break;
+        case 2: // should be random (for now...)
+            m_input = new RandomDataInput();
+            break;
+        default:
+            // wtf.
+            break;
+        }
 
-		// send new input to receivers
+        // send new input to receivers
 
-		EventBus.getDefault().post(new InputChangeEvent(m_input));
-	}
+        EventBus.getDefault().post(new InputChangeEvent(m_input));
 
-	public void onEvent(FileDialog.FileChangedEvent e) {
-	    TextView t = null;
-	    if(m_inputView != null) {
-		t = ButterKnife.findById(m_inputView,R.id.file_select_text);
-	    }
-
-	    if(t != null) {
-		// TODO: make this saved between switching interfaces?
-		String f = e.file.toString();
-		t.setText(f);
-	    }
-	}
-
-	/**
-	 * This object contains the new input type, sent to receivers.
-	 */
-	public class InputChangeEvent {
-	    public final DataInputInterface input;
-	    public InputChangeEvent(DataInputInterface in) {
-		this.input = in;
-	    }
+	if(m_input != null) {
+	    m_input.open();
 	}
     }
+
+    public void onEvent(FileDialog.FileChangedEvent e) {
+        TextView t = null;
+        if(m_inputView != null) {
+            t = ButterKnife.findById(m_inputView,R.id.file_select_text);
+        }
+
+        if(t != null) {
+            // TODO: make this saved between switching interfaces?
+            String f = e.file.toString();
+            t.setText(f);
+        }
+    }
+
+    /**
+     * This object contains the new input type, sent to receivers.
+     */
+    public class InputChangeEvent {
+        public final DataInputInterface input;
+        public InputChangeEvent(DataInputInterface in) {
+            this.input = in;
+        }
+    }
+}

@@ -13,7 +13,7 @@ import java.lang.Runnable;
 import android.graphics.BitmapFactory;
 
 
-public class RenderElement {
+    public class RenderElement {
     /**
      * Stores the actual data to display
      */

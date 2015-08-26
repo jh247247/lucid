@@ -26,7 +26,7 @@ public class RenderElementBlitter {
         m_cbm = null;
     }
 
-    public RenderElementBlitter(ArrayList<RenderElement> rearr,
+    public RenderElementBlitter(List<RenderElement> rearr,
                                 int maxElements) {
         this(rearr);
         m_maxElements = maxElements;
@@ -39,7 +39,7 @@ public class RenderElementBlitter {
     public void blitToCanvas(Canvas c) {
         if(m_elementsToRender == null) {
             // cannot render...
-	    Log.e("RenderElementBlitter","Cannot render!");
+            Log.e("RenderElementBlitter","Cannot render!");
             return;
         }
         // make local copy to elements to render, just in case things
@@ -50,15 +50,15 @@ public class RenderElementBlitter {
             locElementsToRender = new ArrayList<RenderElement>(m_elementsToRender);
         }
 
-	// if elements are empty, might as well clear all the pixels...
-	if(locElementsToRender.isEmpty()) {
-	    c.drawColor(Color.BLACK);
-	    //Log.w("RenderElementBlitter","No elements!");
-	    return;
-	}
+        // if elements are empty, might as well clear all the pixels...
+        if(locElementsToRender.isEmpty()) {
+            c.drawColor(Color.BLACK);
+            //Log.w("RenderElementBlitter","No elements!");
+            return;
+        }
 
-	// get max height of element
-	int maxh = 0;
+        // get max height of element
+        int maxh = 0;
         for (RenderElement el : locElementsToRender) {
             maxh = Math.max(maxh, el.getElementHeight());
         }
@@ -88,16 +88,16 @@ public class RenderElementBlitter {
         int amountToRender = Math.min(m_maxElements,
                                       locElementsToRender.size()-1);
 
-	//Log.d("RenderElementBlitter","Rendered " + amountToRender + " elements");
+        //Log.d("RenderElementBlitter","Rendered " + amountToRender + " elements");
 
-	for(int i = amountToRender; i >= 0; i--) {
-	    // render the bitmap
-	    tbm = locElementsToRender.get(i).getRenderedElement();
-	    if(tbm == null) break;
+        for(int i = amountToRender; i >= 0; i--) {
+            // render the bitmap
+            tbm = locElementsToRender.get(i).getRenderedElement();
+            if(tbm == null) break;
 
-	    // blit bitmap to canvas
-	    m_cbm.drawBitmap(tbm, m_cbm.getWidth()-amountToRender+i-1, 0, null);
-	}
+            // blit bitmap to canvas
+            m_cbm.drawBitmap(tbm, m_cbm.getWidth()-amountToRender+i-1, 0, null);
+        }
         // stop rendering
 
         Matrix matrix = new Matrix();

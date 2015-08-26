@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.support.v4.app.FragmentManager;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
@@ -37,6 +38,11 @@ public class MainActivity extends AppCompatActivity {
     DataInputFragment m_inputManager;
 
     ActionBarDrawerToggle m_abtog;
+
+    // fragment to retain data in, totally kinda stolen from example
+    // on the internet
+    RetainFragment m_retained;
+    private static final String TAG_RETAIN_FRAGMENT = "retain_fragment";
 
     static final int TOOLBAR_MAX_ALPHA = 255;
 
@@ -62,10 +68,30 @@ public class MainActivity extends AppCompatActivity {
         // set the hamburger to the current state of the drawer
         m_abtog.syncState();
 
+        FragmentManager fm = getSupportFragmentManager();
+
         // setup the data input manager/fragment thing
         m_inputManager = (DataInputFragment)
-            getSupportFragmentManager().findFragmentById(R.id.input_manager);
+            fm.findFragmentById(R.id.input_manager);
 
+
+        // get back retained vars if required
+        m_retained = (RetainFragment)
+            fm.findFragmentByTag(TAG_RETAIN_FRAGMENT);
+
+        // first start, fragment does not exist!
+        if(m_retained == null) {
+            m_retained = new RetainFragment();
+            fm.beginTransaction().add(m_retained,
+                                      TAG_RETAIN_FRAGMENT).commit();
+            // fragment does not exist, remake...
+            m_render.start();
+
+        } else {
+            // fragment exists, reinstate!
+            m_render.start(m_retained.getManager(),
+                           m_retained.getBlitter());
+        }
     }
 
     private void setupDrawerListener() {
@@ -127,12 +153,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        m_render.stopView();
+        m_render.startView();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // TODO: Send an message to destroy all background threads...
+	m_render.stopView();
+	m_render.getHolder().getSurface().release();
     }
 }

@@ -20,7 +20,9 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.support.v4.view.GestureDetectorCompat;
 
 import java.lang.Math;
+import java.lang.ref.WeakReference;
 
+import de.greenrobot.event.EventBus;
 
 public class RenderView extends SurfaceView
     implements SurfaceHolder.Callback{
@@ -41,11 +43,8 @@ public class RenderView extends SurfaceView
     private RenderElementBlitter m_blitter;
     private RenderElementManager m_manager;
 
-    /**
-     * Might want to try and get rid of this, since it makes this view
-     * retain a pointer to the activity. Memory leak on config change...
-     */
-    private Context m_ctx;
+
+    private WeakReference<Context> m_ctx;
 
     /**
      * I don't know what happens with this, does it get destroyed? I
@@ -55,7 +54,7 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx) {
         super(ctx);
-        m_ctx = ctx;
+        m_ctx = new WeakReference<Context>(ctx);
         threadInit();
         uiInit();
         renderInit();
@@ -63,15 +62,16 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
-        m_ctx = ctx;
+        m_ctx = new WeakReference<Context>(ctx);
         threadInit();
         uiInit();
         renderInit();
+
     }
 
     public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
-        m_ctx = ctx;
+        m_ctx = new WeakReference<Context>(ctx);
         threadInit();
         uiInit();
         renderInit();
@@ -81,15 +81,41 @@ public class RenderView extends SurfaceView
         getHolder().addCallback(this);
         m_renderThread = new RenderThread(getHolder(), this);
         m_renderThread.setPriority(Thread.MAX_PRIORITY);
+
+        m_renderThread.setRunning(true);
+        m_renderThread.start();
+    }
+
+
+    // call this one if we want to autostart
+    public void start() {
+        uiInit();
+        renderInit();
+        threadInit();
+    }
+
+    // call this if we have some retained managers
+    public void start(RenderElementManager re,
+                      RenderElementBlitter rb) {
+        threadInit();
+        uiInit();
+        m_manager = re;
+        m_blitter = rb;
+        if(m_manager == null) { // somebody made a boo-boo..
+            Log.e(LOGTAG, "manager is unexpectedly null in retained init!");
+            renderInit();
+        }
     }
 
     private void uiInit() {
         setFocusable(true); // make sure we get events...
 
-        // handle those events
-        m_gdetector = new GestureDetectorCompat(m_ctx, new
-                                                RenderGestureListener());
+        if(m_ctx.get() != null) {
+            // handle those events
+            m_gdetector = new GestureDetectorCompat(m_ctx.get(), new
+                                                    RenderGestureListener());
 
+        }
         Log.v(LOGTAG,"Finished init!");
     }
 
@@ -97,32 +123,33 @@ public class RenderView extends SurfaceView
         // TODO: Make sure that max data set gets called upon surface creation/change...
         m_manager = new RenderElementManager();
         m_blitter = m_manager.getBlitter();
+
+        EventBus.getDefault().post(m_manager);
+        EventBus.getDefault().post(m_blitter);
     }
 
     private void initCanvas() {
         int width = this.getWidth();
         int height = this.getHeight();
-	m_manager.setMaxCurrentData(100); // FIXME: have this scale
+        m_manager.setMaxCurrentData(100); // FIXME: have this scale
         // depending on display/elementsize
 
-	     Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
-		   height);
+        Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
+              height);
 
-	int newWidth;
-	int newHeight = Math.min(3*255,(height/255)*255); // FIXME: magicsss
-	if(m_manager.getMaxCurrentData() != 0){
-	    newWidth = Math.min(m_manager.getMaxCurrentData()*3,
-				(width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
-	} else {
-	    // hackyyyy
-	    newWidth = newHeight;
+        int newWidth;
+        int newHeight = Math.min(3*255,(height/255)*255); // FIXME: magicsss
+        if(m_manager.getMaxCurrentData() != 0){
+            newWidth = Math.min(m_manager.getMaxCurrentData()*3,
+                                (width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
+        } else {
+            // hackyyyy
+            newWidth = newHeight;
+        }
 
-	}
 
-
-	Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
-
-	m_renderThread.setSurfaceDims(newWidth,newHeight);
+        Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
+        m_renderThread.setSurfaceDims(newWidth,newHeight);
     }
 
 
@@ -134,8 +161,8 @@ public class RenderView extends SurfaceView
             return;
         }
         m_manager.updateInput(); // TODO: REMOVE, have this dependent
-	// on the input data rate!
-	m_blitter.blitToCanvas(c);
+        // on the input data rate!
+        m_blitter.blitToCanvas(c);
     }
 
     @Override
@@ -145,50 +172,53 @@ public class RenderView extends SurfaceView
                                int arg2) {
         initCanvas();
         m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
+        m_blitter.setMaxElements(m_manager.getMaxCurrentData());
+
+        if(!m_renderThread.getRunning()) {
+	    m_renderThread.kill();
+	    threadInit();
+        }
+
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        // switching back to app can recreate this...
-        threadInit();
-        m_renderThread.setRunning(true);
-        m_renderThread.start();
-
         Log.v(LOGTAG,"Surface created");
         initCanvas();
+
         // TODO: Setup proper calculations for this, eventbus?
         m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
+
+        if(!m_renderThread.getRunning()) {
+            threadInit();
+        }
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        m_renderThread.setRunning(false);
-
-        while(m_renderThread != null) {
-            try {
-                m_renderThread.join();
-                m_renderThread = null;
-            }
-            catch(InterruptedException e) {
-                // TODO:
-            }
-        }
-        Log.v(LOGTAG,"Surface destroyed");
+	stopView();
+	Log.v(LOGTAG,"Surface destroyed");
     }
 
     // stop the thread from running temporarily
     public void stopView() {
         if(m_renderThread != null) {
             m_renderThread.setRunning(false);
+            while(m_renderThread != null) {
+                try {
+                    m_renderThread.join();
+		    m_renderThread.kill();
+		    m_renderThread = null;
+                }
+                catch(InterruptedException e) {
+                    // TODO:
+                }
+            }
         }
     }
 
     public void startView() {
-        if(m_renderThread != null) {
-            m_renderThread.setRunning(true);
-            m_renderThread.start();
-        }
-
+        threadInit();
     }
 
     // TODO: Make this an external class?

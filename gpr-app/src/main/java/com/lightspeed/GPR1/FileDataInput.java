@@ -54,10 +54,12 @@ public class FileDataInput implements DataInputInterface {
     String m_inputName;
 
     public FileDataInput(Context ctx) {
-        EventBus.getDefault().register(this);
+	EventBus.getDefault().register(this);
         m_inputName =  ctx.getString(R.string.file);
         m_ctx = new WeakReference<Context>(ctx);
+
     }
+
 
     public int getCurrentIndex() {
         // get the index of the last element, don't know how useful it will be...
@@ -82,12 +84,12 @@ public class FileDataInput implements DataInputInterface {
         try {
             in = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
         } catch(FileNotFoundException e) {
-	    Log.e("FileDataInput","Cannot open the file!");
-	    return null;
-	    // TODO: handle
-	} catch (Exception e) {
-	    Log.e("FileDataInput","General error!");
-	    return null;
+            Log.e("FileDataInput","Cannot open the file!");
+            return null;
+            // TODO: handle
+        } catch (Exception e) {
+            Log.e("FileDataInput","General error!");
+            return null;
         }
 
 
@@ -177,9 +179,11 @@ public class FileDataInput implements DataInputInterface {
     }
 
     public boolean open() {
-        if(m_file == null) {
-            return false;
-        }
+
+	if(m_file == null) {
+	    return false;
+	}
+
         // index the file for us, should really do some callback, but idk.
         new FileIndexer(m_file);
 
@@ -188,6 +192,7 @@ public class FileDataInput implements DataInputInterface {
 
     public void close() {
         //m_raf = null;
+	EventBus.getDefault().unregister(this);
     }
 
     public String getName() {

@@ -9,6 +9,8 @@ import android.support.v4.app.Fragment;
 import android.app.Activity;
 import android.os.Bundle;
 
+import de.greenrobot.event.EventBus;
+
 public class RetainFragment extends Fragment {
     private DataInputInterface m_input;
     private RenderElementManager m_manager;
@@ -16,30 +18,37 @@ public class RetainFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        setRetainInstance(true);
+	super.onCreate(savedInstanceState);
+	setRetainInstance(true);
+	EventBus.getDefault().register(this);
     }
 
-    public void setInput(DataInputInterface in) {
-	m_input = in;
-    }
 
     public DataInputInterface getInput() {
-	return m_input;
-    }
-
-    public void setManager(RenderElementManager re) {
-	m_manager = re;
+        return m_input;
     }
 
     public RenderElementManager getManager() {
-	return m_manager;
+        return m_manager;
     }
 
-    public void setBlitter(RenderElementBlitter rb) {
-	m_blitter = rb;
-    }
 
     public RenderElementBlitter getBlitter() {
-	return m_blitter;
+        return m_blitter;
+    }
+
+    // input changed! set via our handy function...
+    public void onEvent(DataInputFragment.InputChangeEvent e) {
+	m_input = e.input;
+    }
+
+    // set the renderElementManager...
+    public void onEvent(RenderElementManager re) {
+	m_manager = re;
+    }
+
+    // set the blitter
+    public void onEvent(RenderElementBlitter rb) {
+	m_blitter = rb;
     }
 }
