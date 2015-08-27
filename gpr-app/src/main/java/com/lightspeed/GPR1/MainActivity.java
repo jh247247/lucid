@@ -84,14 +84,9 @@ public class MainActivity extends AppCompatActivity {
             m_retained = new RetainFragment();
             fm.beginTransaction().add(m_retained,
                                       TAG_RETAIN_FRAGMENT).commit();
-            // fragment does not exist, remake...
-            m_render.start();
 
-        } else {
-            // fragment exists, reinstate!
-            m_render.start(m_retained.getManager(),
-                           m_retained.getBlitter());
         }
+        m_render.start(m_retained.getBlitter());
     }
 
     private void setupDrawerListener() {

@@ -21,6 +21,9 @@ public class RetainFragment extends Fragment {
 	super.onCreate(savedInstanceState);
 	setRetainInstance(true);
 	EventBus.getDefault().register(this);
+
+	m_manager = new RenderElementManager();
+        m_blitter = m_manager.getBlitter();
     }
 
 
@@ -40,15 +43,5 @@ public class RetainFragment extends Fragment {
     // input changed! set via our handy function...
     public void onEvent(DataInputFragment.InputChangeEvent e) {
 	m_input = e.input;
-    }
-
-    // set the renderElementManager...
-    public void onEvent(RenderElementManager re) {
-	m_manager = re;
-    }
-
-    // set the blitter
-    public void onEvent(RenderElementBlitter rb) {
-	m_blitter = rb;
     }
 }
