@@ -56,15 +56,6 @@ public class RenderElementManager implements
     // this flag makes the manager keep the data at the start of the input
     boolean m_startLock;
 
-    // if this is true, data has changed since (hasDataChanged) has
-    // been called
-    // MARK: This should probably be set in the blitter for
-    // re-rendering, since we don't want peoples phones going
-    // flat. How am I going to deal with the double buffering though?
-    // IDEA: have it render X amount of times whenever the data
-    // changes to fix this. There should be a better way to do this though.
-    AtomicBoolean m_dataChanged;
-
     public RenderElementManager() {
         m_input = null;
 
@@ -77,9 +68,7 @@ public class RenderElementManager implements
 
         // FIXME: Should have this handled externally...
 
-
         m_startLock = false;
-        m_dataChanged = new AtomicBoolean();
 
         // TODO: Remember to unregister...
         EventBus.getDefault().register(this);
@@ -87,7 +76,7 @@ public class RenderElementManager implements
 
     // FIXME: Deprecated! Get rid of this entirely.
     public RenderElementBlitter getBlitter() {
-	return new RenderElementBlitter(m_currentData, m_maxCurrentData);
+        return new RenderElementBlitter(m_currentData, m_maxCurrentData);
     }
 
     /**
@@ -126,7 +115,6 @@ public class RenderElementManager implements
                 moveCurrentToOlder(m_currentData.size() - m_maxCurrentData);
             }
         }
-        m_dataChanged.lazySet(true);
     }
 
     /**
@@ -242,8 +230,8 @@ public class RenderElementManager implements
      */
     public void setMaxCurrentData(int max){
         m_maxCurrentData = max;
-	// TODO: communicate new maximum with blitter...
-       
+        // TODO: communicate new maximum with blitter...
+
         //m_blitter.setMaxElements(max);
     }
 
@@ -262,20 +250,11 @@ public class RenderElementManager implements
     }
 
     /**
-     * DEPRECATED: Should not need data changed, notify the blitter
-     * via eventbus
-     */
-    public boolean hasDataChanged() {
-        return m_dataChanged.getAndSet(false);
-    }
-
-
-    /**
      * Callbacks for getting past and future elements from the input.
      * TODO: Elements are currently rendered as they come in, is there
      * a better (faster) way to do this/
      */
-	private class newerInputRequest implements CachedStack.InputRequest<RenderElement> {
+    private class newerInputRequest implements CachedStack.InputRequest<RenderElement> {
         public RenderElement getOlder(int offset, int length) {
             // input not defined, return null
             if(m_input == null) {
@@ -317,8 +296,9 @@ public class RenderElementManager implements
     }
 
     // input changed! set via our handy function...
-    public void onEvent(DataInputFragment.InputChangeEvent e) {
+    public void onEventBackgroundThread(DataInputFragment.InputChangeEvent e) {
         setDataInput(e.input);
+	updateInput();
     }
-
+    
 }

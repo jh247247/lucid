@@ -138,23 +138,4 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        m_render.stopView();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        m_render.startView();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-	m_render.stopView();
-	m_render.getHolder().getSurface().release();
-    }
 }

@@ -29,22 +29,10 @@ public class RenderView extends SurfaceView
     private static final String LOGTAG = "RenderView";
 
     /**
-     * Thread for rendering, artificially calls the onDraw method of
-     * this view to blit all the elements to the screen.
-     */
-
-
-    private RenderThread m_renderThread;
-
-    /**
      * These should be in their own fragment, so they get retained on
      * configuration changes.
      */
     private RenderElementBlitter m_blitter;
-    private RenderElementManager m_manager;
-
-
-    private WeakReference<Context> m_ctx;
 
     /**
      * I don't know what happens with this, does it get destroyed? I
@@ -54,102 +42,55 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx) {
         super(ctx);
-        m_ctx = new WeakReference<Context>(ctx);
-        threadInit();
         uiInit();
-        renderInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
-        m_ctx = new WeakReference<Context>(ctx);
-        threadInit();
         uiInit();
-        renderInit();
-
     }
 
     public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
-        m_ctx = new WeakReference<Context>(ctx);
-        threadInit();
         uiInit();
-        renderInit();
-    }
-
-    private void threadInit() {
-        getHolder().addCallback(this);
-        m_renderThread = new RenderThread(getHolder(), this);
-        m_renderThread.setPriority(Thread.MAX_PRIORITY);
-
-        m_renderThread.setRunning(true);
-        m_renderThread.start();
-    }
-
-
-    // call this one if we want to autostart
-    public void start() {
-        uiInit();
-        renderInit();
-        threadInit();
     }
 
     // call this if we have some retained managers
-    public void start(RenderElementManager re,
-                      RenderElementBlitter rb) {
-        threadInit();
+    public void start(RenderElementBlitter rb) {
         uiInit();
-        m_manager = re;
         m_blitter = rb;
-        if(m_manager == null) { // somebody made a boo-boo..
-            Log.e(LOGTAG, "manager is unexpectedly null in retained init!");
-            renderInit();
+        if(m_blitter == null) {
+            // somebody made a boo-boo..
+            Log.wtf(LOGTAG, "blitter is null in init!");
+            // don't start rendering if blitter not set
+            // TODO: error checking...
         }
     }
 
     private void uiInit() {
         setFocusable(true); // make sure we get events...
 
-        if(m_ctx.get() != null) {
-            // handle those events
-            m_gdetector = new GestureDetectorCompat(m_ctx.get(), new
-                                                    RenderGestureListener());
+        // TODO: make this get recreated on config change
+        m_gdetector = new GestureDetectorCompat(getActivity(), new
+                                                RenderGestureListener());
 
-        }
         Log.v(LOGTAG,"Finished init!");
-    }
-
-    private void renderInit() {
-        // TODO: Make sure that max data set gets called upon surface creation/change...
-        m_manager = new RenderElementManager();
-        m_blitter = m_manager.getBlitter();
-
-        EventBus.getDefault().post(m_manager);
-        EventBus.getDefault().post(m_blitter);
     }
 
     private void initCanvas() {
         int width = this.getWidth();
         int height = this.getHeight();
-        m_manager.setMaxCurrentData(100); // FIXME: have this scale
-        // depending on display/elementsize
+        // send out the new surface dims via the event bus
+        EventBus.getDefault().post(new
+                                   SurfaceChangedEvent(width, height));
 
         Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
               height);
+    }
 
-        int newWidth;
-        int newHeight = Math.min(3*255,(height/255)*255); // FIXME: magicsss
-        if(m_manager.getMaxCurrentData() != 0){
-            newWidth = Math.min(m_manager.getMaxCurrentData()*3,
-                                (width/m_manager.getMaxCurrentData())*m_manager.getMaxCurrentData());
-        } else {
-            // hackyyyy
-            newWidth = newHeight;
-        }
-
-
-        Log.v(LOGTAG,"New canvas dims: " + newWidth + " x " + newHeight);
-        m_renderThread.setSurfaceDims(newWidth,newHeight);
+    public void updateSurface() {
+	// tell the android subsystem that we want to be redrawn
+	postInvalidate();
     }
 
 
@@ -160,8 +101,6 @@ public class RenderView extends SurfaceView
             // so make sure that we aren't passed a null canvas
             return;
         }
-        m_manager.updateInput(); // TODO: REMOVE, have this dependent
-        // on the input data rate!
         m_blitter.blitToCanvas(c);
     }
 
@@ -171,67 +110,28 @@ public class RenderView extends SurfaceView
                                int arg1,
                                int arg2) {
         initCanvas();
-        m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
-        m_blitter.setMaxElements(m_manager.getMaxCurrentData());
-
-        if(!m_renderThread.getRunning()) {
-	    m_renderThread.kill();
-	    threadInit();
-        }
-
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Log.v(LOGTAG,"Surface created");
         initCanvas();
-
-        // TODO: Setup proper calculations for this, eventbus?
-        m_manager.setMaxCurrentData(255*this.getWidth()/this.getHeight());
-
-        if(!m_renderThread.getRunning()) {
-            threadInit();
-        }
+	// tell android we want to redraw
+	setWillNotDraw(false);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-	stopView();
-	Log.v(LOGTAG,"Surface destroyed");
-    }
-
-    // stop the thread from running temporarily
-    public void stopView() {
-        if(m_renderThread != null) {
-            m_renderThread.setRunning(false);
-            while(m_renderThread != null) {
-                try {
-                    m_renderThread.join();
-		    m_renderThread.kill();
-		    m_renderThread = null;
-                }
-                catch(InterruptedException e) {
-                    // TODO:
-                }
-            }
-        }
-    }
-
-    public void startView() {
-        threadInit();
+        Log.v(LOGTAG,"Surface destroyed");
     }
 
     // TODO: Make this an external class?
     // I don't like how this clutters up the class, so it might be a
     // good idea to make it external...
-    private class RenderGestureListener extends
-                                            GestureDetector.SimpleOnGestureListener
-    {
+    private class RenderGestureListener
+        extends GestureDetector.SimpleOnGestureListener {
         private static final String GESLIN_LOGTAG =
             "RenderGestureListener";
-
-        private float m_dXacc = 0; // accumulator for dX
-        private float m_dYacc = 0;
 
         @Override
         public boolean onDown(MotionEvent e) {
@@ -248,22 +148,11 @@ public class RenderView extends SurfaceView
         public boolean onScroll(MotionEvent e1, MotionEvent e2,
                                 float dX, float dY) {
             //Log.d(GESLIN_LOGTAG,"onScroll: " + dX + " " + dY);
-            m_dXacc += dX;
-            m_dYacc += dY;
 
-            //find out how many elements to move by
+	    // send scroll event to element manager
+	    EventBus.getDefault().post(new SurfaceScrolledEvent(dX, dY));
 
-            float pixelSize = (float)RenderView.this.getWidth()/(float)m_manager.getMaxCurrentData();
-
-            int xscroll = -(int)(m_dXacc/pixelSize);
-            if(xscroll != 0 && !m_manager.getStartLock()) { // have to move!
-                //Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);
-                m_manager.moveCurrent(xscroll); // move viewport
-
-                // remove from accumulator
-                m_dXacc += xscroll*pixelSize;
-            }
-            return true;
+	    return true;
         }
     }
 
@@ -279,7 +168,28 @@ public class RenderView extends SurfaceView
         return true;
     }
 
-    public void setDataInput(DataInputInterface in) {
-        m_manager.setDataInput(in);
+
+    /**
+     * This object is sent via the eventbus whenever the surface in
+     * this view is changed.
+     */
+    public class SurfaceChangedEvent {
+        public final int m_dimX;
+        public final int m_dimY;
+
+        public SurfaceChangedEvent(int w, int h) {
+            this.m_dimX = w;
+            this.m_dimY = h;
+        }
+    }
+
+    public class SurfaceScrolledEvent {
+	public final float m_dX;
+	public final float m_dY;
+
+	public SurfaceScrolledEvent(float dX, float dY) {
+	    this.m_dX = dX;
+	    this.m_dY = dY;
+	}
     }
 }
