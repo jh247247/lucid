@@ -16,6 +16,7 @@ public class RenderElementManager implements
                                       DataInputInterface.InputUpdateCallback {
     static final String LOGTAG = "RenderElementManager";
     static final int MAX_CACHE = 1000;
+    static final int DEFAULT_MAX_ELEMENTS = 100;
 
     /**
      * This is the cache for what is "Left" and "Right" of the
@@ -57,7 +58,8 @@ public class RenderElementManager implements
     boolean m_startLock;
 
     public RenderElementManager() {
-        m_input = null;
+	m_maxCurrentData = DEFAULT_MAX_ELEMENTS;
+	m_input = null;
 
         m_olderData = new CachedStack<RenderElement>(new
                                                      olderInputRequest(), MAX_CACHE);
@@ -296,9 +298,17 @@ public class RenderElementManager implements
     }
 
     // input changed! set via our handy function...
-    public void onEventBackgroundThread(DataInputFragment.InputChangeEvent e) {
-        setDataInput(e.input);
-	updateInput();
+    public void
+    onEventBackgroundThread(DataInputFragment.InputChangeEvent e) {
+	if(e.input != m_input) {
+	    setDataInput(e.input);
+	    updateInput();
+	}
     }
-    
+
+    public void
+        onEventBackgroundThread(RenderView.SurfaceScrolledEvent e) {
+	moveCurrent(e.dX);
+    }
+
 }

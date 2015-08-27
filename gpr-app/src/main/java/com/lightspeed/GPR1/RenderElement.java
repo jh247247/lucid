@@ -13,7 +13,7 @@ import java.lang.Runnable;
 import android.graphics.BitmapFactory;
 
 
-    public class RenderElement {
+public class RenderElement {
     /**
      * Stores the actual data to display
      */
@@ -68,7 +68,6 @@ import android.graphics.BitmapFactory;
             return;
         }
 
-        Log.d("RenderElement", "RENDERING");
         // make the paint, bitmap and canvas so we can actually render
         // the element
         Paint p = new Paint();
@@ -87,7 +86,6 @@ import android.graphics.BitmapFactory;
         }
         m_renderedData = tmp;
         m_rendered.set(true);
-        Log.d("RenderElement", "DONE RENDERING");
     }
 
 

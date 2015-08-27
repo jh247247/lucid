@@ -8,6 +8,7 @@ import com.lightspeed.gpr.lib.DataInputInterface;
 import android.support.v4.app.Fragment;
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 
 import de.greenrobot.event.EventBus;
 
@@ -16,14 +17,16 @@ public class RetainFragment extends Fragment {
     private RenderElementManager m_manager;
     private RenderElementBlitter m_blitter;
 
+    public RetainFragment() {
+	m_manager = new RenderElementManager();
+        m_blitter = m_manager.getBlitter();
+	EventBus.getDefault().register(this);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
 	setRetainInstance(true);
-	EventBus.getDefault().register(this);
-
-	m_manager = new RenderElementManager();
-        m_blitter = m_manager.getBlitter();
     }
 
 

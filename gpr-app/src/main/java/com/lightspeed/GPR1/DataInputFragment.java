@@ -111,9 +111,6 @@ public class DataInputFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-	if(m_input != null) {
-	    m_input.close();
-	}
 	
 	EventBus.getDefault().unregister(this);
         ButterKnife.unbind(this);
@@ -175,9 +172,8 @@ public class DataInputFragment extends Fragment {
 
         // send new input to receivers
 
-        EventBus.getDefault().post(new InputChangeEvent(m_input));
-
 	if(m_input != null) {
+	    EventBus.getDefault().post(new InputChangeEvent(m_input));
 	    m_input.open();
 	}
     }

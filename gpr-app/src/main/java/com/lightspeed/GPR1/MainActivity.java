@@ -23,6 +23,7 @@ import android.view.SurfaceView;
 import android.widget.Spinner;
 import android.widget.Toast;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
+
         // expand the bindings
         ButterKnife.bind(this);
 
@@ -74,18 +76,19 @@ public class MainActivity extends AppCompatActivity {
         m_inputManager = (DataInputFragment)
             fm.findFragmentById(R.id.input_manager);
 
-
         // get back retained vars if required
         m_retained = (RetainFragment)
             fm.findFragmentByTag(TAG_RETAIN_FRAGMENT);
 
         // first start, fragment does not exist!
         if(m_retained == null) {
-            m_retained = new RetainFragment();
+	    Log.w("MainActivity","Have to create retained fragment!");
+	    m_retained = new RetainFragment();
             fm.beginTransaction().add(m_retained,
                                       TAG_RETAIN_FRAGMENT).commit();
 
         }
+
         m_render.start(m_retained.getBlitter());
     }
 

@@ -10,6 +10,8 @@ import android.util.Log;
 import java.util.LinkedList;
 import android.graphics.Color;
 
+import de.greenrobot.event.EventBus;
+
 public class RenderElementBlitter {
     static final String LOGTAG = "RenderElementBlitter";
 
@@ -24,6 +26,9 @@ public class RenderElementBlitter {
         m_maxElements = 0; // auto scale...
         m_bm = null;
         m_cbm = null;
+
+	// TODO: unsubscribe?
+	//EventBus.getDefault().register(this);
     }
 
     public RenderElementBlitter(List<RenderElement> rearr,
@@ -36,12 +41,17 @@ public class RenderElementBlitter {
         m_maxElements = max;
     }
 
+    public int getMaxElements() {
+	return m_maxElements;
+    }
+
     public void blitToCanvas(Canvas c) {
-        if(m_elementsToRender == null) {
-            // cannot render...
-            Log.e("RenderElementBlitter","Cannot render!");
-            return;
-        }
+	Log.d("RenderElementBlitter", "Trying to render!");
+	if(m_elementsToRender == null) {
+	    // cannot render...
+	    Log.e("RenderElementBlitter","Cannot render!");
+	    return;
+	}
         // make local copy to elements to render, just in case things
         // change beneath us
         ArrayList<RenderElement> locElementsToRender = null;
@@ -111,7 +121,5 @@ public class RenderElementBlitter {
         if(diff > 16) {
             Log.w("RenderElementBlitter","Scene in: " + diff);
         }
-
     }
-
 }

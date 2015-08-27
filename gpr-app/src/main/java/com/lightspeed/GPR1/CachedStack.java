@@ -64,9 +64,9 @@ public class CachedStack<T> {
 
                         Log.d("RECS", "DELTA: " + delta);
                         if(delta > 0) {
-                            moveSoftToHard(delta);
+                            delta = moveSoftToHard(delta);
                         } else {
-                            moveHardToSoft(-delta);
+                            delta = moveHardToSoft(-delta);
                         }
                         m_threadRunning = false;
                     }
@@ -83,8 +83,8 @@ public class CachedStack<T> {
         for(int i = 0; i < amount; i++) {
             m_hardData.remove(m_hardData.size()-1);
         }
-        Log.d("RECS", "removed " + amount + " from hard buffer");
-        Log.d("RECS", "Current size: " + m_hardData.size());
+        //Log.d("RECS", "removed " + amount + " from hard buffer");
+        //Log.d("RECS", "Current size: " + m_hardData.size());
         return amount;
     }
 
@@ -106,13 +106,13 @@ public class CachedStack<T> {
             ret++;
             m_hardData.add(re);
         }
-        Log.d("RECS", "Added " + amount + " to hard buffer");
-        Log.d("RECS", "Current size: " + m_hardData.size());
+        //Log.d("RECS", "Added " + amount + " to hard buffer");
+        //Log.d("RECS", "Current size: " + m_hardData.size());
         return ret;
     }
 
     private T getNextSoft() {
-        Log.d("RECS", "Getting next soft element");
+        //Log.d("RECS", "Getting next soft element");
         return (T)m_request.getOlder(0,m_hardData.size());
 
     }

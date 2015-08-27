@@ -42,26 +42,25 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx) {
         super(ctx);
-        uiInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
-        uiInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
-        uiInit();
     }
 
     // call this if we have some retained managers
     public void start(RenderElementBlitter rb) {
-        uiInit();
         m_blitter = rb;
+	uiInit();
+	initCanvas();
+
         if(m_blitter == null) {
             // somebody made a boo-boo..
-            Log.wtf(LOGTAG, "blitter is null in init!");
+            Log.e(LOGTAG, "blitter is null in init!");
             // don't start rendering if blitter not set
             // TODO: error checking...
         }
@@ -69,9 +68,10 @@ public class RenderView extends SurfaceView
 
     private void uiInit() {
         setFocusable(true); // make sure we get events...
+	getHolder().addCallback(this);
 
         // TODO: make this get recreated on config change
-        m_gdetector = new GestureDetectorCompat(getActivity(), new
+        m_gdetector = new GestureDetectorCompat(getContext(), new
                                                 RenderGestureListener());
 
         Log.v(LOGTAG,"Finished init!");
@@ -84,24 +84,27 @@ public class RenderView extends SurfaceView
         EventBus.getDefault().post(new
                                    SurfaceChangedEvent(width, height));
 
-        Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
-              height);
-    }
+        setWillNotDraw(false);
 
-    public void updateSurface() {
-	// tell the android subsystem that we want to be redrawn
-	postInvalidate();
+	Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
+	      height);
     }
-
 
     @Override
     protected void onDraw(Canvas c) {
         if(c == null) {
             // this can still be called when the surface is destroyed,
             // so make sure that we aren't passed a null canvas
+	    Log.e(LOGTAG, "Surface draw failed!: canvas was null");
             return;
         }
-        m_blitter.blitToCanvas(c);
+
+	if(m_blitter == null) {
+	    Log.e(LOGTAG, "Surface draw failed!: blitter was null");
+            return;
+	}
+	Log.d(LOGTAG, "Surface drawing!");
+	m_blitter.blitToCanvas(c);
     }
 
     @Override
@@ -116,8 +119,6 @@ public class RenderView extends SurfaceView
     public void surfaceCreated(SurfaceHolder holder) {
         Log.v(LOGTAG,"Surface created");
         initCanvas();
-	// tell android we want to redraw
-	setWillNotDraw(false);
     }
 
     @Override
@@ -133,13 +134,12 @@ public class RenderView extends SurfaceView
         private static final String GESLIN_LOGTAG =
             "RenderGestureListener";
 
+        private float m_dXacc = 0; // accumulator for dX
+        private float m_dYacc = 0;
+
         @Override
         public boolean onDown(MotionEvent e) {
             Log.d(GESLIN_LOGTAG,"onDown: " + e.toString());
-            // reset accumulator so that we can track this scroll (if
-            // it is one...)
-            m_dXacc = 0;
-            m_dYacc = 0; // TODO: Y scrolling...
 
             return true;
         }
@@ -147,12 +147,35 @@ public class RenderView extends SurfaceView
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2,
                                 float dX, float dY) {
+
             //Log.d(GESLIN_LOGTAG,"onScroll: " + dX + " " + dY);
+            m_dXacc += dX;
+            m_dYacc += dY;
 
-	    // send scroll event to element manager
-	    EventBus.getDefault().post(new SurfaceScrolledEvent(dX, dY));
+	    // can't do anything, no blitter or no elements to render
+	    if(m_blitter == null || m_blitter.getMaxElements() == 0) {
+		return true;
+	    }
 
-	    return true;
+	    //find out how many elements to move by
+
+	    float pixelSize =
+		(float)RenderView.this.getWidth()/(float)m_blitter.getMaxElements();
+
+            int xscroll = -(int)(m_dXacc/pixelSize);
+            //Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);
+            if(xscroll != 0) {
+                // send scroll event to element manager
+                EventBus.getDefault().post(new
+                                           SurfaceScrolledEvent(xscroll,
+                                                                0));
+                // TODO: figure out if we need to do y scroll...
+                // remove from accumulator
+                m_dXacc += xscroll*pixelSize;
+		postInvalidate();
+	    }
+
+            return true;
         }
     }
 
@@ -174,22 +197,22 @@ public class RenderView extends SurfaceView
      * this view is changed.
      */
     public class SurfaceChangedEvent {
-        public final int m_dimX;
-        public final int m_dimY;
+        public final int w;
+        public final int h;
 
-        public SurfaceChangedEvent(int w, int h) {
-            this.m_dimX = w;
-            this.m_dimY = h;
+        public SurfaceChangedEvent(int wi, int hi) {
+            w = wi;
+            h = hi;
         }
     }
 
     public class SurfaceScrolledEvent {
-	public final float m_dX;
-	public final float m_dY;
+        public final int dX;
+        public final int dY;
 
-	public SurfaceScrolledEvent(float dX, float dY) {
-	    this.m_dX = dX;
-	    this.m_dY = dY;
-	}
+        public SurfaceScrolledEvent(int x, int y) {
+            dX = x;
+            dY = y;
+        }
     }
 }

@@ -88,7 +88,7 @@ public class FileDataInput implements DataInputInterface {
             return null;
             // TODO: handle
         } catch (Exception e) {
-            Log.e("FileDataInput","General error!");
+            Log.e("FileDataInput","General error: " + e);
             return null;
         }
 
