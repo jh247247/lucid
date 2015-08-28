@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import android.graphics.Canvas;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
+import android.graphics.Paint;
 import android.graphics.Matrix;
 import android.view.SurfaceHolder;
 import java.lang.Math;
@@ -22,6 +24,7 @@ public class RenderElementBlitter {
     int m_maxElements;
     Bitmap m_bm;
     Canvas m_cbm;
+    Paint m_paint;
 
     SurfaceHolder m_surfHold;
 
@@ -32,6 +35,11 @@ public class RenderElementBlitter {
         m_bm = null;
         m_cbm = null;
         m_surfHold = null;
+
+	// disable filtering...
+        m_paint = new Paint();
+        m_paint.setAntiAlias(false);
+        m_paint.setFilterBitmap(false);
 
         // TODO: unsubscribe?
         EventBus.getDefault().register(this);
@@ -92,8 +100,8 @@ public class RenderElementBlitter {
             // do some of the resizing..
             if(m_surfHold != null) {
                 m_surfHold.setFixedSize(maxw,
-					maxh*Math.max(m_maxElements,
-						      m_elementsToRender.size()));
+                                        maxh*Math.max(m_maxElements,
+                                                      m_elementsToRender.size()));
             }
         }
     }
@@ -147,23 +155,16 @@ public class RenderElementBlitter {
         }
         // stop rendering
 
-        Matrix matrix = new Matrix();
-	matrix.postScale(((float)c.getWidth()/(float)m_bm.getWidth()),
-			 ((float)c.getHeight()/(float)m_bm.getHeight()));
-	//matrix.postScale(1,1);
+	Matrix matrix = new Matrix();
+        matrix.postScale(((float)c.getWidth()/(float)m_bm.getWidth()),
+                         ((float)c.getHeight()/(float)m_bm.getHeight()));
 
+        c.drawBitmap(m_bm,matrix,m_paint);
 
-	Log.d("RenderElementBlitter", "Given Canvas dims: " + c.getWidth() +
-	      " " + c.getHeight());
-	Log.d("RenderElementBlitter", "Temp bitmap dims: " + m_cbm.getWidth() +
-	      " " + m_cbm.getHeight());
-
-	c.drawBitmap(m_bm,matrix,null);
-
-	long endTime = System.nanoTime();
-	long diff = (endTime-startTime)/1000000;
-	if(diff > 16) {
-	    Log.w("RenderElementBlitter","Scene in: " + diff);
-	}
+        long endTime = System.nanoTime();
+        long diff = (endTime-startTime)/1000000;
+        if(diff > 16) {
+            Log.w("RenderElementBlitter","Scene in: " + diff);
+        }
     }
 }
