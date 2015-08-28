@@ -5,6 +5,7 @@ import java.util.List;
 import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.view.SurfaceHolder;
 import java.lang.Math;
 import android.util.Log;
 import java.util.LinkedList;
@@ -15,10 +16,14 @@ import de.greenrobot.event.EventBus;
 public class RenderElementBlitter {
     static final String LOGTAG = "RenderElementBlitter";
 
+    static final int MAX_PIXEL_SIZE = 3;
+
     List<RenderElement> m_elementsToRender = null;
     int m_maxElements;
     Bitmap m_bm;
     Canvas m_cbm;
+
+    SurfaceHolder m_surfHold;
 
     public RenderElementBlitter(List<RenderElement> rearr) {
         m_elementsToRender = rearr;
@@ -26,9 +31,10 @@ public class RenderElementBlitter {
         m_maxElements = 0; // auto scale...
         m_bm = null;
         m_cbm = null;
+        m_surfHold = null;
 
-	// TODO: unsubscribe?
-	//EventBus.getDefault().register(this);
+        // TODO: unsubscribe?
+        EventBus.getDefault().register(this);
     }
 
     public RenderElementBlitter(List<RenderElement> rearr,
@@ -42,16 +48,63 @@ public class RenderElementBlitter {
     }
 
     public int getMaxElements() {
-	return m_maxElements;
+        return m_maxElements;
+    }
+
+    public void setSurfaceHolder(SurfaceHolder s) {
+        m_surfHold = s;
+    }
+
+    public int getMaxElementLength() {
+        int len = -1;
+        for (RenderElement el : m_elementsToRender) {
+            len = Math.max(len, el.getElementHeight());
+        }
+        return len;
+    }
+
+    public void onEvent(RenderView.SurfaceChangedEvent e) {
+        resizeBitmapToData(e.w,e.h);
+    }
+
+    private void resizeBitmapToData(int w, int h) {
+        // get max height of element
+        int maxh = getMaxElementLength();
+
+        // limit the maximum pixel size to reduce the amount of
+        // graphics processing later
+        //maxh *= Math.min(MAX_PIXEL_SIZE, h/maxh+1);
+
+        int maxw = Math.max(m_maxElements,
+                            m_elementsToRender.size());
+
+        // bitmap doesn't exist or dims change
+        if(m_bm == null ||
+           maxh != m_bm.getHeight() ||
+           maxw != m_bm.getWidth()) {
+            Log.d(LOGTAG, "Making bitmap of " + maxw + " " + maxh);
+            Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+            m_bm = Bitmap.createBitmap(maxw,
+                                       maxh,conf);
+            m_cbm = new Canvas(m_bm);
+
+            // not required, but if we have a holder, get the GPU to
+            // do some of the resizing..
+            if(m_surfHold != null) {
+                m_surfHold.setFixedSize(maxw,
+					maxh*Math.max(m_maxElements,
+						      m_elementsToRender.size()));
+            }
+        }
     }
 
     public void blitToCanvas(Canvas c) {
-	Log.d("RenderElementBlitter", "Trying to render!");
-	if(m_elementsToRender == null) {
-	    // cannot render...
-	    Log.e("RenderElementBlitter","Cannot render!");
-	    return;
-	}
+        Log.d("RenderElementBlitter", "Trying to render!");
+        if(m_elementsToRender == null) {
+            // cannot render...
+            Log.e("RenderElementBlitter","Cannot render!");
+            return;
+        }
         // make local copy to elements to render, just in case things
         // change beneath us
         ArrayList<RenderElement> locElementsToRender = null;
@@ -67,26 +120,10 @@ public class RenderElementBlitter {
             return;
         }
 
-        // get max height of element
-        int maxh = 0;
-        for (RenderElement el : locElementsToRender) {
-            maxh = Math.max(maxh, el.getElementHeight());
+        // create bitmap just in case we havent yet
+        if(m_bm == null) {
+            resizeBitmapToData(c.getWidth(),c.getHeight());
         }
-
-        int maxw = Math.max(m_maxElements,
-                            locElementsToRender.size());
-
-        // bitmap doesn't exist or dims change
-        if(m_bm == null ||
-           maxh != m_bm.getHeight() ||
-           maxw != m_bm.getWidth()) {
-            Log.d(LOGTAG, "Making bitmap of " + maxw + " " + maxh);
-            Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-            m_bm = Bitmap.createBitmap(maxw,
-                                       maxh,conf);
-            m_cbm = new Canvas(m_bm);
-        }
-
 
 
         long startTime = System.nanoTime();
@@ -111,15 +148,22 @@ public class RenderElementBlitter {
         // stop rendering
 
         Matrix matrix = new Matrix();
-        matrix.postScale(((float)c.getWidth()/(float)m_bm.getWidth()),
-                         ((float)c.getHeight()/(float)m_bm.getHeight()));
+	matrix.postScale(((float)c.getWidth()/(float)m_bm.getWidth()),
+			 ((float)c.getHeight()/(float)m_bm.getHeight()));
+	//matrix.postScale(1,1);
 
-        c.drawBitmap(m_bm,matrix,null);
 
-        long endTime = System.nanoTime();
-        long diff = (endTime-startTime)/1000000;
-        if(diff > 16) {
-            Log.w("RenderElementBlitter","Scene in: " + diff);
-        }
+	Log.d("RenderElementBlitter", "Given Canvas dims: " + c.getWidth() +
+	      " " + c.getHeight());
+	Log.d("RenderElementBlitter", "Temp bitmap dims: " + m_cbm.getWidth() +
+	      " " + m_cbm.getHeight());
+
+	c.drawBitmap(m_bm,matrix,null);
+
+	long endTime = System.nanoTime();
+	long diff = (endTime-startTime)/1000000;
+	if(diff > 16) {
+	    Log.w("RenderElementBlitter","Scene in: " + diff);
+	}
     }
 }
