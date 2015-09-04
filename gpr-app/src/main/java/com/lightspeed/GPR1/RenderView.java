@@ -55,8 +55,6 @@ public class RenderView extends SurfaceView
     // call this if we have some retained managers
     public void start(RenderElementBlitter rb) {
         m_blitter = rb;
-        uiInit();
-        initCanvas();
 
         if(m_blitter == null) {
             // somebody made a boo-boo..
@@ -66,6 +64,10 @@ public class RenderView extends SurfaceView
         } else {
 	    m_blitter.setSurfaceHolder(getHolder());
 	}
+
+        uiInit();
+        initCanvas();
+
     }
 
     private void uiInit() {

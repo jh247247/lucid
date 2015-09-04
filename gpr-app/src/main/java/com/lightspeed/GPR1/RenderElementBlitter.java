@@ -78,11 +78,6 @@ public class RenderElementBlitter {
     private void resizeBitmapToData(int w, int h) {
         // get max height of element
         int maxh = getMaxElementLength();
-
-        // limit the maximum pixel size to reduce the amount of
-        // graphics processing later
-        //maxh *= Math.min(MAX_PIXEL_SIZE, h/maxh+1);
-
         int maxw = Math.max(m_maxElements,
                             m_elementsToRender.size());
 
