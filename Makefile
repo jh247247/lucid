@@ -1,7 +1,13 @@
 
 
+.DEFAULT_GOAL := install
 
-all:
+
+EMULATOR := /opt/android/sdk/tools/emulator
+AVD-DEVICE := Marshmallow-dev
+AVD-RUNNING := $(shell ps aux | grep -v "grep" | grep $(AVD-DEVICE))
+
+build:
 	./gradlew build
 
 test:
@@ -13,3 +19,11 @@ install: build
 
 clean:
 	./gradlew clean
+
+start-avd:
+ifeq ($(strip $(AVD-RUNNING)),)
+	@echo "Emulator not running! Starting..."
+	@$(EMULATOR) -avd $(AVD-DEVICE) -gpu on &\
+else
+	@echo "Emulator already running!"
+endif
