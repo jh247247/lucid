@@ -30,3 +30,6 @@
 -keepclasseswithmembernames class * {
     @butterknife.* <methods>;
 }
+
+-keep class com.google.**
+-dontwarn com.google.**
