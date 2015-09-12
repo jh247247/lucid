@@ -209,22 +209,22 @@ public class RenderElementManager implements
      * objects for the caches? Simplest solution, I guess the simplest
      * solution is the best.
      */
-    public void setDataInput(DataInputInterface in) {
-        m_input = in;
+    private void setDataInput(DataInputInterface in) {
+	m_input = in;
 
-        // clean out data from old interface
-        // TODO: fix magic numbers
-        m_olderData = new CachedStack<RenderElement>(new
-                                                     olderInputRequest(), MAX_CACHE);
-        m_newerData = new CachedStack<RenderElement>(new
-                                                     newerInputRequest(), MAX_CACHE);
+	// clean out data from old interface
+	// TODO: fix magic numbers
+	m_olderData = new CachedStack<RenderElement>(new
+						     olderInputRequest(), MAX_CACHE);
+	m_newerData = new CachedStack<RenderElement>(new
+						     newerInputRequest(), MAX_CACHE);
 
-        m_currentData.clear();
-        m_currentIndex = 0;
+	m_currentData.clear();
+	m_currentIndex = 0;
 
-        if(m_input != null) {
-            m_input.setUpdateCallback(this);
-        }
+	if(m_input != null) {
+	    m_input.setUpdateCallback(this);
+	}
     }
 
     /**
@@ -307,7 +307,7 @@ public class RenderElementManager implements
     }
 
     public void
-        onEventBackgroundThread(RenderView.SurfaceScrolledEvent e) {
+        onEvent(RenderView.SurfaceScrolledEvent e) {
 	moveCurrent(e.dX);
     }
 

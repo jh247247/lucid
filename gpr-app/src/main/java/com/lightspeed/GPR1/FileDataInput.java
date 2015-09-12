@@ -43,7 +43,7 @@ public class FileDataInput implements DataInputInterface {
     final static byte TYPE_ELEMENT = 0;
     final static byte TYPE_TIMESTAMP = 1;
 
-    File m_file;
+    String m_path;
 
     private ArrayList<Integer> m_elementIndex;
     private ArrayList<Integer> m_timestampIndex;
@@ -82,8 +82,11 @@ public class FileDataInput implements DataInputInterface {
     public  Element getPrevious(int offset) {
         DataInputStream in = null;
         try {
-            in = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
-        } catch(FileNotFoundException e) {
+	    Log.v("FileDataInput", "File path: " + m_path);
+            in = new DataInputStream(new BufferedInputStream(new
+							     FileInputStream(new File(m_path))));
+
+	} catch(FileNotFoundException e) {
             Log.e("FileDataInput","Cannot open the file!");
             return null;
             // TODO: handle
@@ -180,12 +183,12 @@ public class FileDataInput implements DataInputInterface {
 
     public boolean open() {
 
-	if(m_file == null) {
+	if(m_path == null) {
 	    return false;
 	}
 
         // index the file for us, should really do some callback, but idk.
-        new FileIndexer(m_file);
+        new FileIndexer(new File(m_path));
 
         return true;
     }
@@ -207,7 +210,7 @@ public class FileDataInput implements DataInputInterface {
         }
         Toast.makeText(m_ctx.get(), e.file.toString(),
                        Toast.LENGTH_SHORT).show();
-        m_file = e.file;
+        m_path = e.file.getAbsolutePath();
         open();
     }
 

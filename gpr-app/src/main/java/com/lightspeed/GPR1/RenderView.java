@@ -67,7 +67,7 @@ public class RenderView extends SurfaceView
 
         uiInit();
         initCanvas();
-
+	postInvalidate();
     }
 
     private void uiInit() {

@@ -77,28 +77,38 @@ public class RenderElementBlitter {
 
     private void resizeBitmapToData(int w, int h) {
         // get max height of element
-        int maxh = getMaxElementLength();
-        int maxw = Math.max(m_maxElements,
-                            m_elementsToRender.size());
+	int maxh, maxw;
 
-        // bitmap doesn't exist or dims change
-        if(m_bm == null ||
-           maxh != m_bm.getHeight() ||
-           maxw != m_bm.getWidth()) {
-            Log.d(LOGTAG, "Making bitmap of " + maxw + " " + maxh);
-            Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-            m_bm = Bitmap.createBitmap(maxw,
-                                       maxh,conf);
-            m_cbm = new Canvas(m_bm);
+	synchronized (m_elementsToRender) {
+	    maxh = getMaxElementLength();
+	    maxw = Math.max(m_maxElements,
+			    m_elementsToRender.size());
+	}
 
-            // not required, but if we have a holder, get the GPU to
-            // do some of the resizing..
-            if(m_surfHold != null) {
-                m_surfHold.setFixedSize(maxw,
-                                        maxh*Math.max(m_maxElements,
-                                                      m_elementsToRender.size()));
-            }
-        }
+
+	if(maxh <= 0 ||
+	   maxw <= 0) {
+	    return;
+	}
+
+	// bitmap doesn't exist or dims change
+	if(m_bm == null ||
+	   maxh != m_bm.getHeight() ||
+	   maxw != m_bm.getWidth()) {
+	    Log.d(LOGTAG, "Making bitmap of " + maxw + " " + maxh);
+	    Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+	    m_bm = Bitmap.createBitmap(maxw,
+				       maxh,conf);
+	    m_cbm = new Canvas(m_bm);
+
+	    // not required, but if we have a holder, get the GPU to
+	    // do some of the resizing..
+	    if(m_surfHold != null) {
+		m_surfHold.setFixedSize(maxw,
+					maxh*Math.max(m_maxElements,
+						      m_elementsToRender.size()));
+	    }
+	}
     }
 
     public void blitToCanvas(Canvas c) {
