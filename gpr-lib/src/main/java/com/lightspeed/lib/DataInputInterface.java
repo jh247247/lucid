@@ -23,7 +23,7 @@ public interface DataInputInterface {
      * This should rewind the data by some given amount, trying a
      * local buffer (hopefully) then resorting to file if it doesn't exist.
      */
-    public Element getPrevious(int offset);
+    public Element getPrevious(long offset);
 
     /**
      * Attempts to open an interface, hide all the inner workings so

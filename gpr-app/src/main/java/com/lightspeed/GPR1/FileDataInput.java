@@ -79,7 +79,7 @@ public class FileDataInput implements DataInputInterface {
 
     // TODO: Buffering of the datastream so that we don't reopen the
     // file every single time
-    public  Element getPrevious(int offset) {
+    public  Element getPrevious(long offset) {
         DataInputStream in = null;
         try {
 	    Log.v("FileDataInput", "File path: " + m_path);
@@ -108,7 +108,7 @@ public class FileDataInput implements DataInputInterface {
             return null;
         }
         // offset from the end of the file...
-        int index = m_elementIndex.get(m_elementIndex.size()-1-offset);
+        int index = m_elementIndex.get(m_elementIndex.size()-1-(int)offset);
 
         // seek to position
         try {

@@ -73,7 +73,7 @@ public class RandomDataInput implements DataInputInterface{
     }
 
     // get an older element, probably one from file.
-    public Element getPrevious(int offset) {
+    public Element getPrevious(long offset) {
         if(offset < 0 || offset > m_index.get()) {
             return null;
         }

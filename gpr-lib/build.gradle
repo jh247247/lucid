@@ -6,6 +6,10 @@ repositories {
 
 dependencies {
   testCompile 'junit:junit:4.11'
+
+  // Guava for fancy utils
+  compile 'com.google.guava:guava:18.0'
+  compile 'com.google.code.findbugs:jsr305:3.0.0'
 }
 
 sourceSets.test.java.srcDirs = ["src/test/java"]

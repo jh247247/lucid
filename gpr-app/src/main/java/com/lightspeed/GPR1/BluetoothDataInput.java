@@ -126,7 +126,7 @@ public class BluetoothDataInput implements DataInputInterface {
     }
 
 
-    public Element getPrevious(int offset) {
+    public Element getPrevious(long offset) {
         trimPrevious();
         Element ret = null;
         if(offset < 0 ) {
@@ -135,7 +135,7 @@ public class BluetoothDataInput implements DataInputInterface {
 
         // definitely not stored. have to reload... (FIXME)
         if(offset > m_previous.size()-1 ||
-           m_previous.get(offset).get() == null) {
+           m_previous.get((int)offset).get() == null) {
             // would load it from file, but cbf generate random var.
             ret = new Element(0,255);
             for(int i = 0; i < 255; i++) {
@@ -145,7 +145,7 @@ public class BluetoothDataInput implements DataInputInterface {
         }
 
         // woo! we still have it! return it.
-        return m_previous.get(offset).get();
+        return m_previous.get((int)offset).get();
     }
 
     public void setUpdateCallback(InputUpdateCallback call) {
