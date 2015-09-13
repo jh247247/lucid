@@ -10,6 +10,10 @@ dependencies {
   // Guava for fancy utils
   compile 'com.google.guava:guava:18.0'
   compile 'com.google.code.findbugs:jsr305:3.0.0'
+
+  // dagger for dependency injection
+  compile 'com.squareup.dagger:dagger-compiler:1.2.2'
+  compile 'com.squareup.dagger:dagger:1.2.2'
 }
 
 sourceSets.test.java.srcDirs = ["src/test/java"]

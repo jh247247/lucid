@@ -40,6 +40,10 @@ android {
   dexOptions {
     preDexLibraries = false
   }
+
+  packagingOptions {
+    exclude 'META-INF/services/javax.annotation.processing.Processor'
+  }
 }
 
 buildscript {
@@ -69,6 +73,10 @@ dependencies {
 
   // Butterknife for view injection
   compile 'com.jakewharton:butterknife:7.0.1'
+
+  // dagger for dependency injection
+  compile 'com.squareup.dagger:dagger-compiler:1.2.2'
+  compile 'com.squareup.dagger:dagger:1.2.2'
 
   // Guava for fancy utils
   compile 'com.google.guava:guava:18.0'
