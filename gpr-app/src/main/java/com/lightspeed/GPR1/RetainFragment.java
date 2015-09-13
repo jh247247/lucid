@@ -14,12 +14,10 @@ import de.greenrobot.event.EventBus;
 
 public class RetainFragment extends Fragment {
     private DataInputInterface m_input;
-    private RenderElementManager m_manager;
     private RenderElementBlitter m_blitter;
 
     public RetainFragment() {
-	m_manager = new RenderElementManager();
-        m_blitter = m_manager.getBlitter();
+        m_blitter = new RenderElementBlitter();
 	EventBus.getDefault().register(this);
     }
 
@@ -29,15 +27,9 @@ public class RetainFragment extends Fragment {
 	setRetainInstance(true);
     }
 
-
     public DataInputInterface getInput() {
         return m_input;
     }
-
-    public RenderElementManager getManager() {
-        return m_manager;
-    }
-
 
     public RenderElementBlitter getBlitter() {
         return m_blitter;

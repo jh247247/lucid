@@ -1,6 +1,7 @@
 package com.lightspeed.GPR1;
 
 import com.lightspeed.gpr.lib.DataInputInterface;
+import com.lightspeed.gpr.lib.AbstractViewManager;
 
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -33,6 +34,7 @@ public class RenderView extends SurfaceView
      * configuration changes.
      */
     private RenderElementBlitter m_blitter;
+    private AbstractViewManager m_viewManager;
 
     /**
      * I don't know what happens with this, does it get destroyed? I
@@ -50,6 +52,10 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
+    }
+
+    public void setViewManager(AbstractViewManager a) {
+	m_viewManager = a;
     }
 
     // call this if we have some retained managers
@@ -103,12 +109,12 @@ public class RenderView extends SurfaceView
             return;
         }
 
-        if(m_blitter == null) {
-            Log.e(LOGTAG, "Surface draw failed!: blitter was null");
+        if(m_blitter == null || m_viewManager == null) {
+            Log.e(LOGTAG, "Surface draw failed!");
             return;
         }
         Log.d(LOGTAG, "Surface drawing!");
-        m_blitter.blitToCanvas(c);
+        m_blitter.blitToCanvas(c, m_viewManager.getView());
     }
 
     @Override
@@ -157,14 +163,14 @@ public class RenderView extends SurfaceView
             m_dYacc += dY;
 
             // can't do anything, no blitter or no elements to render
-            if(m_blitter == null || m_blitter.getMaxElements() == 0) {
+            if(m_blitter == null || m_viewManager == null) {
                 return true;
             }
 
             //find out how many elements to move by
 
             float pixelSize =
-                (float)RenderView.this.getWidth()/(float)m_blitter.getMaxElements();
+                (float)RenderView.this.getWidth()/(float)m_viewManager.getViewWidth();
 
             int xscroll = -(int)(m_dXacc/pixelSize);
             //Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);
