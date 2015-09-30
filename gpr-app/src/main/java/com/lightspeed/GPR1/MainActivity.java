@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         // set the hamburger to the current state of the drawer
         m_abtog.syncState();
-
         FragmentManager fm = getSupportFragmentManager();
 
         // setup the data input manager/fragment thing
