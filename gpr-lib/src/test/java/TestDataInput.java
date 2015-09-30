@@ -1,9 +1,14 @@
 package com.lightspeed.gpr.test;
+
+import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.DataInputInterface;
+import java.util.List;
+import java.util.ArrayList;
 
 public class TestDataInput implements DataInputInterface {
     long m_currentIndex = 0;
     boolean m_opened = false;
+    ArrayList<Integer> m_accesses = new ArrayList<Integer>();;
 
     public TestDataInput() {
 
@@ -21,11 +26,25 @@ public class TestDataInput implements DataInputInterface {
      * local buffer (hopefully) then resorting to file if it doesn't exist.
      */
     public Element getElement(long index) {
-	if(!exists(index)) {
+	if(!exists(index) || !m_opened) {
+	    System.out.println("Index: " + index +
+			       " does not exist yet! " +
+			       "Max is currently: " + m_currentIndex);
 	    return null;
 	}
 	Element ret = new Element(1);
 	ret.setSample(0, index);
+
+	// new index, add to list
+	if(m_accesses.size() == m_currentIndex) {
+	    System.out.println("New index: " + index);
+	    m_currentIndex++;
+	    m_accesses.add(1);
+	} else { // older index, increment
+	    System.out.println("Old index: " + index +
+			       " access no: " + m_accesses.get((int)index));
+	    m_accesses.set((int)index, m_accesses.get((int)index)+1);
+	}
 
 	return ret;
     }
@@ -46,7 +65,6 @@ public class TestDataInput implements DataInputInterface {
      */
     public void close() {
 	m_opened = false;
-	return m_opened;
     }
 
     /**
@@ -70,5 +88,9 @@ public class TestDataInput implements DataInputInterface {
 
     public boolean opened() {
 	return m_opened;
+    }
+
+    public List<Integer> getIndexAccesses() {
+	return m_accesses;
     }
 }

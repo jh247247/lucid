@@ -22,62 +22,61 @@ public class ClassicViewManager extends AbstractViewManager {
     LoadingCache<Long, Element> m_elementCache;
 
     public ClassicViewManager() {
-	m_elementCache = CacheBuilder.newBuilder()
-	    .maximumSize(CACHE_SIZE)
-	    .build(new CacheLoader<Long, Element>() {
-		    @Override public Element load(Long index) {
-			// TODO: fix api for datainputinterface
-			Element ret = m_input.getElement(index);
-			if(m_input != null && ret != null) {
-			    return ret;
-			}
-			throw new IndexOutOfBoundsException();
-		    }
-		}
-		);
+        m_elementCache = CacheBuilder.newBuilder()
+            .maximumSize(CACHE_SIZE)
+            .build(new CacheLoader<Long, Element>() {
+                    @Override public Element load(Long index) {
+                        // TODO: fix api for datainputinterface
+                        if(m_input != null) {
+                            return m_input.getElement(index);
+                        }
+                        throw new IndexOutOfBoundsException();
+                    }
+                }
+                );
     }
 
     // returns the current view as a list to be rendered
     @Override
     public List<Element> getView() {
-	ArrayList<Element> ret = new ArrayList<Element>();
+        ArrayList<Element> ret = new ArrayList<Element>();
 
-	// populate list with viewport
-	for(long i = m_viewIndex; i < m_viewIndex+m_viewWidth; i++) {
-	    try {
-		ret.add(m_elementCache.get(i));
-	    }
-	    catch(Exception e) {
-		// no input, nothing to draw...
-		return ret;
-	    }
+        // populate list with viewport
+        for(long i = m_viewIndex; i < m_viewIndex+m_viewWidth; i++) {
+            try {
+                ret.add(m_elementCache.get(i));
+            }
+            catch(Exception e) {
+                // no input, nothing to draw...
+                return ret;
+            }
 
-	}
+        }
 
-	return ret;
+        return ret;
     }
 
     // move the view by some amount
     public void moveView(int amount) {
-	goToIndex(m_viewIndex + amount);
+        goToIndex(m_viewIndex + amount);
     }
 
     // go to a specific index
     public void goToIndex(long index) {
-	m_viewIndex = index;
-	if(m_viewIndex == 0) {
-	    m_viewIndex = 0;
-	}
+        m_viewIndex = index;
+        if(m_viewIndex == 0) {
+            m_viewIndex = 0;
+        }
 
-	// do I have to preempt the caching?
+        // do I have to preempt the caching?
     }
 
     @Override
     public void setInput(DataInputInterface in) {
-	super.setInput(in);
+        super.setInput(in);
 
-	// clear the cache since we are changing inputs, they are useless.
-	m_elementCache.invalidateAll();
+        // clear the cache since we are changing inputs, they are useless.
+        m_elementCache.invalidateAll();
     }
 
 }
