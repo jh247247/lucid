@@ -16,8 +16,6 @@ public class RandomDataInput implements DataInputInterface{
     AtomicInteger m_index;
     int m_oldIndex = 0;
 
-    InputUpdateCallback m_callback;
-
     // generator thread
     Thread m_genThread;
     boolean m_genThreadRun;
@@ -43,10 +41,6 @@ public class RandomDataInput implements DataInputInterface{
 			    // TODO: handle?
 			}
 			m_index.addAndGet(1);
-			if(m_callback != null) {
-			    m_callback.updateInput();
-			}
-
 		    }
 		}
 	    };
@@ -72,9 +66,13 @@ public class RandomDataInput implements DataInputInterface{
         return ret;
     }
 
+    public boolean exists(int index) {
+	return index > 0 && index < m_index.get();
+    }
+
     // get an older element, probably one from file.
-    public Element getPrevious(long offset) {
-        if(offset < 0 || offset > m_index.get()) {
+    public Element getElement(int index) {
+	if(!exists(index)) {
             return null;
         }
 
@@ -103,10 +101,6 @@ public class RandomDataInput implements DataInputInterface{
         }
         Log.v("RANDOM","Random data thread stopped");
 	return;
-    }
-
-    public void setUpdateCallback(DataInputInterface.InputUpdateCallback call) {
-        m_callback = call;
     }
 
     public String getName() {

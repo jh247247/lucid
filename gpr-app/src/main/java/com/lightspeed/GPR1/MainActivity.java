@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
-
         // expand the bindings
         ButterKnife.bind(this);
 
@@ -88,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        m_render.start(m_retained.getBlitter());
+        m_render.setBlitter(m_retained.getBlitter());
     }
 
     private void setupDrawerListener() {

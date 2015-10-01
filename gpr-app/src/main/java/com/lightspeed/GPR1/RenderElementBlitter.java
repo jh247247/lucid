@@ -15,9 +15,6 @@ import android.util.Log;
 import java.util.LinkedList;
 import android.graphics.Color;
 
-// TODO: remove!
-import de.greenrobot.event.EventBus;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -46,8 +43,6 @@ public class RenderElementBlitter {
         m_paint.setAntiAlias(false);
         m_paint.setFilterBitmap(false);
 
-        // TODO: unsubscribe?
-        EventBus.getDefault().register(this);
     }
 
     public void setSurfaceHolder(SurfaceHolder s) {
@@ -58,8 +53,8 @@ public class RenderElementBlitter {
         Log.d("RenderElementBlitter", "Trying to render!");
 
         // if elements are empty, might as well clear all the pixels...
-        if(data.isEmpty()) {
-            c.drawColor(Color.BLACK);
+        if(data == null || data.isEmpty()) {
+            c.drawColor(Color.RED);
             //Log.w("RenderElementBlitter","No elements!");
             return;
         }

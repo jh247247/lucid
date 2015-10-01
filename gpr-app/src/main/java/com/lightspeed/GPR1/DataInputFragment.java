@@ -34,8 +34,6 @@ import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
 import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
 import com.afollestad.materialdialogs.util.DialogUtils;
 
-import de.greenrobot.event.EventBus;
-
 public class DataInputFragment extends Fragment {
     static final String SPINNER_POS_SAVE = "spinnerPos";
     static final String FILENAME_SAVE = "filename";
@@ -94,11 +92,6 @@ public class DataInputFragment extends Fragment {
 
         setupInputUI(m_inputSpinner.getSelectedItemPosition());
 
-        // setup mini-ui
-
-        // register on the event bus..
-        EventBus.getDefault().register(this);
-
         return ret;
     }
 
@@ -112,7 +105,6 @@ public class DataInputFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
 	
-	EventBus.getDefault().unregister(this);
         ButterKnife.unbind(this);
     }
 
@@ -173,31 +165,31 @@ public class DataInputFragment extends Fragment {
         // send new input to receivers
 
 	if(m_input != null) {
-	    EventBus.getDefault().post(new InputChangeEvent(m_input));
+	    // post event?
 	    m_input.open();
 	}
     }
 
-    public void onEvent(FileDialog.FileChangedEvent e) {
-        TextView t = null;
-        if(m_inputView != null) {
-            t = ButterKnife.findById(m_inputView,R.id.file_select_text);
-        }
+    // public void onEvent(FileDialog.FileChangedEvent e) {
+    //     TextView t = null;
+    //     if(m_inputView != null) {
+    //         t = ButterKnife.findById(m_inputView,R.id.file_select_text);
+    //     }
 
-        if(t != null) {
-            // TODO: make this saved between switching interfaces?
-            String f = e.file.toString();
-            t.setText(f);
-        }
-    }
+    //     if(t != null) {
+    //         // TODO: make this saved between switching interfaces?
+    //         String f = e.file.toString();
+    //         t.setText(f);
+    //     }
+    // }
 
-    /**
-     * This object contains the new input type, sent to receivers.
-     */
-    public class InputChangeEvent {
-        public final DataInputInterface input;
-        public InputChangeEvent(DataInputInterface in) {
-            this.input = in;
-        }
-    }
+    // /**
+    //  * This object contains the new input type, sent to receivers.
+    //  */
+    // public class InputChangeEvent {
+    //     public final DataInputInterface input;
+    //     public InputChangeEvent(DataInputInterface in) {
+    //         this.input = in;
+    //     }
+    // }
 }

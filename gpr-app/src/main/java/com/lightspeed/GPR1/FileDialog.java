@@ -18,10 +18,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import de.greenrobot.event.EventBus;
-
-
-
 public class FileDialog extends DialogFragment implements MaterialDialog.ListCallback{
     private File m_parentFolder;
     private File[] m_parentContents;
@@ -88,7 +84,7 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
 	} else {
 	    File curr = m_parentContents[m_canGoUp ? i-1 : i];
 	    if(!curr.isDirectory()){
-		EventBus.getDefault().post(new FileChangedEvent(curr));
+		//EventBus.getDefault().post(new FileChangedEvent(curr));
 		materialDialog.dismiss();
 		return;
 	    } else {
@@ -120,10 +116,10 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
     }
 
     // object to pass as a message
-    public class FileChangedEvent {
-	final public File file;
-	public FileChangedEvent(File f) {
-	    this.file = f;
-	}
-    }
+    // public class FileChangedEvent {
+    // 	final public File file;
+    // 	public FileChangedEvent(File f) {
+    // 	    this.file = f;
+    // 	}
+    // }
 }

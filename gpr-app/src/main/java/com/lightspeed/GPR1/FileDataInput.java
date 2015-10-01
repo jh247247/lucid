@@ -35,8 +35,6 @@ import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
 import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
 import com.afollestad.materialdialogs.util.DialogUtils;
 
-import de.greenrobot.event.EventBus;
-
 public class FileDataInput implements DataInputInterface {
     final static int ELEMENT_HEADER_LEN = 6;
     final static int TIMESTAMP_LEN = 7;
@@ -48,13 +46,11 @@ public class FileDataInput implements DataInputInterface {
     private ArrayList<Integer> m_elementIndex;
     private ArrayList<Integer> m_timestampIndex;
 
-    InputUpdateCallback m_callback;
-
     WeakReference<Context> m_ctx;
     String m_inputName;
 
     public FileDataInput(Context ctx) {
-	EventBus.getDefault().register(this);
+
         m_inputName =  ctx.getString(R.string.file);
         m_ctx = new WeakReference<Context>(ctx);
 
@@ -67,19 +63,15 @@ public class FileDataInput implements DataInputInterface {
             return m_elementIndex.get(m_elementIndex.size()-1);
         }
         return 0;
-
-    }
-    public boolean hasNext() {
-        return false; // no more in the future, so return false.
     }
 
-    public Element getNext() {
-        return null;
+    public boolean exists(int index) {
+	return (index > 0 && index < getCurrentIndex());
     }
 
     // TODO: Buffering of the datastream so that we don't reopen the
     // file every single time
-    public  Element getPrevious(long offset) {
+    public  Element getElement(int index) {
         DataInputStream in = null;
         try {
 	    Log.v("FileDataInput", "File path: " + m_path);
@@ -99,16 +91,14 @@ public class FileDataInput implements DataInputInterface {
         // make sure that we don't try to read anything that doesn't exist.
         if(in == null || // make sure that we actually have the file open
            m_elementIndex == null ||
-           offset < 0 ||
-           offset > m_elementIndex.size()){
+           index < 0 ||
+           index > m_elementIndex.size()){
             if(m_elementIndex != null){
                 Log.e("FileDataInput", "Error reading previous! " + (in == null) + " " +
-                      (m_elementIndex == null) + " " + (offset < 0) + " " + (offset > m_elementIndex.size()));
+                      (m_elementIndex == null) + " " + (index < 0) + " " + (index > m_elementIndex.size()));
             }
             return null;
         }
-        // offset from the end of the file...
-        int index = m_elementIndex.get(m_elementIndex.size()-1-(int)offset);
 
         // seek to position
         try {
@@ -169,16 +159,10 @@ public class FileDataInput implements DataInputInterface {
             return null;
         }
 
-        Log.v("FileDataInput", "Get element " + offset + " @ " +
+        Log.v("FileDataInput", "Get element " + index + " @ " +
               index+" SUCCESS");
 
-        // this should be handy?
-        m_callback.updateInput();
         return el;
-    }
-
-    public void setUpdateCallback(InputUpdateCallback call) {
-        m_callback = call;
     }
 
     public boolean open() {
@@ -195,24 +179,24 @@ public class FileDataInput implements DataInputInterface {
 
     public void close() {
         //m_raf = null;
-	EventBus.getDefault().unregister(this);
+
     }
 
     public String getName() {
         return m_inputName;
     }
 
-    public void onEvent(FileDialog.FileChangedEvent e) {
-        if(m_ctx.get() == null) {
-            // what to do? Have to request new context or something
-            // TODO:
-            return;
-        }
-        Toast.makeText(m_ctx.get(), e.file.toString(),
-                       Toast.LENGTH_SHORT).show();
-        m_path = e.file.getAbsolutePath();
-        open();
-    }
+    // public void onEvent(FileDialog.FileChangedEvent e) {
+    //     if(m_ctx.get() == null) {
+    //         // what to do? Have to request new context or something
+    //         // TODO:
+    //         return;
+    //     }
+    //     Toast.makeText(m_ctx.get(), e.file.toString(),
+    //                    Toast.LENGTH_SHORT).show();
+    //     m_path = e.file.getAbsolutePath();
+    //     open();
+    // }
 
 
     private class FileIndexer implements Runnable {

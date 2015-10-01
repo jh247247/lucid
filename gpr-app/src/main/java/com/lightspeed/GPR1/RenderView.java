@@ -23,7 +23,8 @@ import android.support.v4.view.GestureDetectorCompat;
 import java.lang.Math;
 import java.lang.ref.WeakReference;
 
-import de.greenrobot.event.EventBus;
+import dagger.Lazy;
+import javax.inject.Inject;
 
 public class RenderView extends SurfaceView
     implements SurfaceHolder.Callback{
@@ -33,7 +34,7 @@ public class RenderView extends SurfaceView
      * These should be in their own fragment, so they get retained on
      * configuration changes.
      */
-    private RenderElementBlitter m_blitter;
+    RenderElementBlitter m_blitter;
     private AbstractViewManager m_viewManager;
 
     /**
@@ -59,7 +60,7 @@ public class RenderView extends SurfaceView
     }
 
     // call this if we have some retained managers
-    public void start(RenderElementBlitter rb) {
+    public void setBlitter(RenderElementBlitter rb) {
         m_blitter = rb;
 
         if(m_blitter == null) {
@@ -91,8 +92,6 @@ public class RenderView extends SurfaceView
         int width = this.getWidth();
         int height = this.getHeight();
         // send out the new surface dims via the event bus
-        EventBus.getDefault().post(new
-                                   SurfaceChangedEvent(width, height));
 
         setWillNotDraw(false);
 
@@ -111,6 +110,7 @@ public class RenderView extends SurfaceView
 
         if(m_blitter == null || m_viewManager == null) {
             Log.e(LOGTAG, "Surface draw failed!");
+	    m_blitter.blitToCanvas(c, null);
             return;
         }
         Log.d(LOGTAG, "Surface drawing!");
@@ -175,10 +175,6 @@ public class RenderView extends SurfaceView
             int xscroll = -(int)(m_dXacc/pixelSize);
             //Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);
             if(xscroll != 0) {
-                // send scroll event to element manager
-                EventBus.getDefault().post(new
-                                           SurfaceScrolledEvent(xscroll,
-                                                                0));
                 // TODO: figure out if we need to do y scroll...
                 // remove from accumulator
                 m_dXacc += xscroll*pixelSize;

@@ -10,15 +10,12 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
-import de.greenrobot.event.EventBus;
-
 public class RetainFragment extends Fragment {
     private DataInputInterface m_input;
     private RenderElementBlitter m_blitter;
 
     public RetainFragment() {
         m_blitter = new RenderElementBlitter();
-	EventBus.getDefault().register(this);
     }
 
     @Override
@@ -33,10 +30,5 @@ public class RetainFragment extends Fragment {
 
     public RenderElementBlitter getBlitter() {
         return m_blitter;
-    }
-
-    // input changed! set via our handy function...
-    public void onEvent(DataInputFragment.InputChangeEvent e) {
-	m_input = e.input;
     }
 }
