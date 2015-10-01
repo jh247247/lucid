@@ -13,7 +13,7 @@ public abstract class AbstractViewManager {
     protected DataInputInterface m_input;
 
     // index from the start of the input
-    protected long m_viewIndex;
+    protected int m_viewIndex;
 
     // if set, locks the view to the start of the input.
     // i.e: makes sure that the view index is the same as the current
@@ -35,7 +35,7 @@ public abstract class AbstractViewManager {
     abstract public void moveView(int amount);
 
     // go to a specific index
-    abstract public void goToIndex(long index);
+    abstract public void goToIndex(int index);
 
     public void setStartLock(boolean sl) {
 	m_startLock = sl;

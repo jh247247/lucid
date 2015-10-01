@@ -19,18 +19,18 @@ public interface DataInputInterface {
     /**
      * Gets the current index relative to the start of the file buffer
      */
-    public long getCurrentIndex();
+    public int getCurrentIndex();
 
     /**
      * This should rewind the data by some given amount, trying a
      * local buffer (hopefully) then resorting to file if it doesn't exist.
      */
-    public Element getElement(long index);
+    public Element getElement(int index);
 
     /**
      * Returns true if the given index exists.
      */
-    public boolean exists(long index);
+    public boolean exists(int index);
 
     /**
      * Gets the name of the data input, used for gui interaction like opening/closing.

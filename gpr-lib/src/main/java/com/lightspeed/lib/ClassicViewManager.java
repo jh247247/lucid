@@ -19,14 +19,13 @@ import java.lang.IndexOutOfBoundsException;
 public class ClassicViewManager extends AbstractViewManager {
     private int CACHE_SIZE = 1000;
 
-    LoadingCache<Long, Element> m_elementCache;
+    LoadingCache<Integer, Element> m_elementCache;
 
     public ClassicViewManager() {
         m_elementCache = CacheBuilder.newBuilder()
             .maximumSize(CACHE_SIZE)
-            .build(new CacheLoader<Long, Element>() {
-                    @Override public Element load(Long index) {
-                        // TODO: fix api for datainputinterface
+            .build(new CacheLoader<Integer, Element>() {
+                    @Override public Element load(Integer index) {
                         if(m_input != null) {
                             return m_input.getElement(index);
                         }
@@ -42,7 +41,7 @@ public class ClassicViewManager extends AbstractViewManager {
         ArrayList<Element> ret = new ArrayList<Element>();
 
         // populate list with viewport
-        for(long i = m_viewIndex; i < m_viewIndex+m_viewWidth; i++) {
+        for(int i = m_viewIndex; i < m_viewIndex+m_viewWidth; i++) {
             try {
                 ret.add(m_elementCache.get(i));
             }
@@ -62,7 +61,7 @@ public class ClassicViewManager extends AbstractViewManager {
     }
 
     // go to a specific index
-    public void goToIndex(long index) {
+    public void goToIndex(int index) {
         m_viewIndex = index;
         if(m_viewIndex == 0) {
             m_viewIndex = 0;

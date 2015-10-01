@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class TestDataInput implements DataInputInterface {
-    long m_currentIndex = 0;
+    int m_currentIndex = 0;
     boolean m_opened = false;
     ArrayList<Integer> m_accesses = new ArrayList<Integer>();;
 
@@ -17,7 +17,7 @@ public class TestDataInput implements DataInputInterface {
     /**
      * Gets the current index relative to the start of the file buffer
      */
-    public long getCurrentIndex() {
+    public int getCurrentIndex() {
 	return m_currentIndex;
     }
 
@@ -25,7 +25,7 @@ public class TestDataInput implements DataInputInterface {
      * This should rewind the data by some given amount, trying a
      * local buffer (hopefully) then resorting to file if it doesn't exist.
      */
-    public Element getElement(long index) {
+    public Element getElement(int index) {
 	if(!exists(index) || !m_opened) {
 	    System.out.println("Index: " + index +
 			       " does not exist yet! " +
@@ -78,7 +78,7 @@ public class TestDataInput implements DataInputInterface {
     /**
      * Returns true if the given index exists.
      */
-    public boolean exists(long index) {
+    public boolean exists(int index) {
 	return index <= m_currentIndex+1;
     }
 
