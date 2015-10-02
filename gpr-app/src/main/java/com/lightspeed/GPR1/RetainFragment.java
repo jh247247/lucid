@@ -13,9 +13,11 @@ import android.util.Log;
 public class RetainFragment extends Fragment {
     private DataInputInterface m_input;
     private RenderElementBlitter m_blitter;
+    private AbstractViewManager m_viewManager;
 
     public RetainFragment() {
         m_blitter = new RenderElementBlitter();
+	m_viewManager = new ClassicViewManager();
     }
 
     @Override

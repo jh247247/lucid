@@ -6,17 +6,13 @@
                                         android:id="@+id/drawer">
 
 
-
-
-
-
   <!-- The main content view -->
   <LinearLayout
       android:orientation="vertical" android:layout_width="fill_parent"
       android:layout_height="fill_parent">
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="0dp"
         android:layout_weight="1">
       <!-- Main rendering surface -->
       <com.lightspeed.GPR1.RenderView android:id="@+id/render"
@@ -27,32 +23,33 @@
           android:layout_width="fill_parent"
           android:background="@android:color/transparent"/>
     </RelativeLayout>
-
-  <include layout="@layout/quick_settings"/>
-
+    <include layout="@layout/quick_settings"/>
   </LinearLayout>
-  <!-- The main content view -->
 
   <include layout="@layout/toolbar_custom"/>
 
   <!-- The navigation drawer -->
   <LinearLayout
+
       android:id="@+id/left_drawer"
       android:layout_marginTop="?attr/actionBarSize"
       android:layout_width="240dp"
       android:layout_height="match_parent"
       android:layout_gravity="start"
       android:choiceMode="singleChoice"
-      android:divider="?attr/colorPrimary"
-      android:dividerHeight="0dp"
+      android:divider="@drawable/divider_horizontal"
+      android:dividerPadding="5dp"
+      android:showDividers="middle"
+      android:paddingLeft="15dp"
+      android:paddingRight="15dp"
       android:background="?attr/colorPrimary">
     <ScrollView
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:padding="5dp">
+        android:paddingTop="10dp"
+        android:isScrollContainer="false">
       <fragment
-	  android:name="com.lightspeed.GPR1.DataInputFragment"
+          android:name="com.lightspeed.GPR1.DataInputFragment"
           android:id="@+id/input_manager"
           android:layout_width="fill_parent"
           android:layout_height="wrap_content"/>

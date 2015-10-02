@@ -55,24 +55,24 @@ public class MainActivity extends AppCompatActivity {
         // expand the bindings
         ButterKnife.bind(this);
 
-        // setup the drawer listener
-        setupDrawerListener();
+	// setup the drawer listener
+	setupDrawerListener();
 
-        // make the toolbar (actionbar) transparent, so content shows behind
-        m_toolbar.getBackground().setAlpha(0); // TODO: fix magic number
-        m_toolbar.setTitle(""); // make the title blank
-        setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
+	// make the toolbar (actionbar) transparent, so content shows behind
+	m_toolbar.getBackground().setAlpha(0); // TODO: fix magic number
+	m_toolbar.setTitle(""); // make the title blank
+	setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
 
-        // show the hamburger
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // // show the hamburger
+	getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // set the hamburger to the current state of the drawer
-        m_abtog.syncState();
+        // // set the hamburger to the current state of the drawer
+         m_abtog.syncState();
         FragmentManager fm = getSupportFragmentManager();
 
         // setup the data input manager/fragment thing
-        m_inputManager = (DataInputFragment)
-            fm.findFragmentById(R.id.input_manager);
+	m_inputManager = (DataInputFragment)
+	    fm.findFragmentById(R.id.input_manager);
 
         // get back retained vars if required
         m_retained = (RetainFragment)
