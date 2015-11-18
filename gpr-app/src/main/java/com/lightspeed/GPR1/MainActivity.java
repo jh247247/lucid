@@ -54,19 +54,12 @@ public class MainActivity extends AppCompatActivity {
         // expand the bindings
         ButterKnife.bind(this);
 
-        // setup the drawer listener
         setupDrawerListener();
+	setupDrawerView();
+	setupMainView();
+    }
 
-        // make the toolbar (actionbar) transparent, so content shows behind
-        m_toolbar.getBackground().setAlpha(0); // TODO: fix magic number
-        m_toolbar.setTitle(""); // make the title blank
-        setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
-
-        // // show the hamburger
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        // // set the hamburger to the current state of the drawer
-        m_abtog.syncState();
+    private void setupMainView() {
         FragmentManager fm = getSupportFragmentManager();
 
         // setup the data input manager/fragment thing
@@ -86,7 +79,20 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        //m_render.setBlitter(m_retained.getBlitter());
+        m_render.setBlitter(m_retained.getBlitter());
+    }
+
+    private void setupDrawerView() {
+        // make the toolbar (actionbar) transparent, so content shows behind
+        m_toolbar.getBackground().setAlpha(0); // TODO: fix magic number
+        m_toolbar.setTitle(""); // make the title blank
+        setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
+
+	// show the hamburger
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+	// set the hamburger to the current state of the drawer
+        m_abtog.syncState();
     }
 
     private void setupDrawerListener() {
