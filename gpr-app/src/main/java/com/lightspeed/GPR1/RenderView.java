@@ -60,8 +60,8 @@ public class RenderView extends SurfaceView
         if(m_blitter == null) {
             // somebody made a boo-boo..
             Log.e(LOGTAG, "blitter is null in init!");
-            // don't start rendering if blitter not set
-            // TODO: error checking...
+	    // don't start rendering if blitter not set
+	    return;
         } else {
 	    m_blitter.setSurfaceHolder(getHolder());
 	}
@@ -160,17 +160,12 @@ public class RenderView extends SurfaceView
                 return true;
             }
 
-            //find out how many elements to move by
-
-            float pixelSize = 3; // FIXME
-                //(float)RenderView.this.getWidth()/(float)m_viewManager.getViewWidth();
-
-            int xscroll = -(int)(m_dXacc/pixelSize);
+            int xscroll = -(int)m_dXacc;
             //Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);
             if(xscroll != 0) {
                 // TODO: figure out if we need to do y scroll...
                 // remove from accumulator
-                m_dXacc += xscroll*pixelSize;
+                m_dXacc += xscroll;
                 postInvalidate();
             }
 

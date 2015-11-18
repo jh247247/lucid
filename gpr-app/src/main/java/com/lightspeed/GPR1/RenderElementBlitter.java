@@ -37,21 +37,50 @@ public class RenderElementBlitter {
 
     AbstractViewManager m_viewManager;
 
+    LoadingCache<Element, RenderElement> m_renderElementCache =
+        CacheBuilder.newBuilder()
+        .maximumSize(CACHE_SIZE)
+        .build(new CacheLoader<Element, RenderElement>() {
+                @Override public RenderElement load(Element e) {
+		    return new RenderElement(e);
+                }
+            }
+            );
+
     public RenderElementBlitter() {
         m_bm = null;
-        m_cbm = null;
+	m_cbm = null;
         m_surfHold = null;
-	m_viewManager = null;
+        m_viewManager = null;
 
-	// disable filtering...
+        // disable filtering...
         m_paint = new Paint();
         m_paint.setAntiAlias(false);
         m_paint.setFilterBitmap(false);
     }
 
     public void setViewManager(AbstractViewManager viewman) {
-	m_viewManager = viewman;
-	// todo: caching...
+        m_viewManager = viewman;
+	initBitmap();
+
+        // todo: caching...
+    }
+
+    public void initBitmap() {
+        // create bitmap just in case we havent yet
+	if(m_viewManager == null) return;
+
+        if(m_bm == null) {
+            Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+            m_bm = Bitmap.createBitmap(m_viewManager.getViewWidth(),
+                                       m_viewManager.getViewHeight(),
+                                       conf);
+	    m_cbm = new Canvas(m_bm);
+        } else if(m_bm.getWidth() != m_viewManager.getViewWidth()) {
+	    m_bm.setWidth(m_viewManager.getViewWidth());
+	} else if(m_bm.getHeight() != m_viewManager.getViewHeight()) {
+	    m_bm.setHeight(m_viewManager.getViewHeight());
+	}
     }
 
     public void setSurfaceHolder(SurfaceHolder s) {
@@ -59,27 +88,19 @@ public class RenderElementBlitter {
     }
 
     public void blitToCanvas(Canvas c) {
-        Log.d("RenderElementBlitter", "Trying to render!");
+	if(c == null) {
+	    return; // wtf...
+	}
 
         // if elements are empty, might as well clear all the pixels...
         if(m_viewManager == null) {
-	    m_paint.setColor(Color.RED);
-	    c.drawCircle(c.getWidth()/2,
-			 c.getHeight()/2,
-			 c.getWidth()/4,
-			 m_paint);
-            //c.drawColor(Color.RED);
-            //Log.w("RenderElementBlitter","No elements!");
+            Log.w("RenderElementBlitter", "No view manager!");
+            c.drawColor(Color.RED);
             return;
         }
 
-        // create bitmap just in case we havent yet
-        if(m_bm == null) {
-	    	Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-		m_bm = Bitmap.createBitmap(c.getWidth(),
-					   c.getHeight(),
-					   conf);
-        }
+	// just in case view got resized
+	initBitmap();
 
         long startTime = System.nanoTime();
 
@@ -87,20 +108,23 @@ public class RenderElementBlitter {
 
         // create tmp bitmap to render to
         Bitmap tbm = null;
+        List<Element> data = m_viewManager.getView();
 
-        // for(int i = data.size(); i >= 0; i--) {
-        //     // render the bitmap
-        //     tbm = data.get(i).getRenderedElement();
-        //     if(tbm == null) break;
+	Log.d("RenderElementBlitter", "Rendering " + data.size() +
+	      " elements!");
+        for(int i = data.size()-1; i >= 0; i--) {
+            // render the bitmap
+	    tbm = m_renderElementCache.getUnchecked(data.get(i)).getRenderedElement();
 
-        //     // blit bitmap to canvas
-        //     m_cbm.drawBitmap(tbm, m_cbm.getWidth()-data.size()+i-1, 0, null);
-        // }
-        // stop rendering
+            if(tbm == null) break;
 
-	Matrix matrix = new Matrix();
+            // blit bitmap to canvas
+            m_cbm.drawBitmap(tbm, m_cbm.getWidth()-data.size()+i-1, 0, null);
+        }
+
+        Matrix matrix = new Matrix();
         matrix.postScale(((float)c.getWidth()/(float)m_bm.getWidth()),
-                         ((float)c.getHeight()/(float)m_bm.getHeight()));
+			 ((float)c.getHeight()/(float)m_bm.getHeight()));
 
         c.drawBitmap(m_bm,matrix,m_paint);
 

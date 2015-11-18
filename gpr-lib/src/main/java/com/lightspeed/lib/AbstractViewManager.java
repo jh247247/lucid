@@ -27,6 +27,13 @@ public abstract class AbstractViewManager {
     // can be seen as the "amount of data points to show"
     protected int m_viewHeight;
 
+    public AbstractViewManager() {
+	m_viewIndex = 0;
+	m_viewWidth = 100; // FIXME: magics
+	m_viewHeight = 100; // FIXME: magics
+	m_startLock = true;
+	m_input = null;
+    }
 
     // should get the current view
     abstract public List<Element> getView();

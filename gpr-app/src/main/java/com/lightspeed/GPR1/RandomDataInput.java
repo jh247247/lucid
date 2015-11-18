@@ -24,7 +24,7 @@ public class RandomDataInput implements DataInputInterface{
     final int START_ELEMENT = 0;
     final int END_ELEMENT = 255;
     final int MAX_VAL = 255;
-    final int ELEMENT_RATE = 100;
+    final int ELEMENT_RATE = 10;
 
 
     public RandomDataInput() {
@@ -67,7 +67,7 @@ public class RandomDataInput implements DataInputInterface{
     }
 
     public boolean exists(int index) {
-	return index > 0 && index < m_index.get();
+	return index >= 0 && index < m_index.get();
     }
 
     // get an older element, probably one from file.

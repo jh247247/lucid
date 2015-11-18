@@ -22,10 +22,14 @@ public class ClassicViewManager extends AbstractViewManager {
     LoadingCache<Integer, Element> m_elementCache;
 
     public ClassicViewManager() {
+	super();
+	System.out.println("Created classicviewmanager...");
         m_elementCache = CacheBuilder.newBuilder()
             .maximumSize(CACHE_SIZE)
             .build(new CacheLoader<Integer, Element>() {
-                    @Override public Element load(Integer index) {
+                    @Override public Element load(Integer index)
+			throws IndexOutOfBoundsException {
+			System.out.println("Input: " + m_input);
                         if(m_input != null) {
                             return m_input.getElement(index);
                         }
@@ -47,6 +51,9 @@ public class ClassicViewManager extends AbstractViewManager {
             }
             catch(Exception e) {
                 // no input, nothing to draw...
+		System.out.println("Terminating at index: " + i +
+				   "\nReason: " + e);
+
                 return ret;
             }
 
