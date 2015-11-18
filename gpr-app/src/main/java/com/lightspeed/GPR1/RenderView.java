@@ -1,7 +1,6 @@
 package com.lightspeed.GPR1;
 
 import com.lightspeed.gpr.lib.DataInputInterface;
-import com.lightspeed.gpr.lib.AbstractViewManager;
 
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -35,7 +34,6 @@ public class RenderView extends SurfaceView
      * configuration changes.
      */
     RenderElementBlitter m_blitter;
-    private AbstractViewManager m_viewManager;
 
     /**
      * I don't know what happens with this, does it get destroyed? I
@@ -45,21 +43,14 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx) {
         super(ctx);
-	uiInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
-	uiInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
-	uiInit();
-    }
-
-    public void setViewManager(AbstractViewManager a) {
-	m_viewManager = a;
     }
 
     // call this if we have some retained managers
@@ -75,7 +66,7 @@ public class RenderView extends SurfaceView
 	    m_blitter.setSurfaceHolder(getHolder());
 	}
 
-
+	uiInit();
         initCanvas();
 	postInvalidate();
     }
@@ -96,7 +87,7 @@ public class RenderView extends SurfaceView
         int height = this.getHeight();
         // send out the new surface dims via the event bus
 
-        setWillNotDraw(false);
+       setWillNotDraw(false);
 
         Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
               height);
@@ -111,12 +102,12 @@ public class RenderView extends SurfaceView
             return;
         }
 
-        if(m_blitter == null || m_viewManager == null) {
+        if(m_blitter == null) {
             Log.e(LOGTAG, "Surface draw failed!");
             return;
         }
         Log.d(LOGTAG, "Surface drawing!");
-        m_blitter.blitToCanvas(c, m_viewManager.getView());
+        m_blitter.blitToCanvas(c);
     }
 
     @Override
@@ -165,14 +156,14 @@ public class RenderView extends SurfaceView
             m_dYacc += dY;
 
             // can't do anything, no blitter or no elements to render
-            if(m_blitter == null || m_viewManager == null) {
+            if(m_blitter == null) {
                 return true;
             }
 
             //find out how many elements to move by
 
-            float pixelSize =
-                (float)RenderView.this.getWidth()/(float)m_viewManager.getViewWidth();
+            float pixelSize = 3; // FIXME
+                //(float)RenderView.this.getWidth()/(float)m_viewManager.getViewWidth();
 
             int xscroll = -(int)(m_dXacc/pixelSize);
             //Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);

@@ -15,6 +15,8 @@ import android.util.Log;
 import java.util.LinkedList;
 import android.graphics.Color;
 
+import com.lightspeed.gpr.lib.AbstractViewManager;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -33,28 +35,40 @@ public class RenderElementBlitter {
 
     SurfaceHolder m_surfHold;
 
+    AbstractViewManager m_viewManager;
+
     public RenderElementBlitter() {
         m_bm = null;
         m_cbm = null;
         m_surfHold = null;
+	m_viewManager = null;
 
 	// disable filtering...
         m_paint = new Paint();
         m_paint.setAntiAlias(false);
         m_paint.setFilterBitmap(false);
+    }
 
+    public void setViewManager(AbstractViewManager viewman) {
+	m_viewManager = viewman;
+	// todo: caching...
     }
 
     public void setSurfaceHolder(SurfaceHolder s) {
         m_surfHold = s;
     }
 
-    public void blitToCanvas(Canvas c, List<Element> data) {
+    public void blitToCanvas(Canvas c) {
         Log.d("RenderElementBlitter", "Trying to render!");
 
         // if elements are empty, might as well clear all the pixels...
-        if(data == null || data.isEmpty()) {
-            c.drawColor(Color.RED);
+        if(m_viewManager == null) {
+	    m_paint.setColor(Color.RED);
+	    c.drawCircle(c.getWidth()/2,
+			 c.getHeight()/2,
+			 c.getWidth()/4,
+			 m_paint);
+            //c.drawColor(Color.RED);
             //Log.w("RenderElementBlitter","No elements!");
             return;
         }

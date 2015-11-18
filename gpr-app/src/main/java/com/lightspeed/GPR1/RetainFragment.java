@@ -18,8 +18,10 @@ public class RetainFragment extends Fragment {
     private AbstractViewManager m_viewManager;
 
     public RetainFragment() {
-        m_blitter = new RenderElementBlitter();
 	m_viewManager = new ClassicViewManager();
+	m_blitter = new RenderElementBlitter();
+	//	m_blitter.setViewManager(m_viewManager);
+	// TODO: have this saved offline so we can reset to previous settings...
     }
 
     @Override
