@@ -3,12 +3,14 @@ package com.lightspeed.gpr.lib;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-
-import com.lightspeed.gpr.lib.Element;
+import com.google.common.eventbus.EventBus;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.IndexOutOfBoundsException;
+
+import com.lightspeed.gpr.lib.Element;
+import com.lightspeed.gpr.lib.EventBusHandler;
 
 /**
  * This file implements a platform agnostic view manager for the data given
@@ -17,19 +19,19 @@ import java.lang.IndexOutOfBoundsException;
  */
 
 public class ClassicViewManager extends AbstractViewManager {
-    private int CACHE_SIZE = 1000;
+    private final int CACHE_SIZE = 1000;
+
+    private final EventBus m_bus = EventBusHandler.getEventBus();
 
     LoadingCache<Integer, Element> m_elementCache;
 
     public ClassicViewManager() {
 	super();
-	System.out.println("Created classicviewmanager...");
         m_elementCache = CacheBuilder.newBuilder()
             .maximumSize(CACHE_SIZE)
             .build(new CacheLoader<Integer, Element>() {
                     @Override public Element load(Integer index)
 			throws IndexOutOfBoundsException {
-			System.out.println("Input: " + m_input);
                         if(m_input != null) {
                             return m_input.getElement(index);
                         }
@@ -37,11 +39,18 @@ public class ClassicViewManager extends AbstractViewManager {
                     }
                 }
                 );
+
+	// register on the eventbus...
+	m_bus.register(this);
     }
 
     // returns the current view as a list to be rendered
     @Override
     public List<Element> getView() {
+	if(m_startLock) {
+	    m_viewIndex = Math.max(m_input.getCurrentIndex()-m_viewWidth,0);
+	}
+
         ArrayList<Element> ret = new ArrayList<Element>();
 
         // populate list with viewport

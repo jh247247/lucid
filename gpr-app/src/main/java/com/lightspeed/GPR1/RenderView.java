@@ -22,9 +22,6 @@ import android.support.v4.view.GestureDetectorCompat;
 import java.lang.Math;
 import java.lang.ref.WeakReference;
 
-import dagger.Lazy;
-import javax.inject.Inject;
-
 public class RenderView extends SurfaceView
     implements SurfaceHolder.Callback{
     private static final String LOGTAG = "RenderView";

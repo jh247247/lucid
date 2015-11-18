@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
+apply plugin: 'com.neenbedankt.android-apt'
+
 
 def gitSha = 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim()
 def buildTime = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
@@ -53,6 +55,7 @@ buildscript {
   }
   dependencies {
     classpath 'com.novoda:gradle-android-command-plugin:1.4.0'
+
   }
 }
 
@@ -78,10 +81,6 @@ dependencies {
 
   // Butterknife for view injection
   compile 'com.jakewharton:butterknife:7.0.1'
-
-  // dagger for dependency injection
-  compile 'com.squareup.dagger:dagger-compiler:1.2.2'
-  compile 'com.squareup.dagger:dagger:1.2.2'
 
   // Guava for fancy utils
   compile 'com.google.guava:guava:18.0'
