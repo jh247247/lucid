@@ -5,6 +5,8 @@
 package com.lightspeed.GPR1;
 
 import com.lightspeed.gpr.lib.DataInputInterface;
+import com.lightspeed.gpr.lib.AbstractViewManager;
+import com.lightspeed.gpr.lib.ClassicViewManager;
 import android.support.v4.app.Fragment;
 import android.app.Activity;
 import android.os.Bundle;
