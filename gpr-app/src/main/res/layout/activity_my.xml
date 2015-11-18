@@ -30,7 +30,6 @@
 
   <!-- The navigation drawer -->
   <LinearLayout
-
       android:id="@+id/left_drawer"
       android:layout_marginTop="?attr/actionBarSize"
       android:layout_width="240dp"
@@ -43,17 +42,11 @@
       android:paddingLeft="15dp"
       android:paddingRight="15dp"
       android:background="?attr/colorPrimary">
-    <ScrollView
+    <fragment
+        android:name="com.lightspeed.GPR1.DataInputFragment"
+        android:id="@+id/input_manager"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:isScrollContainer="false">
-      <fragment
-          android:name="com.lightspeed.GPR1.DataInputFragment"
-          android:id="@+id/input_manager"
-          android:layout_width="fill_parent"
-          android:layout_height="wrap_content"/>
-    </ScrollView>
+        android:layout_height="wrap_content"/>
   </LinearLayout>
 
 

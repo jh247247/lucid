@@ -45,14 +45,17 @@ public class RenderView extends SurfaceView
 
     public RenderView(Context ctx) {
         super(ctx);
+	uiInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
+	uiInit();
     }
 
     public RenderView(Context ctx, AttributeSet attrs, int defStyle) {
         super(ctx, attrs, defStyle);
+	uiInit();
     }
 
     public void setViewManager(AbstractViewManager a) {
@@ -72,7 +75,7 @@ public class RenderView extends SurfaceView
 	    m_blitter.setSurfaceHolder(getHolder());
 	}
 
-        uiInit();
+
         initCanvas();
 	postInvalidate();
     }
@@ -110,7 +113,6 @@ public class RenderView extends SurfaceView
 
         if(m_blitter == null || m_viewManager == null) {
             Log.e(LOGTAG, "Surface draw failed!");
-	    m_blitter.blitToCanvas(c, null);
             return;
         }
         Log.d(LOGTAG, "Surface drawing!");

@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.left_drawer) LinearLayout m_leftDrawer;
 
     DataInputFragment m_inputManager;
-
     ActionBarDrawerToggle m_abtog;
 
     // fragment to retain data in, totally kinda stolen from example
@@ -55,24 +54,24 @@ public class MainActivity extends AppCompatActivity {
         // expand the bindings
         ButterKnife.bind(this);
 
-	// setup the drawer listener
-	setupDrawerListener();
+        // setup the drawer listener
+        setupDrawerListener();
 
-	// make the toolbar (actionbar) transparent, so content shows behind
-	m_toolbar.getBackground().setAlpha(0); // TODO: fix magic number
-	m_toolbar.setTitle(""); // make the title blank
-	setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
+        // make the toolbar (actionbar) transparent, so content shows behind
+        m_toolbar.getBackground().setAlpha(0); // TODO: fix magic number
+        m_toolbar.setTitle(""); // make the title blank
+        setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
 
         // // show the hamburger
-	getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // // set the hamburger to the current state of the drawer
-         m_abtog.syncState();
+        m_abtog.syncState();
         FragmentManager fm = getSupportFragmentManager();
 
         // setup the data input manager/fragment thing
-	m_inputManager = (DataInputFragment)
-	    fm.findFragmentById(R.id.input_manager);
+        m_inputManager = (DataInputFragment)
+            fm.findFragmentById(R.id.input_manager);
 
         // get back retained vars if required
         m_retained = (RetainFragment)
@@ -80,14 +79,14 @@ public class MainActivity extends AppCompatActivity {
 
         // first start, fragment does not exist!
         if(m_retained == null) {
-	    Log.w("MainActivity","Have to create retained fragment!");
-	    m_retained = new RetainFragment();
+            Log.w("MainActivity","Have to create retained fragment!");
+            m_retained = new RetainFragment();
             fm.beginTransaction().add(m_retained,
                                       TAG_RETAIN_FRAGMENT).commit();
 
         }
 
-        m_render.setBlitter(m_retained.getBlitter());
+        //m_render.setBlitter(m_retained.getBlitter());
     }
 
     private void setupDrawerListener() {
