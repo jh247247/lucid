@@ -8,12 +8,17 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.lang.ref.WeakReference;
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+
 public abstract class AbstractViewManager
     implements AbstractDataInput.NewElementListener {
 
     // this is the input to the manager
     protected AbstractDataInput m_input;
     protected WeakReference<AbstractRenderer> m_renderer;
+    protected final EventBus m_bus = EventBusHandler.getEventBus();
+
 
     // index from the start of the input
     protected int m_viewIndex;
@@ -36,6 +41,9 @@ public abstract class AbstractViewManager
 	m_viewHeight = 100; // FIXME: magics
 	m_startLock = true;
 	m_input = null;
+
+	// register on the eventbus...
+	m_bus.register(this);
     }
 
     // should get the current view
@@ -90,5 +98,15 @@ public abstract class AbstractViewManager
 	if(m_renderer.get() != null) {
 	    m_renderer.get().render();
 	}
+    }
+
+    @Subscribe
+    public void surfaceChanged(AbstractRenderer.SurfaceChangedEvent e) {
+	System.out.println("SURFACE CHANGED");
+    }
+
+    @Subscribe
+    public void surfaceScrolled(AbstractRenderer.SurfaceChangedEvent e) {
+	System.out.println("SURFACE SCROLLED");
     }
 }

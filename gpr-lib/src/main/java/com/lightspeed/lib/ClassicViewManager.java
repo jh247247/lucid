@@ -3,10 +3,10 @@ package com.lightspeed.gpr.lib;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.eventbus.EventBus;
 import com.google.common.collect.Range;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ContiguousSet;
+
 
 import java.util.List;
 import java.util.ArrayList;
@@ -33,7 +33,6 @@ public class ClassicViewManager
     private final int VIEW_WIDTH = 100; // defaults...
     private final int VIEW_HEIGHT = 255;
 
-    private final EventBus m_bus = EventBusHandler.getEventBus();
 
     // get the view dpi to calculate view size
     // should aim for 1x1mm pixels?
@@ -59,8 +58,6 @@ public class ClassicViewManager
                 }
                 );
 
-	// register on the eventbus...
-	m_bus.register(this);
 
 	m_viewWidth = VIEW_WIDTH;
 	m_viewHeight = VIEW_HEIGHT;

@@ -1,6 +1,7 @@
 package com.lightspeed.GPR1;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
+import com.lightspeed.gpr.lib.AbstractRenderer;
 import com.lightspeed.gpr.lib.EventBusHandler;
 import com.lightspeed.gpr.lib.Element;
 
@@ -87,8 +88,9 @@ public class RenderView extends SurfaceView
     }
 
     private void initCanvas() {
-	SurfaceChangedEvent sufEv = new SurfaceChangedEvent(this.getWidth(),
-							    this.getHeight());
+	AbstractRenderer.SurfaceChangedEvent sufEv =
+	    new AbstractRenderer.SurfaceChangedEvent(this.getWidth(),
+						     this.getHeight());
         // send out the new surface dims via the event bus
 
         setWillNotDraw(false);
@@ -142,9 +144,6 @@ public class RenderView extends SurfaceView
         private static final String GESLIN_LOGTAG =
             "RenderGestureListener";
 
-        private float m_dXacc = 0; // accumulator for dX
-        private float m_dYacc = 0;
-
         @Override
         public boolean onDown(MotionEvent e) {
             Log.d(GESLIN_LOGTAG,"onDown: " + e.toString());
@@ -156,23 +155,10 @@ public class RenderView extends SurfaceView
         public boolean onScroll(MotionEvent e1, MotionEvent e2,
                                 float dX, float dY) {
 
-            //Log.d(GESLIN_LOGTAG,"onScroll: " + dX + " " + dY);
-            m_dXacc += dX;
-            m_dYacc += dY;
+	    AbstractRenderer.SurfaceScrolledEvent se =
+		new AbstractRenderer.SurfaceScrolledEvent(dX,dY);
 
-            // can't do anything, no blitter or no elements to render
-            if(m_blitter == null) {
-                return true;
-            }
-
-            int xscroll = -(int)m_dXacc;
-            //Log.d(GESLIN_LOGTAG,"onScroll x by: " + xscroll);
-            if(xscroll != 0) {
-                // TODO: figure out if we need to do y scroll...
-                // remove from accumulator
-                m_dXacc += xscroll;
-            }
-
+	    m_bus.post(se);
             return true;
         }
     }
@@ -187,29 +173,5 @@ public class RenderView extends SurfaceView
         }
 
         return true;
-    }
-
-    /**
-     * This object is sent via the eventbus whenever the surface in
-     * this view is changed.
-     */
-    public class SurfaceChangedEvent {
-        public final int w;
-        public final int h;
-
-        public SurfaceChangedEvent(int wi, int hi) {
-            w = wi;
-            h = hi;
-        }
-    }
-
-    public class SurfaceScrolledEvent {
-        public final int dX;
-        public final int dY;
-
-        public SurfaceScrolledEvent(int x, int y) {
-            dX = x;
-            dY = y;
-        }
     }
 }
