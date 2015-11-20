@@ -147,7 +147,7 @@ public class RenderView extends SurfaceView
         @Override
         public boolean onDown(MotionEvent e) {
             Log.d(GESLIN_LOGTAG,"onDown: " + e.toString());
-
+	    m_bus.post(new AbstractRenderer.ResetScrollEvent());
             return true;
         }
 

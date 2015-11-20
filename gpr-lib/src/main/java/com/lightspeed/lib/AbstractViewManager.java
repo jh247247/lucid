@@ -19,6 +19,10 @@ public abstract class AbstractViewManager
     protected WeakReference<AbstractRenderer> m_renderer;
     protected final EventBus m_bus = EventBusHandler.getEventBus();
 
+    protected double m_pixelSize;
+    protected double m_scrollAccumulatorX;
+    protected double m_scrollAccumulatorY;
+
 
     // index from the start of the input
     protected int m_viewIndex;
@@ -37,9 +41,10 @@ public abstract class AbstractViewManager
 
     public AbstractViewManager() {
 	m_viewIndex = 0;
-	m_viewWidth = 100; // FIXME: magics
-	m_viewHeight = 100; // FIXME: magics
-	m_startLock = true;
+	m_viewWidth = 1; // magic numbers get fixed later on.
+	m_viewHeight = 1;
+	m_pixelSize = 1;
+	m_startLock = false;
 	m_input = null;
 
 	// register on the eventbus...
@@ -102,14 +107,36 @@ public abstract class AbstractViewManager
 
     @Subscribe
     public void surfaceChanged(AbstractRenderer.SurfaceChangedEvent e) {
-	System.out.println("SURFACE CHANGED");
 	// assume that the height of the data does not change, only
 	// the width
-	m_viewWidth = e.w/(e.h/m_viewHeight);
+	m_pixelSize = (int)(e.h/m_viewHeight);
+	m_viewWidth = (int)(e.w/m_pixelSize);
     }
 
     @Subscribe
-    public void surfaceScrolled(AbstractRenderer.SurfaceChangedEvent e) {
-	System.out.println("SURFACE SCROLLED");
+    public void surfaceScroll(AbstractRenderer.SurfaceScrolledEvent e) {
+	m_scrollAccumulatorX += e.dX;
+	m_scrollAccumulatorX += e.dX;
+
+	// TODO: Y scrolling
+	if(Math.abs(m_scrollAccumulatorX) > m_pixelSize) {
+	    System.out.println("SCROLLING " + m_scrollAccumulatorX
+			       + " " + m_viewIndex);
+	    if(m_viewIndex > 0 ||
+	       m_input != null && m_viewIndex < m_input.getCurrentIndex()) {
+		m_viewIndex += Math.signum(m_scrollAccumulatorX);
+	    }
+
+	    m_scrollAccumulatorX -=
+		-Math.signum(m_scrollAccumulatorX)*m_pixelSize;
+
+	}
+    }
+
+
+    @Subscribe
+    public void ScrollAccumulatorReset(AbstractRenderer.ResetScrollEvent e) {
+	m_scrollAccumulatorX = 0;
+	m_scrollAccumulatorY = 0;
     }
 }

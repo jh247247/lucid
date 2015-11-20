@@ -27,4 +27,11 @@ public abstract class AbstractRenderer {
             dY = y;
         }
     }
+
+    static public class ResetScrollEvent {
+        public ResetScrollEvent() {
+
+        }
+    }
+
 }
