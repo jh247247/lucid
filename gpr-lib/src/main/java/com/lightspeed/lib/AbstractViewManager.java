@@ -103,6 +103,9 @@ public abstract class AbstractViewManager
     @Subscribe
     public void surfaceChanged(AbstractRenderer.SurfaceChangedEvent e) {
 	System.out.println("SURFACE CHANGED");
+	// assume that the height of the data does not change, only
+	// the width
+	m_viewWidth = e.w/(e.h/m_viewHeight);
     }
 
     @Subscribe

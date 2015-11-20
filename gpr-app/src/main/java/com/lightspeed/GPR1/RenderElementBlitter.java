@@ -88,17 +88,15 @@ public class RenderElementBlitter extends AbstractRenderer {
         // create bitmap just in case we havent yet
 	if(m_viewManager == null) return;
 
-        if(m_bm == null) {
+        if(m_bm == null ||
+	   m_bm.getWidth() != m_viewManager.getViewWidth() ||
+	   m_bm.getHeight() != m_viewManager.getViewHeight()) {
             Bitmap.Config conf = Bitmap.Config.ARGB_8888;
             m_bm = Bitmap.createBitmap(m_viewManager.getViewWidth(),
                                        m_viewManager.getViewHeight(),
                                        conf);
 	    m_cbm = new Canvas(m_bm);
-        } else if(m_bm.getWidth() != m_viewManager.getViewWidth()) {
-	    m_bm.setWidth(m_viewManager.getViewWidth());
-	} else if(m_bm.getHeight() != m_viewManager.getViewHeight()) {
-	    m_bm.setHeight(m_viewManager.getViewHeight());
-	}
+        }
     }
 
 
