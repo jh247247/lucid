@@ -6,11 +6,14 @@ import com.lightspeed.gpr.lib.Element;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.lang.ref.WeakReference;
 
-public abstract class AbstractViewManager {
+public abstract class AbstractViewManager
+    implements AbstractDataInput.NewElementListener {
 
     // this is the input to the manager
     protected AbstractDataInput m_input;
+    protected WeakReference<AbstractRenderer> m_renderer;
 
     // index from the start of the input
     protected int m_viewIndex;
@@ -71,9 +74,21 @@ public abstract class AbstractViewManager {
 
     public void setInput(AbstractDataInput in) {
 	if(m_input != null) {
-	    in.setNewElementListener(null);
+	    m_input.setNewElementListener(null);
 	}
+	in.setNewElementListener(this);
 	m_input = in;
 	m_viewIndex = 0;
+    }
+
+    public void setRenderer(AbstractRenderer r) {
+	m_renderer = new WeakReference<AbstractRenderer>(r);
+    }
+
+    @Override
+    public void onNewElement(Element e) {
+	if(m_renderer.get() != null) {
+	    m_renderer.get().render();
+	}
     }
 }

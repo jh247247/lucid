@@ -2,7 +2,7 @@ package com.lightspeed.gpr.lib;
 import com.lightspeed.gpr.lib.Element;
 
 public abstract class AbstractDataInput {
-    NewElementListener m_elementListener = null;
+    protected NewElementListener m_elementListener = null;
 
     /**
      * Attempts to open an interface, hide all the inner workings so
@@ -43,7 +43,7 @@ public abstract class AbstractDataInput {
 	m_elementListener = e;
     }
 
-    interface NewElementListener {
+    public interface NewElementListener {
 	public void onNewElement(Element e);
     }
 }

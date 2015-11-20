@@ -1,28 +1,32 @@
 package com.lightspeed.GPR1;
 
 import com.lightspeed.gpr.lib.Element;
+import com.lightspeed.gpr.lib.AbstractViewManager;
+import com.lightspeed.gpr.lib.AbstractRenderer;
 
-import java.util.ArrayList;
-import java.util.List;
+
 import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.Paint;
 import android.graphics.Matrix;
-import android.view.SurfaceHolder;
-import java.lang.Math;
-import android.util.Log;
-import java.util.LinkedList;
 import android.graphics.Color;
+import android.view.SurfaceHolder;
+import android.util.Log;
+import android.view.View;
 
-import com.lightspeed.gpr.lib.AbstractViewManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.lang.Math;
+import java.util.LinkedList;
+import java.lang.ref.WeakReference;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 
-public class RenderElementBlitter {
+public class RenderElementBlitter extends AbstractRenderer {
     static final String LOGTAG = "RenderElementBlitter";
 
     static final int MAX_PIXEL_SIZE = 3;
@@ -33,8 +37,7 @@ public class RenderElementBlitter {
     Canvas m_cbm;
     Paint m_paint;
 
-    SurfaceHolder m_surfHold;
-
+    WeakReference<View> m_renderView;
     AbstractViewManager m_viewManager;
 
     LoadingCache<Element, RenderElement> m_renderElementCache =
@@ -50,8 +53,8 @@ public class RenderElementBlitter {
     public RenderElementBlitter() {
         m_bm = null;
 	m_cbm = null;
-        m_surfHold = null;
         m_viewManager = null;
+	m_renderView = new WeakReference(null);
 
         // disable filtering...
         m_paint = new Paint();
@@ -59,12 +62,27 @@ public class RenderElementBlitter {
         m_paint.setFilterBitmap(false);
     }
 
+    @Override
     public void setViewManager(AbstractViewManager viewman) {
         m_viewManager = viewman;
+	m_viewManager.setRenderer(this);
 	initBitmap();
 
         // todo: caching...
     }
+
+    @Override
+    public void render() {
+	if(m_renderView.get() != null) {
+	    m_renderView.get().postInvalidate();
+	}
+    }
+
+
+    public void setRenderView(View v) {
+	m_renderView = new WeakReference<View>(v);
+    }
+
 
     public void initBitmap() {
         // create bitmap just in case we havent yet
@@ -83,9 +101,6 @@ public class RenderElementBlitter {
 	}
     }
 
-    public void setSurfaceHolder(SurfaceHolder s) {
-        m_surfHold = s;
-    }
 
     public void blitToCanvas(Canvas c) {
 	if(c == null) {

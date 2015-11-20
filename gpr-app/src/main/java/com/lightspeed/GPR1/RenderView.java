@@ -2,6 +2,7 @@ package com.lightspeed.GPR1;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.EventBusHandler;
+import com.lightspeed.gpr.lib.Element;
 
 import com.google.common.eventbus.EventBus;
 
@@ -26,7 +27,8 @@ import java.lang.Math;
 import java.lang.ref.WeakReference;
 
 public class RenderView extends SurfaceView
-    implements SurfaceHolder.Callback{
+    implements SurfaceHolder.Callback {
+
     private static final String LOGTAG = "RenderView";
 
     private EventBus m_bus = EventBusHandler.getEventBus();
@@ -65,12 +67,12 @@ public class RenderView extends SurfaceView
             // don't start rendering if blitter not set
             return;
         } else {
-            m_blitter.setSurfaceHolder(getHolder());
+            //m_blitter.setSurfaceHolder(getHolder());
+	    m_blitter.setRenderView(this);
         }
 
         uiInit();
         initCanvas();
-        postInvalidate();
     }
 
     private void uiInit() {
@@ -169,7 +171,6 @@ public class RenderView extends SurfaceView
                 // TODO: figure out if we need to do y scroll...
                 // remove from accumulator
                 m_dXacc += xscroll;
-                postInvalidate();
             }
 
             return true;
@@ -187,7 +188,6 @@ public class RenderView extends SurfaceView
 
         return true;
     }
-
 
     /**
      * This object is sent via the eventbus whenever the surface in

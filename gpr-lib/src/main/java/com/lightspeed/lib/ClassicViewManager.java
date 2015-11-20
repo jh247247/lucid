@@ -4,10 +4,17 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.eventbus.EventBus;
+import com.google.common.collect.Range;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.ContiguousSet;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.lang.IndexOutOfBoundsException;
+import java.lang.ref.WeakReference;
+
 
 import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.EventBusHandler;
@@ -19,8 +26,8 @@ import com.lightspeed.gpr.lib.EventBusHandler;
  */
 
 public class ClassicViewManager
-    extends AbstractViewManager
-    implements AbstractDataInput.NewElementListener {
+    extends AbstractViewManager {
+
 
     private final int CACHE_SIZE = 1000;
     private final int VIEW_WIDTH = 100; // defaults...
@@ -34,12 +41,15 @@ public class ClassicViewManager
 
     LoadingCache<Integer, Element> m_elementCache;
 
+
+
     public ClassicViewManager() {
 	super();
         m_elementCache = CacheBuilder.newBuilder()
             .maximumSize(CACHE_SIZE)
             .build(new CacheLoader<Integer, Element>() {
-                    @Override public Element load(Integer index)
+                    @Override
+		    public Element load(Integer index)
 			throws IndexOutOfBoundsException {
                         if(m_input != null) {
                             return m_input.getElement(index);
@@ -109,8 +119,5 @@ public class ClassicViewManager
     // TODO: handle viewport changes via eventbus
     // TODO: handle viewport scrolling via eventbus
 
-    @Override
-    public void onNewElement(Element e) {
 
-    }
 }

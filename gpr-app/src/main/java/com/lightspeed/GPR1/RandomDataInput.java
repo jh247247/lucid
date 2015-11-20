@@ -42,6 +42,9 @@ public class RandomDataInput extends AbstractDataInput {
 			    // TODO: handle?
 			}
 			m_index.addAndGet(1);
+			if(m_elementListener != null) {
+			    m_elementListener.onNewElement(getNext());
+			}
 		    }
 		}
 	    };
