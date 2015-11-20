@@ -1,6 +1,6 @@
 package com.lightspeed.GPR1;
 
-import com.lightspeed.gpr.lib.DataInputInterface;
+import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.Element;
 
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
 import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
 import com.afollestad.materialdialogs.util.DialogUtils;
 
-public class FileDataInput implements DataInputInterface {
+public class FileDataInput extends AbstractDataInput {
     final static int ELEMENT_HEADER_LEN = 6;
     final static int TIMESTAMP_LEN = 7;
     final static byte TYPE_ELEMENT = 0;

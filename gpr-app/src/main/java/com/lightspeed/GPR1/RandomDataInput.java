@@ -1,7 +1,8 @@
 package com.lightspeed.GPR1;
 
-import com.lightspeed.gpr.lib.DataInputInterface;
+import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.Element;
+
 import java.util.ArrayList;
 import java.lang.ref.WeakReference;
 import java.lang.Math;
@@ -12,7 +13,7 @@ import java.lang.Runnable;
 
 import android.util.Log;
 
-public class RandomDataInput implements DataInputInterface{
+public class RandomDataInput extends AbstractDataInput {
     AtomicInteger m_index;
     int m_oldIndex = 0;
 
@@ -77,7 +78,7 @@ public class RandomDataInput implements DataInputInterface{
         }
 
         // would load it from file, but cbf
-        Element ret = ret = new Element(START_ELEMENT,END_ELEMENT);
+        Element ret = new Element(START_ELEMENT,END_ELEMENT);
         for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
             ret.setSample(i,Math.random()*MAX_VAL);
         }

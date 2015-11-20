@@ -1,6 +1,9 @@
 package com.lightspeed.GPR1;
 
-import com.lightspeed.gpr.lib.DataInputInterface;
+import com.lightspeed.gpr.lib.AbstractDataInput;
+import com.lightspeed.gpr.lib.EventBusHandler;
+
+import com.google.common.eventbus.EventBus;
 
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -25,6 +28,8 @@ import java.lang.ref.WeakReference;
 public class RenderView extends SurfaceView
     implements SurfaceHolder.Callback{
     private static final String LOGTAG = "RenderView";
+
+    private EventBus m_bus = EventBusHandler.getEventBus();
 
     /**
      * These should be in their own fragment, so they get retained on
@@ -57,15 +62,15 @@ public class RenderView extends SurfaceView
         if(m_blitter == null) {
             // somebody made a boo-boo..
             Log.e(LOGTAG, "blitter is null in init!");
-	    // don't start rendering if blitter not set
-	    return;
+            // don't start rendering if blitter not set
+            return;
         } else {
-	    m_blitter.setSurfaceHolder(getHolder());
-	}
+            m_blitter.setSurfaceHolder(getHolder());
+        }
 
-	uiInit();
+        uiInit();
         initCanvas();
-	postInvalidate();
+        postInvalidate();
     }
 
     private void uiInit() {
@@ -80,14 +85,14 @@ public class RenderView extends SurfaceView
     }
 
     private void initCanvas() {
-        int width = this.getWidth();
-        int height = this.getHeight();
+	SurfaceChangedEvent sufEv = new SurfaceChangedEvent(this.getWidth(),
+							    this.getHeight());
         // send out the new surface dims via the event bus
 
-       setWillNotDraw(false);
+        setWillNotDraw(false);
 
-        Log.v(LOGTAG,"Previous canvas dims: " + width + " x " +
-              height);
+        Log.v(LOGTAG,"New canvas dims: " + sufEv.w + " x " + sufEv.h);
+	m_bus.post(sufEv);
     }
 
     @Override
@@ -113,6 +118,7 @@ public class RenderView extends SurfaceView
                                int arg1,
                                int arg2) {
         initCanvas();
+
     }
 
     @Override

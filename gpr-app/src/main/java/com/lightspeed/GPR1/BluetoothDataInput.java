@@ -1,7 +1,8 @@
 package com.lightspeed.GPR1;
 
-import com.lightspeed.gpr.lib.DataInputInterface;
+import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.Element;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.ref.SoftReference;
@@ -12,7 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
 
-public class BluetoothDataInput implements DataInputInterface {
+public class BluetoothDataInput extends AbstractDataInput {
 
     private ArrayList<SoftReference<Element>> m_previous;
     private ArrayList<Element> m_new;

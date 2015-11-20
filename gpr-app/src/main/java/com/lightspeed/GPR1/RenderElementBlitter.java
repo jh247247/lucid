@@ -122,6 +122,9 @@ public class RenderElementBlitter {
             m_cbm.drawBitmap(tbm, m_cbm.getWidth()-data.size()+i-1, 0, null);
         }
 
+	Log.d("RenderElementBlitter",m_bm.getWidth() + " x " + m_bm.getHeight());
+
+
         Matrix matrix = new Matrix();
         matrix.postScale(((float)c.getWidth()/(float)m_bm.getWidth()),
 			 ((float)c.getHeight()/(float)m_bm.getHeight()));

@@ -62,11 +62,14 @@ public class RenderElement {
         }
     }
 
-    public void renderElement() {
+    private void renderElement() {
         if(m_data == null ||
            (m_renderedData != null)) {
             return;
         }
+
+        Log.d("RENDERELEMENT","Rendering " +
+              m_data.getAmountOfSamples() + " points...");
 
         // make the paint, bitmap and canvas so we can actually render
         // the element
@@ -75,6 +78,7 @@ public class RenderElement {
         Bitmap tmp = Bitmap.createBitmap(1,
                                          m_data.getAmountOfSamples(),
                                          conf);
+
         Canvas c = new Canvas(tmp);
         for(int i = m_data.getSampleStart();
             i < m_data.getSampleStop(); i++) {
@@ -86,6 +90,7 @@ public class RenderElement {
         }
         m_renderedData = tmp;
         m_rendered.set(true);
+        Log.d("RENDERELEMENT","Done!");
     }
 
 

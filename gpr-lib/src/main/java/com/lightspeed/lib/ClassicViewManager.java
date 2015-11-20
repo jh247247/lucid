@@ -18,10 +18,19 @@ import com.lightspeed.gpr.lib.EventBusHandler;
  * in a 1D fashion
  */
 
-public class ClassicViewManager extends AbstractViewManager {
+public class ClassicViewManager
+    extends AbstractViewManager
+    implements AbstractDataInput.NewElementListener {
+
     private final int CACHE_SIZE = 1000;
+    private final int VIEW_WIDTH = 100; // defaults...
+    private final int VIEW_HEIGHT = 255;
 
     private final EventBus m_bus = EventBusHandler.getEventBus();
+
+    // get the view dpi to calculate view size
+    // should aim for 1x1mm pixels?
+    private int m_viewDpi;
 
     LoadingCache<Integer, Element> m_elementCache;
 
@@ -42,6 +51,9 @@ public class ClassicViewManager extends AbstractViewManager {
 
 	// register on the eventbus...
 	m_bus.register(this);
+
+	m_viewWidth = VIEW_WIDTH;
+	m_viewHeight = VIEW_HEIGHT;
     }
 
     // returns the current view as a list to be rendered
@@ -87,11 +99,18 @@ public class ClassicViewManager extends AbstractViewManager {
     }
 
     @Override
-    public void setInput(DataInputInterface in) {
+    public void setInput(AbstractDataInput in) {
         super.setInput(in);
 
         // clear the cache since we are changing inputs, they are useless.
         m_elementCache.invalidateAll();
     }
 
+    // TODO: handle viewport changes via eventbus
+    // TODO: handle viewport scrolling via eventbus
+
+    @Override
+    public void onNewElement(Element e) {
+
+    }
 }

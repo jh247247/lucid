@@ -1,7 +1,5 @@
 package com.lightspeed.GPR1;
 
-import com.lightspeed.gpr.lib.DataInputInterface;
-
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

@@ -1,6 +1,6 @@
 package com.lightspeed.GPR1;
 
-import com.lightspeed.gpr.lib.DataInputInterface;
+import com.lightspeed.gpr.lib.AbstractDataInput;
 
 import android.app.Activity;
 
@@ -40,7 +40,7 @@ public class DataInputFragment extends Fragment {
     @Bind(R.id.inputSpinner) Spinner m_inputSpinner;
     @Bind(R.id.inputOptionLayout) LinearLayout m_inputOption;
 
-    DataInputInterface m_input;
+    AbstractDataInput m_input;
 
     View m_inputView; // view that the interface exposes
 

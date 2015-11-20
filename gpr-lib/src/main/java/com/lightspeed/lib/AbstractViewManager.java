@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutionException;
 public abstract class AbstractViewManager {
 
     // this is the input to the manager
-    protected DataInputInterface m_input;
+    protected AbstractDataInput m_input;
 
     // index from the start of the input
     protected int m_viewIndex;
@@ -69,7 +69,10 @@ public abstract class AbstractViewManager {
 	return m_viewHeight;
     }
 
-    public void setInput(DataInputInterface in) {
+    public void setInput(AbstractDataInput in) {
+	if(m_input != null) {
+	    in.setNewElementListener(null);
+	}
 	m_input = in;
 	m_viewIndex = 0;
     }

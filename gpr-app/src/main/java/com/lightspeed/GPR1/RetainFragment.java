@@ -4,7 +4,7 @@
 
 package com.lightspeed.GPR1;
 
-import com.lightspeed.gpr.lib.DataInputInterface;
+import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.AbstractViewManager;
 import com.lightspeed.gpr.lib.ClassicViewManager;
 import android.support.v4.app.Fragment;
@@ -13,7 +13,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 public class RetainFragment extends Fragment {
-    private DataInputInterface m_input;
+    private AbstractDataInput m_input;
     private RenderElementBlitter m_blitter;
     private AbstractViewManager m_viewManager;
 
@@ -32,7 +32,7 @@ public class RetainFragment extends Fragment {
         setRetainInstance(true);
     }
 
-    public DataInputInterface getInput() {
+    public AbstractDataInput getInput() {
         return m_input;
     }
 
