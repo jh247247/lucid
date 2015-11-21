@@ -43,13 +43,13 @@ public class ClassicViewManager
 
 
     public ClassicViewManager() {
-	super();
+        super();
         m_elementCache = CacheBuilder.newBuilder()
             .maximumSize(CACHE_SIZE)
             .build(new CacheLoader<Integer, Element>() {
                     @Override
-		    public Element load(Integer index)
-			throws IndexOutOfBoundsException {
+                    public Element load(Integer index)
+                        throws IndexOutOfBoundsException {
                         if(m_input != null) {
                             return m_input.getElement(index);
                         }
@@ -59,16 +59,16 @@ public class ClassicViewManager
                 );
 
 
-	m_viewWidth = VIEW_WIDTH;
-	m_viewHeight = VIEW_HEIGHT;
+        m_viewWidth = VIEW_WIDTH;
+        m_viewHeight = VIEW_HEIGHT;
     }
 
     // returns the current view as a list to be rendered
     @Override
     public List<Element> getView() {
-	if(m_startLock) {
-	    m_viewIndex = Math.max(m_input.getCurrentIndex()-m_viewWidth,0);
-	}
+        if(m_startLock) {
+            m_viewIndex = Math.max(m_input.getCurrentIndex()-m_viewWidth,0);
+        }
 
         ArrayList<Element> ret = new ArrayList<Element>();
 
@@ -79,8 +79,8 @@ public class ClassicViewManager
             }
             catch(Exception e) {
                 // no input, nothing to draw...
-		System.out.println("Terminating at index: " + i +
-				   "\nReason: " + e);
+                System.out.println("Terminating at index: " + i +
+                                   "\nReason: " + e);
 
                 return ret;
             }
@@ -101,12 +101,13 @@ public class ClassicViewManager
         if(m_viewIndex < 0) { // trying to go earlier than the start
             m_viewIndex = 0;
         } else if(m_input != null && m_viewIndex+m_viewWidth >
-		  m_input.getCurrentIndex()) { // trying to go off the end
-	    m_viewIndex = Math.max(0,m_input.getCurrentIndex()-m_viewWidth);
-	}
+                  m_input.getCurrentIndex()) { // trying to go off the end
+            m_viewIndex = Math.max(0,m_input.getCurrentIndex()-m_viewWidth);
+        }
 
-        // do I have to preempt the caching?
+        refreshElementCache();
     }
+
 
     @Override
     public void setInput(AbstractDataInput in) {
@@ -114,10 +115,30 @@ public class ClassicViewManager
 
         // clear the cache since we are changing inputs, they are useless.
         m_elementCache.invalidateAll();
+        refreshElementCache();
     }
 
     // TODO: handle viewport changes via eventbus
     // TODO: handle viewport scrolling via eventbus
 
+    /////////////////////
+    // PRIVATE METHODS //
+    /////////////////////
 
+    private void refreshElementCache() {
+        Thread t = new Thread() {
+                public void run() {
+                    for(int i = m_viewIndex+m_viewWidth-CACHE_SIZE/2;
+                        i < m_viewIndex+CACHE_SIZE/2; i++) {
+                        try {
+                            m_elementCache.get(i);
+                        }
+                        catch(Exception e) {
+			    // todo...
+                        }
+                    }
+                }
+            };
+        t.start();
+    }
 }
