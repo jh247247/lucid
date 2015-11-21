@@ -25,7 +25,7 @@ public class RandomDataInput extends AbstractDataInput {
     final int START_ELEMENT = 0;
     final int END_ELEMENT = 255;
     final int MAX_VAL = 255;
-    final int ELEMENT_RATE = 10;
+    final int ELEMENT_RATE = 50;
 
 
     public RandomDataInput() {

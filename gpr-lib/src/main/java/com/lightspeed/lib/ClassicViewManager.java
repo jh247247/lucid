@@ -98,9 +98,12 @@ public class ClassicViewManager
     // go to a specific index
     public void goToIndex(int index) {
         m_viewIndex = index;
-        if(m_viewIndex == 0) {
+        if(m_viewIndex < 0) { // trying to go earlier than the start
             m_viewIndex = 0;
-        }
+        } else if(m_input != null && m_viewIndex+m_viewWidth >
+		  m_input.getCurrentIndex()) { // trying to go off the end
+	    m_viewIndex = Math.max(0,m_input.getCurrentIndex()-m_viewWidth);
+	}
 
         // do I have to preempt the caching?
     }

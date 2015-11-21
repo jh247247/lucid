@@ -118,18 +118,10 @@ public abstract class AbstractViewManager
 	m_scrollAccumulatorX += e.dX;
 	m_scrollAccumulatorX += e.dX;
 
-	// TODO: Y scrolling
-	if(Math.abs(m_scrollAccumulatorX) > m_pixelSize) {
-	    System.out.println("SCROLLING " + m_scrollAccumulatorX
-			       + " " + m_viewIndex);
-	    if(m_viewIndex > 0 ||
-	       m_input != null && m_viewIndex < m_input.getCurrentIndex()) {
-		m_viewIndex += Math.signum(m_scrollAccumulatorX);
-	    }
-
-	    m_scrollAccumulatorX -=
-		-Math.signum(m_scrollAccumulatorX)*m_pixelSize;
-
+	int xscroll = (int)(m_scrollAccumulatorX/m_pixelSize);
+	if(xscroll != 0 && !getStartLock()) {
+	    moveView(xscroll/2);
+	    m_scrollAccumulatorX -= xscroll*m_pixelSize;
 	}
     }
 
