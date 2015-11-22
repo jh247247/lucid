@@ -15,6 +15,7 @@ import android.view.SurfaceHolder;
 import android.util.Log;
 import android.view.View;
 
+import java.lang.Runtime;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.Math;
@@ -33,9 +34,9 @@ import com.google.common.cache.LoadingCache;
 public class RenderElementBlitter extends AbstractRenderer {
     static final String LOGTAG = "RenderElementBlitter";
 
-    static final int CACHE_SIZE = 1000;
+    static final int CACHE_SIZE = 2000;
 
-    ExecutorService m_renderPool = Executors.newFixedThreadPool(2);
+    ExecutorService m_renderPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     Bitmap m_bm;
     Canvas m_cbm;
@@ -49,7 +50,9 @@ public class RenderElementBlitter extends AbstractRenderer {
         .maximumSize(CACHE_SIZE)
         .build(new CacheLoader<Element, RenderElement>() {
                 @Override public RenderElement load(Element e) {
-                    return new RenderElement(e);
+                    RenderElement re = new RenderElement(e);
+		    m_renderPool.submit(re);
+		    return re;
                 }
             }
             );
