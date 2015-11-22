@@ -45,16 +45,16 @@ public class RenderElementBlitter extends AbstractRenderer {
         .maximumSize(CACHE_SIZE)
         .build(new CacheLoader<Element, RenderElement>() {
                 @Override public RenderElement load(Element e) {
-		    return new RenderElement(e);
+                    return new RenderElement(e);
                 }
             }
             );
 
     public RenderElementBlitter() {
         m_bm = null;
-	m_cbm = null;
+        m_cbm = null;
         m_viewManager = null;
-	m_renderView = new WeakReference(null);
+        m_renderView = new WeakReference(null);
 
         // disable filtering...
         m_paint = new Paint();
@@ -65,45 +65,45 @@ public class RenderElementBlitter extends AbstractRenderer {
     @Override
     public void setViewManager(AbstractViewManager viewman) {
         m_viewManager = viewman;
-	m_viewManager.setRenderer(this);
-	initBitmap();
+        m_viewManager.setRenderer(this);
+        initBitmap();
 
         // todo: caching...
     }
 
     @Override
     public void render() {
-	if(m_renderView.get() != null) {
-	    m_renderView.get().postInvalidate();
-	}
+        if(m_renderView.get() != null) {
+            m_renderView.get().postInvalidate();
+        }
     }
 
 
     public void setRenderView(View v) {
-	m_renderView = new WeakReference<View>(v);
+        m_renderView = new WeakReference<View>(v);
     }
 
 
     public void initBitmap() {
         // create bitmap just in case we havent yet
-	if(m_viewManager == null) return;
+        if(m_viewManager == null) return;
 
         if(m_bm == null ||
-	   m_bm.getWidth() != m_viewManager.getViewWidth() ||
-	   m_bm.getHeight() != m_viewManager.getViewHeight()) {
+           m_bm.getWidth() != m_viewManager.getViewWidth() ||
+           m_bm.getHeight() != m_viewManager.getViewHeight()) {
             Bitmap.Config conf = Bitmap.Config.ARGB_8888;
             m_bm = Bitmap.createBitmap(m_viewManager.getViewWidth(),
                                        m_viewManager.getViewHeight(),
                                        conf);
-	    m_cbm = new Canvas(m_bm);
+            m_cbm = new Canvas(m_bm);
         }
     }
 
 
     public void blitToCanvas(Canvas c) {
-	if(c == null) {
-	    return; // wtf...
-	}
+        if(c == null) {
+            return; // wtf...
+        }
 
         // if elements are empty, might as well clear all the pixels...
         if(m_viewManager == null) {
@@ -112,8 +112,8 @@ public class RenderElementBlitter extends AbstractRenderer {
             return;
         }
 
-	// just in case view got resized
-	initBitmap();
+        // just in case view got resized
+        initBitmap();
 
         long startTime = System.nanoTime();
 
@@ -123,11 +123,11 @@ public class RenderElementBlitter extends AbstractRenderer {
         Bitmap tbm = null;
         List<Element> data = m_viewManager.getView();
 
-	Log.d("RenderElementBlitter", "Rendering " + data.size() +
-	      " elements!");
+        Log.d("RenderElementBlitter", "Rendering " + data.size() +
+              " elements!");
         for(int i = data.size()-1; i >= 0; i--) {
             // render the bitmap
-	    tbm = m_renderElementCache.getUnchecked(data.get(i)).getRenderedElement();
+            tbm = m_renderElementCache.getUnchecked(data.get(i)).getRenderedElement();
 
             if(tbm == null) break;
 
@@ -135,12 +135,12 @@ public class RenderElementBlitter extends AbstractRenderer {
             m_cbm.drawBitmap(tbm, m_cbm.getWidth()-data.size()+i-1, 0, null);
         }
 
-	Log.d("RenderElementBlitter",m_bm.getWidth() + " x " + m_bm.getHeight());
+        Log.d("RenderElementBlitter",m_bm.getWidth() + " x " + m_bm.getHeight());
 
 
-        Matrix matrix = new Matrix();
+	Matrix matrix = new Matrix();
         matrix.postScale(((float)c.getWidth()/(float)m_bm.getWidth()),
-			 ((float)c.getHeight()/(float)m_bm.getHeight()));
+	((float)c.getHeight()/(float)m_bm.getHeight()));
 
         c.drawBitmap(m_bm,matrix,m_paint);
 
@@ -150,4 +150,18 @@ public class RenderElementBlitter extends AbstractRenderer {
             Log.w("RenderElementBlitter","Scene in: " + diff);
         }
     }
+
+    @Override
+    public void cache(List<Element> l) {
+	try {
+	    m_renderElementCache.getAll(l);
+	}
+	catch(Exception e) {
+	    // todo
+	}
+    }
+
+    /////////////////////
+    // PRIVATE METHODS //
+    /////////////////////
 }

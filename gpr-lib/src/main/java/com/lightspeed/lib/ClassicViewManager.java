@@ -38,26 +38,25 @@ public class ClassicViewManager
     // should aim for 1x1mm pixels?
     private int m_viewDpi;
 
-    LoadingCache<Integer, Element> m_elementCache;
+    LoadingCache<Integer, Element> m_elementCache =
+        CacheBuilder.newBuilder()
+        .maximumSize(CACHE_SIZE)
+        .build(new CacheLoader<Integer, Element>() {
+                @Override
+                public Element load(Integer index)
+                    throws IndexOutOfBoundsException {
+                    if(m_input != null) {
+                        return m_input.getElement(index);
+                    }
+                    throw new IndexOutOfBoundsException();
+                }
+            }
+            );
 
 
 
     public ClassicViewManager() {
         super();
-        m_elementCache = CacheBuilder.newBuilder()
-            .maximumSize(CACHE_SIZE)
-            .build(new CacheLoader<Integer, Element>() {
-                    @Override
-                    public Element load(Integer index)
-                        throws IndexOutOfBoundsException {
-                        if(m_input != null) {
-                            return m_input.getElement(index);
-                        }
-                        throw new IndexOutOfBoundsException();
-                    }
-                }
-                );
-
 
         m_viewWidth = VIEW_WIDTH;
         m_viewHeight = VIEW_HEIGHT;
@@ -105,7 +104,7 @@ public class ClassicViewManager
             m_viewIndex = Math.max(0,m_input.getCurrentIndex()-m_viewWidth);
         }
 
-        refreshElementCache();
+        //refreshElementCache();
     }
 
 
@@ -115,7 +114,7 @@ public class ClassicViewManager
 
         // clear the cache since we are changing inputs, they are useless.
         m_elementCache.invalidateAll();
-        refreshElementCache();
+        //refreshElementCache();
     }
 
     // TODO: handle viewport changes via eventbus
@@ -128,13 +127,20 @@ public class ClassicViewManager
     private void refreshElementCache() {
         Thread t = new Thread() {
                 public void run() {
+                    // refresh renderer...
+                    // move to new method?
+                    ArrayList<Element> l = new ArrayList<Element>();
+
                     for(int i = m_viewIndex+m_viewWidth-CACHE_SIZE/2;
                         i < m_viewIndex+CACHE_SIZE/2; i++) {
                         try {
-                            m_elementCache.get(i);
+                            l.add(m_elementCache.get(i));
                         }
                         catch(Exception e) {
-			    // todo...
+                            // todo...
+                        }
+                        if(m_renderer.get() != null) {
+                            m_renderer.get().cache(l);
                         }
                     }
                 }

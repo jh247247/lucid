@@ -1,8 +1,13 @@
 package com.lightspeed.gpr.lib;
 
+import java.util.List;
+
+import com.lightspeed.gpr.lib.Element;
+
 public abstract class AbstractRenderer {
     public abstract void setViewManager(AbstractViewManager viewman);
     public abstract void render();
+    public abstract void cache(List<Element> l);
 
     /**
      * These object is sent via the eventbus whenever the surface in
