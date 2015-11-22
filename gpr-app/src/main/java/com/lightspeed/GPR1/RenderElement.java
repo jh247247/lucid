@@ -6,14 +6,16 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.lang.Thread;
 import java.lang.Runnable;
+import java.util.concurrent.Callable;
 
 import android.graphics.BitmapFactory;
 
 
-public class RenderElement {
+public class RenderElement implements Callable<Bitmap> {
     /**
      * Stores the actual data to display
      */
@@ -29,7 +31,7 @@ public class RenderElement {
 
     public RenderElement(Element e) {
         if(e != null) {
-            // why...
+            // why... Maybe throw exception here?
             m_data = e.clone();
         }
         // render the element when this is created just in case
@@ -53,13 +55,6 @@ public class RenderElement {
 
     public int getElementHeight() {
         return m_data.getSampleStop();
-    }
-
-    public void recycleBitmap() {
-        if(m_renderedData != null){
-            m_renderedData.recycle();
-            m_rendered.set(false);
-        }
     }
 
     private void renderElement() {
@@ -93,6 +88,9 @@ public class RenderElement {
         Log.d("RENDERELEMENT","Done!");
     }
 
-
+    @Override
+    public Bitmap call() {
+	return getRenderedElement();
+    }
 
 }

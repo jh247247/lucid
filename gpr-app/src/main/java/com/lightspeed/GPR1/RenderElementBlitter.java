@@ -20,6 +20,10 @@ import java.util.List;
 import java.lang.Math;
 import java.util.LinkedList;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -29,9 +33,9 @@ import com.google.common.cache.LoadingCache;
 public class RenderElementBlitter extends AbstractRenderer {
     static final String LOGTAG = "RenderElementBlitter";
 
-    static final int MAX_PIXEL_SIZE = 3;
-
     static final int CACHE_SIZE = 1000;
+
+    ExecutorService m_renderPool = Executors.newFixedThreadPool(2);
 
     Bitmap m_bm;
     Canvas m_cbm;
@@ -60,6 +64,7 @@ public class RenderElementBlitter extends AbstractRenderer {
         m_paint = new Paint();
         m_paint.setAntiAlias(false);
         m_paint.setFilterBitmap(false);
+        m_paint.setColor(Color.BLACK);
     }
 
     @Override
@@ -120,27 +125,50 @@ public class RenderElementBlitter extends AbstractRenderer {
         // start rendering here
 
         // create tmp bitmap to render to
-        Bitmap tbm = null;
+        Future<Bitmap> fbm = null;
+        RenderElement re = null;
         List<Element> data = m_viewManager.getView();
 
         Log.d("RenderElementBlitter", "Rendering " + data.size() +
               " elements!");
-        for(int i = data.size()-1; i >= 0; i--) {
-            // render the bitmap
-            tbm = m_renderElementCache.getUnchecked(data.get(i)).getRenderedElement();
 
-            if(tbm == null) break;
+        for(int i = data.size()-1; i >= 0; i--) {
+            re = m_renderElementCache.getUnchecked(data.get(i));
+            if(re == null) break;
+            if(re.isRendered()) {
+                m_cbm.drawBitmap(re.getRenderedElement(),
+                                 m_cbm.getWidth()-data.size()+i-1, 0, null);
+                continue;
+            }
+
+            // render the bitmap
+            fbm = m_renderPool.submit(re);
+
+
 
             // blit bitmap to canvas
-            m_cbm.drawBitmap(tbm, m_cbm.getWidth()-data.size()+i-1, 0, null);
+            if(fbm.isDone()) {
+                try {
+                    m_cbm.drawBitmap(fbm.get(), m_cbm.getWidth()-data.size()+i-1, 0, null);
+                }
+                catch(Exception e) {
+                    Log.e("RenderElementBlitter","Error rendering: "+e);
+                }
+            } else {
+                m_cbm.drawRect(m_cbm.getWidth()-data.size()+i-1,
+                               0,
+                               m_cbm.getWidth()-data.size()+i,
+                               m_cbm.getHeight()-1,
+                               m_paint);
+            }
         }
 
         Log.d("RenderElementBlitter",m_bm.getWidth() + " x " + m_bm.getHeight());
 
 
-	Matrix matrix = new Matrix();
+        Matrix matrix = new Matrix();
         matrix.postScale(((float)c.getWidth()/(float)m_bm.getWidth()),
-	((float)c.getHeight()/(float)m_bm.getHeight()));
+                         ((float)c.getHeight()/(float)m_bm.getHeight()));
 
         c.drawBitmap(m_bm,matrix,m_paint);
 
@@ -153,12 +181,12 @@ public class RenderElementBlitter extends AbstractRenderer {
 
     @Override
     public void cache(List<Element> l) {
-	try {
-	    m_renderElementCache.getAll(l);
-	}
-	catch(Exception e) {
-	    // todo
-	}
+        try {
+            m_renderElementCache.getAll(l);
+        }
+        catch(Exception e) {
+            // todo
+        }
     }
 
     /////////////////////
