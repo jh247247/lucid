@@ -28,7 +28,10 @@ import butterknife.Bind;
 
 import java.io.File;
 
-public class MainActivity extends AppCompatActivity {
+import com.lightspeed.gpr.lib.AbstractDataInput;
+
+public class MainActivity extends AppCompatActivity
+    implements DataInputFragment.OnInputChangedListener {
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
     @Bind(R.id.render) RenderView m_render;
@@ -60,9 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupMainView() {
         FragmentManager fm = getSupportFragmentManager();
 
-        // setup the data input manager/fragment thing
-        m_inputManager = (DataInputFragment)
-            fm.findFragmentById(R.id.input_manager);
+
 
         // get back retained vars if required
         m_retained = (RetainFragment)
@@ -74,8 +75,13 @@ public class MainActivity extends AppCompatActivity {
             m_retained = new RetainFragment();
             fm.beginTransaction().add(m_retained,
                                       TAG_RETAIN_FRAGMENT).commit();
-
         }
+
+	// has to be after setting up the retained fragment since this
+	// immediately tries to set the input to whatever was saved...
+	// setup the data input manager/fragment thing
+        m_inputManager = (DataInputFragment)
+            fm.findFragmentById(R.id.input_manager);
 
         m_render.setBlitter(m_retained.getBlitter());
     }
@@ -141,5 +147,13 @@ public class MainActivity extends AppCompatActivity {
         // Handle your other action bar items...
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onInputChanged(AbstractDataInput in) {
+	if(m_retained != null) {
+	    m_retained.setInput(in);
+	}
+
     }
 }

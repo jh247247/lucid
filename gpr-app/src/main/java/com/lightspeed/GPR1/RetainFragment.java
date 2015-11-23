@@ -24,8 +24,7 @@ public class RetainFragment extends Fragment {
         m_blitter = new RenderElementBlitter();
         m_blitter.setViewManager(m_viewManager);
         // TODO: have this saved offline so we can reset to previous settings...
-	m_input = new RandomDataInput();
-	EventBusHandler.getEventBus().post(new AbstractViewManager.InputChangeEvent(m_input));
+	setInput(new RandomDataInput());
     }
 
     @Override
@@ -36,6 +35,13 @@ public class RetainFragment extends Fragment {
 
     public AbstractDataInput getInput() {
         return m_input;
+    }
+
+    public void setInput(AbstractDataInput in) {
+	if(in != null) {
+	    m_input = in;
+	    EventBusHandler.getEventBus().post(new AbstractViewManager.InputChangeEvent(m_input));
+	}
     }
 
     public RenderElementBlitter getBlitter() {

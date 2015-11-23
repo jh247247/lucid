@@ -35,6 +35,25 @@ public class DataInputFragment extends Fragment {
 
     View m_inputView; // view that the interface exposes
 
+    public interface OnInputChangedListener {
+	public void onInputChanged(AbstractDataInput input);
+    }
+
+    OnInputChangedListener m_inputCallback;
+
+    @Override
+    public void onAttach(Activity activity) {
+	super.onAttach(activity);
+
+	try {
+	    m_inputCallback = (OnInputChangedListener) activity;
+	}
+	catch(Exception e) {
+	    Log.e("DataInputFragment","Attached activity does not implement OnInputChangedListener!");
+	}
+
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +113,7 @@ public class DataInputFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+	m_inputCallback = null;
 	
         ButterKnife.unbind(this);
     }
@@ -151,6 +171,11 @@ public class DataInputFragment extends Fragment {
             // wtf.
             break;
         }
+
+	if(m_inputCallback != null) {
+	    m_inputCallback.onInputChanged(m_input);
+	}
+
 
         // send new input to receivers
 
