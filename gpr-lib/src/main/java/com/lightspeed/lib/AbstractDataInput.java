@@ -1,6 +1,8 @@
 package com.lightspeed.gpr.lib;
 import com.lightspeed.gpr.lib.Element;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 public abstract class AbstractDataInput {
     protected NewElementListener m_elementListener = null;
 
@@ -26,7 +28,7 @@ public abstract class AbstractDataInput {
      * This should rewind the data by some given amount, trying a
      * local buffer (hopefully) then resorting to file if it doesn't exist.
      */
-    public abstract Element getElement(int index);
+    public abstract ListenableFuture<Element> getElement(int index);
 
     /**
      * Returns true if the given index exists.
@@ -44,6 +46,6 @@ public abstract class AbstractDataInput {
     }
 
     public interface NewElementListener {
-	public void onNewElement(Element e);
+	public void onNewElement(Element e, int i);
     }
 }

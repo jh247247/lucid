@@ -10,6 +10,7 @@ import java.lang.ref.WeakReference;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.util.concurrent.ListenableFuture;
 
 public abstract class AbstractViewManager
     implements AbstractDataInput.NewElementListener {
@@ -40,19 +41,19 @@ public abstract class AbstractViewManager
     protected int m_viewHeight;
 
     public AbstractViewManager() {
-	m_viewIndex = 0;
-	m_viewWidth = 1; // magic numbers get fixed later on.
-	m_viewHeight = 1;
-	m_pixelSize = 1;
-	m_startLock = false;
-	m_input = null;
+        m_viewIndex = 0;
+        m_viewWidth = 1; // magic numbers get fixed later on.
+        m_viewHeight = 1;
+        m_pixelSize = 1;
+        m_startLock = false;
+        m_input = null;
 
-	// register on the eventbus...
-	m_bus.register(this);
+        // register on the eventbus...
+        m_bus.register(this);
     }
 
     // should get the current view
-    abstract public List<Element> getView();
+    abstract public List<ListenableFuture<Element>> getView();
 
     // move the view by some amount
     abstract public void moveView(int amount);
@@ -61,74 +62,76 @@ public abstract class AbstractViewManager
     abstract public void goToIndex(int index);
 
     public void setStartLock(boolean sl) {
-	m_startLock = sl;
+        m_startLock = sl;
     }
 
     public boolean getStartLock() {
-	return m_startLock;
+        return m_startLock;
     }
 
     // view dims
     public void setViewWidth(int w) {
-	m_viewWidth = w;
+        m_viewWidth = w;
     }
 
     public int getViewWidth() {
-	return m_viewWidth;
+        return m_viewWidth;
     }
 
     public void setViewHeight(int h) {
-	m_viewHeight = h;
+        m_viewHeight = h;
     }
 
     public int getViewHeight() {
-	return m_viewHeight;
+        return m_viewHeight;
     }
 
     public void setInput(AbstractDataInput in) {
-	if(m_input != null) {
-	    m_input.setNewElementListener(null);
-	}
-	in.setNewElementListener(this);
-	m_input = in;
-	m_viewIndex = 0;
+        if(m_input != null) {
+            m_input.setNewElementListener(null);
+        }
+        in.setNewElementListener(this);
+        m_input = in;
+        m_viewIndex = 0;
     }
 
     public void setRenderer(AbstractRenderer r) {
-	m_renderer = new WeakReference<AbstractRenderer>(r);
+        m_renderer = new WeakReference<AbstractRenderer>(r);
     }
 
-    @Override
-    public void onNewElement(Element e) {
-	if(m_renderer.get() != null) {
-	    m_renderer.get().render();
-	}
-    }
+
 
     @Subscribe
     public void surfaceChanged(AbstractRenderer.SurfaceChangedEvent e) {
-	// assume that the height of the data does not change, only
-	// the width
-	m_pixelSize = (int)(e.h/m_viewHeight);
-	m_viewWidth = (int)(e.w/m_pixelSize);
+        // assume that the height of the data does not change, only
+        // the width
+        m_pixelSize = (int)(e.h/m_viewHeight);
+        m_viewWidth = (int)(e.w/m_pixelSize);
+
+        if(m_renderer.get() != null) {
+            m_renderer.get().render();
+        }
     }
 
     @Subscribe
     public void surfaceScroll(AbstractRenderer.SurfaceScrolledEvent e) {
-	m_scrollAccumulatorX += e.dX;
-	m_scrollAccumulatorX += e.dX;
+        m_scrollAccumulatorX += e.dX;
+        m_scrollAccumulatorX += e.dX;
 
-	int xscroll = (int)(m_scrollAccumulatorX/m_pixelSize);
-	if(xscroll != 0 && !getStartLock()) {
-	    moveView(xscroll/2);
-	    m_scrollAccumulatorX -= xscroll*m_pixelSize;
-	}
+        int xscroll = (int)(m_scrollAccumulatorX/m_pixelSize);
+        if(xscroll != 0 && !getStartLock()) {
+            moveView(xscroll/2);
+            m_scrollAccumulatorX -= xscroll*m_pixelSize;
+
+            if(m_renderer.get() != null) {
+                m_renderer.get().render();
+            }
+        }
     }
-
 
     @Subscribe
     public void ScrollAccumulatorReset(AbstractRenderer.ResetScrollEvent e) {
-	m_scrollAccumulatorX = 0;
-	m_scrollAccumulatorY = 0;
+        m_scrollAccumulatorX = 0;
+        m_scrollAccumulatorY = 0;
     }
 }

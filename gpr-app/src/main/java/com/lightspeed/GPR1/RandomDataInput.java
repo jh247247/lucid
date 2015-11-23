@@ -7,13 +7,30 @@ import java.util.ArrayList;
 import java.lang.ref.WeakReference;
 import java.lang.Math;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
+
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import java.lang.Thread;
 import java.lang.Runnable;
 
 import android.util.Log;
 
+
+
 public class RandomDataInput extends AbstractDataInput {
+    final int START_ELEMENT = 0;
+    final int END_ELEMENT = 255;
+    final int MAX_VAL = 255;
+    final int ELEMENT_RATE = 50;
+
+    ListeningExecutorService m_executor =
+	MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
+
     AtomicInteger m_index;
     int m_oldIndex = 0;
 
@@ -22,32 +39,26 @@ public class RandomDataInput extends AbstractDataInput {
     boolean m_genThreadRun;
 
 
-    final int START_ELEMENT = 0;
-    final int END_ELEMENT = 255;
-    final int MAX_VAL = 255;
-    final int ELEMENT_RATE = 50;
-
-
     public RandomDataInput() {
         m_index = new AtomicInteger(0);
 
-	// setup thread
-	m_genThreadRun = true;
-	Runnable r = new Runnable() {
-		public void run() {
-		    while(m_genThreadRun) {
-			try {
-			    Thread.sleep(1000/ELEMENT_RATE);
-			} catch(Exception e) {
-			    // TODO: handle?
-			}
-			m_index.addAndGet(1);
-			if(m_elementListener != null) {
-			    m_elementListener.onNewElement(getNext());
-			}
-		    }
-		}
-	    };
+        // setup thread
+        m_genThreadRun = true;
+        Runnable r = new Runnable() {
+                public void run() {
+                    while(m_genThreadRun) {
+                        try {
+                            Thread.sleep(1000/ELEMENT_RATE);
+                        } catch(Exception e) {
+                            // TODO: handle?
+                        }
+                        m_index.addAndGet(1);
+                        if(m_elementListener != null) {
+                            m_elementListener.onNewElement(null, getCurrentIndex());
+                        }
+                    }
+                }
+            };
         m_genThread = new Thread(r);
         m_genThread.start();
     }
@@ -56,36 +67,34 @@ public class RandomDataInput extends AbstractDataInput {
         return m_index.get();
     }
 
-    public boolean hasNext() {
-        boolean ret = m_index.get() == m_oldIndex;
-        m_oldIndex = m_index.get();
-        return !ret;
-    }
-
-    public Element getNext(){
-        Element ret = new Element(START_ELEMENT,END_ELEMENT);
-        for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
-            ret.setSample(i,Math.random()*MAX_VAL);
-        }
-        return ret;
-    }
-
     public boolean exists(int index) {
-	return index >= 0 && index < m_index.get();
+        return index >= 0 && index < m_index.get();
+    }
+
+    private class ElementGetter implements Callable<Element> {
+	int m_index;
+	public ElementGetter(int index) {
+	    m_index = index;
+	}
+
+        @Override
+        public Element call() {
+	    if(!exists(m_index)) {
+		Thread.yield();
+	    }
+            // read in the data here
+	    // a real implementation would read from file or cache.
+            Element ret = new Element(START_ELEMENT,END_ELEMENT);
+            for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
+                ret.setSample(i,Math.random()*MAX_VAL);
+            }
+            return ret;
+        }
     }
 
     // get an older element, probably one from file.
-    public Element getElement(int index) {
-	if(!exists(index)) {
-            return null;
-        }
-
-        // would load it from file, but cbf
-        Element ret = new Element(START_ELEMENT,END_ELEMENT);
-        for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
-            ret.setSample(i,Math.random()*MAX_VAL);
-        }
-        return ret;
+    public ListenableFuture<Element> getElement(int index) {
+	return m_executor.submit(new ElementGetter(index));
     }
 
     public boolean open() {
@@ -97,14 +106,14 @@ public class RandomDataInput extends AbstractDataInput {
         while(m_genThread != null) {
             try {
                 m_genThread.join();
-		m_genThread = null;
+                m_genThread = null;
             }
             catch(InterruptedException e) {
                 // TODO:
             }
         }
         Log.v("RANDOM","Random data thread stopped");
-	return;
+        return;
     }
 
     public String getName() {

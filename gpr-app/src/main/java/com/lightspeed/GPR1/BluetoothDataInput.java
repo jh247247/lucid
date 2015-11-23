@@ -13,6 +13,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 public class BluetoothDataInput extends AbstractDataInput {
 
     private ArrayList<SoftReference<Element>> m_previous;
@@ -29,7 +31,7 @@ public class BluetoothDataInput extends AbstractDataInput {
         return 0; // TODO:
     }
 
-    public Element getElement(int index) {
+    public ListenableFuture<Element> getElement(int index) {
         return null;
     }
 

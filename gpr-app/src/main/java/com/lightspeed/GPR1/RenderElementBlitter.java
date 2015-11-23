@@ -25,6 +25,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -45,14 +49,35 @@ public class RenderElementBlitter extends AbstractRenderer {
     WeakReference<View> m_renderView;
     AbstractViewManager m_viewManager;
 
-    LoadingCache<Element, RenderElement> m_renderElementCache =
+    LoadingCache<ListenableFuture<Element>,
+        ListenableFuture<RenderElement>> m_renderElementCache =
         CacheBuilder.newBuilder()
         .maximumSize(CACHE_SIZE)
-        .build(new CacheLoader<Element, RenderElement>() {
-                @Override public RenderElement load(Element e) {
-                    RenderElement re = new RenderElement(e);
-		    m_renderPool.submit(re);
-		    return re;
+        .build(new CacheLoader<ListenableFuture<Element>, ListenableFuture<RenderElement>>() {
+                @Override public ListenableFuture<RenderElement> load(ListenableFuture<Element> e) {
+                    final SettableFuture<RenderElement> re = SettableFuture.create();
+
+                    Futures.addCallback(e, new FutureCallback<Element>() {
+                            @Override
+                            public void onSuccess(Element e) {
+                                re.set(new RenderElement(e));
+                                try {
+                                    m_renderPool.submit(re.get());
+                                }
+                                catch(Exception ex) {
+                                    // todo I guess...
+                                    Log.e("RenderElementBlitter",
+                                          "Failed to render element: " + ex);
+                                }
+                            }
+                            @Override
+                            public void onFailure(Throwable thrown) {
+                                // todo I guess...
+                                Log.e("RenderElementBlitter",
+                                      "Failed to load element!");
+                            }
+                        });
+                    return re;
                 }
             }
             );
@@ -129,41 +154,33 @@ public class RenderElementBlitter extends AbstractRenderer {
 
         // create tmp bitmap to render to
         Future<Bitmap> fbm = null;
-        RenderElement re = null;
-        List<Element> data = m_viewManager.getView();
+        ListenableFuture<RenderElement> re = null;
+        List<ListenableFuture<Element>> data = m_viewManager.getView();
 
         Log.d("RenderElementBlitter", "Rendering " + data.size() +
               " elements!");
 
         for(int i = data.size()-1; i >= 0; i--) {
+            // check if element is actually loaded, if not, skip.
+
             re = m_renderElementCache.getUnchecked(data.get(i));
-            if(re == null) break;
-            if(re.isRendered()) {
-                m_cbm.drawBitmap(re.getRenderedElement(),
-                                 m_cbm.getWidth()-data.size()+i-1, 0, null);
-                continue;
-            }
-
-            // render the bitmap
-            fbm = m_renderPool.submit(re);
-
-
-
-            // blit bitmap to canvas
-            if(fbm.isDone()) {
-                try {
-                    m_cbm.drawBitmap(fbm.get(), m_cbm.getWidth()-data.size()+i-1, 0, null);
+            if(re == null || !re.isDone()) break;
+            try {
+                if(re.get().isRendered()) {
+                    m_cbm.drawBitmap(re.get().getRenderedElement(),
+                                     m_cbm.getWidth()-data.size()+i-1, 0, null);
+                } else {
+                    m_cbm.drawRect(m_cbm.getWidth()-data.size()+i-1,
+                                   0,
+                                   m_cbm.getWidth()-data.size()+i,
+                                   m_cbm.getHeight()-1,
+                                   m_paint);
                 }
-                catch(Exception e) {
-                    Log.e("RenderElementBlitter","Error rendering: "+e);
-                }
-            } else {
-                m_cbm.drawRect(m_cbm.getWidth()-data.size()+i-1,
-                               0,
-                               m_cbm.getWidth()-data.size()+i,
-                               m_cbm.getHeight()-1,
-                               m_paint);
             }
+	    catch (Exception ex){
+		Log.e("RenderElementBlitter","Error while rendering: " + ex);
+	    }
+
         }
 
         Log.d("RenderElementBlitter",m_bm.getWidth() + " x " + m_bm.getHeight());
@@ -184,12 +201,7 @@ public class RenderElementBlitter extends AbstractRenderer {
 
     @Override
     public void cache(List<Element> l) {
-        try {
-            m_renderElementCache.getAll(l);
-        }
-        catch(Exception e) {
-            // todo
-        }
+
     }
 
     /////////////////////

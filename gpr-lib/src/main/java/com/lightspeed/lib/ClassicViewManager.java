@@ -6,6 +6,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Range;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ContiguousSet;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.lang.IndexOutOfBoundsException;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.ExecutorService;
 
 
 import com.lightspeed.gpr.lib.Element;
@@ -33,22 +35,22 @@ public class ClassicViewManager
     private final int VIEW_WIDTH = 100; // defaults...
     private final int VIEW_HEIGHT = 255;
 
-
     // get the view dpi to calculate view size
     // should aim for 1x1mm pixels?
     private int m_viewDpi;
 
-    LoadingCache<Integer, Element> m_elementCache =
+    private ArrayList<ListenableFuture<Element>> m_currentView = new ArrayList();
+
+    LoadingCache<Integer, ListenableFuture<Element>> m_elementCache =
         CacheBuilder.newBuilder()
         .maximumSize(CACHE_SIZE)
-        .build(new CacheLoader<Integer, Element>() {
+        .build(new CacheLoader<Integer, ListenableFuture<Element>>() {
                 @Override
-                public Element load(Integer index)
-                    throws IndexOutOfBoundsException {
+                public ListenableFuture<Element> load(Integer index) {
                     if(m_input != null) {
                         return m_input.getElement(index);
                     }
-                    throw new IndexOutOfBoundsException();
+                    return null; // need to do something smarter...
                 }
             }
             );
@@ -60,33 +62,14 @@ public class ClassicViewManager
 
         m_viewWidth = VIEW_WIDTH;
         m_viewHeight = VIEW_HEIGHT;
+
+        renewView();
     }
 
     // returns the current view as a list to be rendered
     @Override
-    public List<Element> getView() {
-        if(m_startLock) {
-            m_viewIndex = Math.max(m_input.getCurrentIndex()-m_viewWidth,0);
-        }
-
-        ArrayList<Element> ret = new ArrayList<Element>();
-
-        // populate list with viewport
-        for(int i = m_viewIndex; i < m_viewIndex+m_viewWidth; i++) {
-            try {
-                ret.add(m_elementCache.get(i));
-            }
-            catch(Exception e) {
-                // no input, nothing to draw...
-                System.out.println("Terminating at index: " + i +
-                                   "\nReason: " + e);
-
-                return ret;
-            }
-
-        }
-
-        return ret;
+    public List<ListenableFuture<Element>> getView() {
+        return m_currentView;
     }
 
     // move the view by some amount
@@ -114,37 +97,43 @@ public class ClassicViewManager
 
         // clear the cache since we are changing inputs, they are useless.
         m_elementCache.invalidateAll();
+	renewView();
         //refreshElementCache();
     }
 
-    // TODO: handle viewport changes via eventbus
-    // TODO: handle viewport scrolling via eventbus
+    @Override
+    public void onNewElement(Element e, int i) {
+        if(m_startLock) {
+            m_viewIndex = Math.max(i-m_viewWidth,0);
+        }
+
+        // check if view needs renewing
+        try {
+            if(m_currentView.get(0) != m_elementCache.get(m_viewIndex)) {
+                renewView();
+            }
+        }
+	catch(Exception ex) {
+	    System.out.println("Error checking view: " + ex);
+	}
+
+    }
 
     /////////////////////
     // PRIVATE METHODS //
     /////////////////////
 
-    private void refreshElementCache() {
-        Thread t = new Thread() {
-                public void run() {
-                    // refresh renderer...
-                    // move to new method?
-                    ArrayList<Element> l = new ArrayList<Element>();
-
-                    for(int i = m_viewIndex+m_viewWidth-CACHE_SIZE/2;
-                        i < m_viewIndex+CACHE_SIZE/2; i++) {
-                        try {
-                            l.add(m_elementCache.get(i));
-                        }
-                        catch(Exception e) {
-                            // todo...
-                        }
-                        if(m_renderer.get() != null) {
-                            m_renderer.get().cache(l);
-                        }
-                    }
-                }
-            };
-        t.start();
+    private void renewView() {
+        m_currentView = new ArrayList();
+        for(int i = m_viewIndex; i < m_viewIndex+m_viewWidth; i++) {
+            try {
+                m_currentView.add(m_elementCache.get(i));
+            }
+            catch(Exception e) {
+                System.out.println("Error populating view: " + e);
+            }
+        }
     }
+
+
 }

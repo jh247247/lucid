@@ -34,6 +34,8 @@ import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
 import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
 import com.afollestad.materialdialogs.util.DialogUtils;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 public class FileDataInput extends AbstractDataInput {
     final static int ELEMENT_HEADER_LEN = 6;
     final static int TIMESTAMP_LEN = 7;
@@ -70,98 +72,100 @@ public class FileDataInput extends AbstractDataInput {
 
     // TODO: Buffering of the datastream so that we don't reopen the
     // file every single time
-    public  Element getElement(int index) {
-        DataInputStream in = null;
-        try {
-	    Log.v("FileDataInput", "File path: " + m_path);
-            in = new DataInputStream(new BufferedInputStream(new
-							     FileInputStream(new File(m_path))));
+    public  ListenableFuture<Element> getElement(int index) {
+	return null; // TODO
 
-	} catch(FileNotFoundException e) {
-            Log.e("FileDataInput","Cannot open the file!");
-            return null;
-            // TODO: handle
-        } catch (Exception e) {
-            Log.e("FileDataInput","General error: " + e);
-            return null;
-        }
+        // DataInputStream in = null;
+        // try {
+	//     Log.v("FileDataInput", "File path: " + m_path);
+        //     in = new DataInputStream(new BufferedInputStream(new
+	// 						     FileInputStream(new File(m_path))));
+
+	// } catch(FileNotFoundException e) {
+        //     Log.e("FileDataInput","Cannot open the file!");
+        //     return null;
+        //     // TODO: handle
+        // } catch (Exception e) {
+        //     Log.e("FileDataInput","General error: " + e);
+        //     return null;
+        // }
 
 
-        // make sure that we don't try to read anything that doesn't exist.
-        if(in == null || // make sure that we actually have the file open
-           m_elementIndex == null ||
-           index < 0 ||
-           index > m_elementIndex.size()){
-            if(m_elementIndex != null){
-                Log.e("FileDataInput", "Error reading previous! " + (in == null) + " " +
-                      (m_elementIndex == null) + " " + (index < 0) + " " + (index > m_elementIndex.size()));
-            }
-            return null;
-        }
+        // // make sure that we don't try to read anything that doesn't exist.
+        // if(in == null || // make sure that we actually have the file open
+        //    m_elementIndex == null ||
+        //    index < 0 ||
+        //    index > m_elementIndex.size()){
+        //     if(m_elementIndex != null){
+        //         Log.e("FileDataInput", "Error reading previous! " + (in == null) + " " +
+        //               (m_elementIndex == null) + " " + (index < 0) + " " + (index > m_elementIndex.size()));
+        //     }
+        //     return null;
+        // }
 
-        // seek to position
-        try {
-            in.skip(index);
-        } catch(IOException e) {
-            Log.e("FileDataInput", "IO exception when seeking!");
-        }
-        byte type;
-        try {
-            type = in.readByte();
-        } catch(IOException e) {
-            Log.e("FileDataInput", "Error reading type byte!");
-            return null;
-        }
+        // // seek to position
+        // try {
+        //     in.skip(index);
+        // } catch(IOException e) {
+        //     Log.e("FileDataInput", "IO exception when seeking!");
+        // }
+        // byte type;
+        // try {
+        //     type = in.readByte();
+        // } catch(IOException e) {
+        //     Log.e("FileDataInput", "Error reading type byte!");
+        //     return null;
+        // }
 
-        if(type != TYPE_ELEMENT) {
-            Log.e("FileDataInput", "Seek'd to non-element! Expected: " + TYPE_ELEMENT +
-                  " Recieved: " + type + " @ " + index);
-            return null;
-        }
+        // if(type != TYPE_ELEMENT) {
+        //     Log.e("FileDataInput", "Seek'd to non-element! Expected: " + TYPE_ELEMENT +
+        //           " Recieved: " + type + " @ " + index);
+        //     return null;
+        // }
 
-        short start;
-        short stop;
-        byte bps;
+        // short start;
+        // short stop;
+        // byte bps;
 
-        try {
-            start = in.readShort(); // start of element
-            stop = in.readShort(); // stop element
-            bps = in.readByte(); // bytes per sample
-        } catch(IOException e) {
-            Log.e("FileDataInput", "Error reading element header!");
-            return null;
-        }
+        // try {
+        //     start = in.readShort(); // start of element
+        //     stop = in.readShort(); // stop element
+        //     bps = in.readByte(); // bytes per sample
+        // } catch(IOException e) {
+        //     Log.e("FileDataInput", "Error reading element header!");
+        //     return null;
+        // }
 
-        Element el = new Element(start, stop);
-        try{
-            for(int i = start; i < stop; i++) {
-                switch(bps) {
-                case 1:
-                    el.setSample(i, in.readByte());
-                    break;
-                case 2:
-                    el.setSample(i, in.readShort());
-                    break;
-                case 4:
-                    el.setSample(i, in.readInt());
-                    break;
-                case 8:
-                    el.setSample(i, in.readDouble());
-                    break;
-                default:
-                    Log.wtf("FileDataInput", "Invalid sample size!");
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            Log.e("FileDataInput", "IOException while reading samples!");
-            return null;
-        }
+        // Element el = new Element(start, stop);
+        // try{
+        //     for(int i = start; i < stop; i++) {
+        //         switch(bps) {
+        //         case 1:
+        //             el.setSample(i, in.readByte());
+        //             break;
+        //         case 2:
+        //             el.setSample(i, in.readShort());
+        //             break;
+        //         case 4:
+        //             el.setSample(i, in.readInt());
+        //             break;
+        //         case 8:
+        //             el.setSample(i, in.readDouble());
+        //             break;
+        //         default:
+        //             Log.wtf("FileDataInput", "Invalid sample size!");
+        //             break;
+        //         }
+        //     }
+        // } catch (IOException e) {
+        //     Log.e("FileDataInput", "IOException while reading samples!");
+        //     return null;
+        // }
 
-        Log.v("FileDataInput", "Get element " + index + " @ " +
-              index+" SUCCESS");
+        // Log.v("FileDataInput", "Get element " + index + " @ " +
+        //       index+" SUCCESS");
 
-        return el;
+        // return el;
     }
 
     public boolean open() {
