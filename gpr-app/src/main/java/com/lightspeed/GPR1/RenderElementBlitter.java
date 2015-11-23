@@ -25,10 +25,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ListeningExecutorService;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -40,7 +43,7 @@ public class RenderElementBlitter extends AbstractRenderer {
 
     static final int CACHE_SIZE = 2000;
 
-    ExecutorService m_renderPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    ListeningExecutorService m_renderPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
 
     Bitmap m_bm;
     Canvas m_cbm;
@@ -62,7 +65,17 @@ public class RenderElementBlitter extends AbstractRenderer {
                             public void onSuccess(Element e) {
                                 re.set(new RenderElement(e));
                                 try {
-                                    m_renderPool.submit(re.get());
+                                    ListenableFuture<Bitmap> fbm = m_renderPool.submit(re.get());
+				    Futures.addCallback(fbm, new FutureCallback<Bitmap>(){
+					    @Override
+					    public void onSuccess(Bitmap b) {
+						render();
+					    }
+					    @Override
+					    public void onFailure(Throwable t) {
+						// doubt we'll get here
+					    }
+					});
                                 }
                                 catch(Exception ex) {
                                     // todo I guess...

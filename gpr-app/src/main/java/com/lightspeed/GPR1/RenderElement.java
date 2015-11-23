@@ -14,7 +14,6 @@ import java.util.concurrent.Callable;
 
 import android.graphics.BitmapFactory;
 
-
 public class RenderElement implements Callable<Bitmap> {
     /**
      * Stores the actual data to display
