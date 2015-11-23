@@ -7,6 +7,8 @@ package com.lightspeed.GPR1;
 import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.AbstractViewManager;
 import com.lightspeed.gpr.lib.ClassicViewManager;
+import com.lightspeed.gpr.lib.EventBusHandler;
+
 import android.support.v4.app.Fragment;
 import android.app.Activity;
 import android.os.Bundle;
@@ -23,7 +25,7 @@ public class RetainFragment extends Fragment {
         m_blitter.setViewManager(m_viewManager);
         // TODO: have this saved offline so we can reset to previous settings...
 	m_input = new RandomDataInput();
-	m_viewManager.setInput(m_input);
+	EventBusHandler.getEventBus().post(new AbstractViewManager.InputChangeEvent(m_input));
     }
 
     @Override

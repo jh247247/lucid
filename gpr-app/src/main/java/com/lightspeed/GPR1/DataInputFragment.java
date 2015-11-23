@@ -24,15 +24,6 @@ import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.Bind;
 
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.GravityEnum;
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.afollestad.materialdialogs.Theme;
-import com.afollestad.materialdialogs.internal.MDTintHelper;
-import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
-import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
-import com.afollestad.materialdialogs.util.DialogUtils;
-
 public class DataInputFragment extends Fragment {
     static final String SPINNER_POS_SAVE = "spinnerPos";
     static final String FILENAME_SAVE = "filename";

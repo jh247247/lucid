@@ -130,8 +130,21 @@ public abstract class AbstractViewManager
     }
 
     @Subscribe
-    public void ScrollAccumulatorReset(AbstractRenderer.ResetScrollEvent e) {
+    public void scrollAccumulatorReset(AbstractRenderer.ResetScrollEvent e) {
         m_scrollAccumulatorX = 0;
         m_scrollAccumulatorY = 0;
+    }
+
+    static public class InputChangeEvent {
+	public AbstractDataInput newInput;
+	public InputChangeEvent(AbstractDataInput i) {
+	    newInput = i;
+	}
+    }
+
+    // change the input based on the UI interactions
+    @Subscribe
+    public void inputChange(InputChangeEvent e) {
+	setInput(e.newInput);
     }
 }
