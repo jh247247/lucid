@@ -161,8 +161,8 @@ public class DataInputFragment extends Fragment {
                         }
                     }
                 });
-
-            m_input = new FileDataInput(getActivity());
+	    // TODO: fixme
+            //m_input = new FileDataInput(getActivity());
             break;
         case 2: // should be random (for now...)
             m_input = new RandomDataInput();
