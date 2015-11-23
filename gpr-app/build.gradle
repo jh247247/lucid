@@ -76,8 +76,8 @@ dependencies {
     transitive = true
   }
 
-  // smoothbluetooth for bluetooth comms
-  compile 'io.palaima:smoothbluetooth:0.1.0'
+  // for bluetooth comms
+  compile 'com.akexorcist:bluetoothspp:1.0.0'
 
   // Butterknife for view injection
   compile 'com.jakewharton:butterknife:7.0.1'
