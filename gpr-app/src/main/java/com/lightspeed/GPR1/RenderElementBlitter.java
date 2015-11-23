@@ -41,7 +41,7 @@ import com.google.common.cache.LoadingCache;
 public class RenderElementBlitter extends AbstractRenderer {
     static final String LOGTAG = "RenderElementBlitter";
 
-    static final int CACHE_SIZE = 2000;
+    static final int CACHE_SIZE = 3000;
 
     ListeningExecutorService m_renderPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
 
@@ -213,8 +213,15 @@ public class RenderElementBlitter extends AbstractRenderer {
     }
 
     @Override
-    public void cache(List<Element> l) {
-
+    public void cache(List<ListenableFuture<Element>> l) {
+	for(ListenableFuture<Element> fe : l) {
+	    try {
+		m_renderElementCache.get(fe);
+	    }
+	    catch(Exception ex) {
+		// todo...
+	    }
+	}
     }
 
     /////////////////////

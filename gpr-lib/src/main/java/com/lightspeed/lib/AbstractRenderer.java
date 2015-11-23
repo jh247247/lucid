@@ -3,11 +3,12 @@ package com.lightspeed.gpr.lib;
 import java.util.List;
 
 import com.lightspeed.gpr.lib.Element;
+import com.google.common.util.concurrent.ListenableFuture;
 
 public abstract class AbstractRenderer {
     public abstract void setViewManager(AbstractViewManager viewman);
     public abstract void render();
-    public abstract void cache(List<Element> l);
+    public abstract void cache(List<ListenableFuture<Element>> l);
 
     /**
      * These object is sent via the eventbus whenever the surface in

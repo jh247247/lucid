@@ -31,7 +31,7 @@ public class ClassicViewManager
     extends AbstractViewManager {
 
 
-    private final int CACHE_SIZE = 1000;
+    private final int CACHE_SIZE = 5000;
     private final int VIEW_WIDTH = 100; // defaults...
     private final int VIEW_HEIGHT = 255;
 
@@ -98,6 +98,9 @@ public class ClassicViewManager
         // clear the cache since we are changing inputs, they are useless.
         m_elementCache.invalidateAll();
 	renewView();
+	if(m_renderer.get() != null) {
+	    m_renderer.get().render();
+	}
         //refreshElementCache();
     }
 
@@ -119,6 +122,13 @@ public class ClassicViewManager
 
     }
 
+    @Override
+    public void
+	scrollAccumulatorReset(AbstractRenderer.ResetScrollEvent e) {
+	super.scrollAccumulatorReset(e);
+	precache();
+    }
+
     /////////////////////
     // PRIVATE METHODS //
     /////////////////////
@@ -135,5 +145,23 @@ public class ClassicViewManager
         }
     }
 
+    private void precache() {
+	ArrayList<ListenableFuture<Element>> tcache = new
+	    ArrayList();
 
+	// todo: test if in cache already?
+	for(int i = 0; i < m_viewWidth; i++) {
+	    try {
+		tcache.add(m_elementCache.get(m_viewIndex-i));
+		tcache.add(m_elementCache.get(m_viewIndex+m_viewWidth+i));
+	    }
+	    catch(Exception e) {
+		// todo...
+	    }
+	}
+	if(m_renderer.get() != null) {
+	    m_renderer.get().cache(tcache);
+	}
+
+    }
 }
