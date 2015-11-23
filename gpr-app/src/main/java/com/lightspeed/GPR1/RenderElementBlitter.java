@@ -186,7 +186,7 @@ public class RenderElementBlitter extends AbstractRenderer {
                     m_cbm.drawRect(m_cbm.getWidth()-data.size()+i-1,
                                    0,
                                    m_cbm.getWidth()-data.size()+i,
-                                   m_cbm.getHeight()-1,
+                                   m_cbm.getHeight(),
                                    m_paint);
                 }
             }
