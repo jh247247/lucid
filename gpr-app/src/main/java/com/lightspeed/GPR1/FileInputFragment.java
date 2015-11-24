@@ -56,6 +56,8 @@ public class FileInputFragment
     @Bind(R.id.file_select_button) Button m_selectBtn;
     @Bind(R.id.file_select_text) TextView m_fileText;
 
+
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -111,6 +113,9 @@ public class FileInputFragment
         // index the file
         // throw up an error if things go wrong?
 	m_fileText.setText(f.getAbsolutePath());
+
+	GprFileReader g = new GprFileReader(f,new FileIndexerDialog());
+
     }
 
     // // TODO: Buffering of the datastream so that we don't reopen the
@@ -249,7 +254,7 @@ public class FileInputFragment
         implements GprFileReader.FileIndexProgressListener {
         MaterialDialog m_dialog;
 
-        public FileIndexerDialog(File f) {
+        public FileIndexerDialog() {
             Log.d("INDEX", "Starting file index...");
             if(getActivity() == null) {
                 // fragment has been detached!
@@ -271,7 +276,9 @@ public class FileInputFragment
         }
 
         public void onFileIndexProgress(int progress) {
-            m_dialog.setProgress(progress);
+	    if(m_dialog != null) {
+		m_dialog.setProgress(progress);
+	    }
         }
     }
 }

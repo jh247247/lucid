@@ -62,8 +62,12 @@ public class GprFileReader extends AbstractDataInput {
         catch (Exception e){
             // TODO:
         }
+    }
 
-        m_fileIndexer = new GprFileIndexer();
+    public GprFileReader(File f,
+	FileIndexProgressListener p) {
+	this(f);
+	m_fileIndexer = new GprFileIndexer(p);
     }
 
     @Override
@@ -107,9 +111,10 @@ public class GprFileReader extends AbstractDataInput {
         Thread m_indexThread;
 	FileIndexProgressListener m_progressListener;
 
-        public GprFileIndexer() {
+        public GprFileIndexer(FileIndexProgressListener p) {
             m_indexThread = new Thread(GprFileIndexer.this);
             m_indexThread.start();
+	    m_progressListener = p;
         }
 
         public boolean isDone() {
@@ -149,7 +154,8 @@ public class GprFileReader extends AbstractDataInput {
                         // idk what this is, skip until we find a valid thing.
                         break;
                     }
-		    if(m_progress != (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS)) {
+		    if(m_progressListener != null &&
+		       m_progress != (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS)) {
 			m_progress = (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS);
 			m_progressListener.onFileIndexProgress(m_progress);
 		    }
@@ -157,11 +163,8 @@ public class GprFileReader extends AbstractDataInput {
 
                 }
             }
-            catch (EOFException e){
-                // TODO:
-            }
             catch (Exception e) {
-                // TODO:
+		System.out.println("Error: " + e);
             }
         }
     }
