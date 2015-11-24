@@ -51,7 +51,7 @@ public class GprFileReader extends AbstractDataInput {
             );
 
     public GprFileReader(File f) {
-	m_file = f;
+        m_file = f;
 
         try {
             m_input = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
@@ -65,13 +65,14 @@ public class GprFileReader extends AbstractDataInput {
     }
 
     public GprFileReader(File f,
-	FileIndexProgressListener p) {
-	this(f);
-	m_fileIndexer = new GprFileIndexer(p);
+                         FileIndexProgressListener p) {
+        this(f);
+        m_fileIndexer = new GprFileIndexer(p);
     }
 
     @Override
     public void close() {
+	m_input.close();
     }
 
     @Override
@@ -83,12 +84,20 @@ public class GprFileReader extends AbstractDataInput {
     public boolean exists(int index) {
         // wait for indexer to finish...
         // check if element exists in list
-        return true;
+        return (m_fileIndexer.isDone() &&
+                index >= 0 &&
+                index < m_elementIndex.size());
     }
 
     @Override
     public ListenableFuture<Element> getElement(int index) {
-        return null;
+        if(!exists(index)) {
+	    // will never exist for this case...
+	    return null;
+	}
+
+	m_input.reset();
+        m_input.skip(m_elementIndex.get(index));
     }
 
     @Override
@@ -102,19 +111,19 @@ public class GprFileReader extends AbstractDataInput {
     }
 
     public interface FileIndexProgressListener {
-	public void onFileIndexProgress(int progress);
+        public void onFileIndexProgress(int progress);
     }
 
     public class GprFileIndexer implements Runnable {
 
         int m_progress = 0; // maybe make this atomic...
         Thread m_indexThread;
-	FileIndexProgressListener m_progressListener;
+        FileIndexProgressListener m_progressListener;
 
         public GprFileIndexer(FileIndexProgressListener p) {
             m_indexThread = new Thread(GprFileIndexer.this);
             m_indexThread.start();
-	    m_progressListener = p;
+            m_progressListener = p;
         }
 
         public boolean isDone() {
@@ -140,7 +149,7 @@ public class GprFileReader extends AbstractDataInput {
                         m_elementIndex.add(currOffset);
                         short start = m_input.readShort();
                         short stop = m_input.readShort();
-                        short bytesPerSample = m_input.readShort();
+                        short bytesPerSample = m_input.readByte();
                         m_input.skip((stop-start)*bytesPerSample);
                         currOffset += ELEMENT_HEADER_LEN +
                             (stop-start)*bytesPerSample;
@@ -154,17 +163,17 @@ public class GprFileReader extends AbstractDataInput {
                         // idk what this is, skip until we find a valid thing.
                         break;
                     }
-		    if(m_progressListener != null &&
-		       m_progress != (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS)) {
-			m_progress = (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS);
-			m_progressListener.onFileIndexProgress(m_progress);
-		    }
+                    if(m_progressListener != null &&
+                       m_progress != (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS)) {
+                        m_progress = (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS);
+                        m_progressListener.onFileIndexProgress(m_progress);
+                    }
 
 
                 }
             }
             catch (Exception e) {
-		System.out.println("Error: " + e);
+                System.out.println("Error: " + e);
             }
         }
     }

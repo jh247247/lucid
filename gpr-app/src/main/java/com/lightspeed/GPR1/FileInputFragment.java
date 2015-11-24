@@ -279,6 +279,10 @@ public class FileInputFragment
 	    if(m_dialog != null) {
 		m_dialog.setProgress(progress);
 	    }
+	    // if the indexer finishes, close the dialog.
+	    if(progress >= GprFileReader.MAX_PROGRESS) {
+		m_dialog.dismiss();
+	    }
         }
     }
 }
