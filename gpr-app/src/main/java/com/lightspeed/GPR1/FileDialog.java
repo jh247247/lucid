@@ -30,6 +30,7 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
         MaterialDialog.ButtonCallback() {
             @Override
             public void onPositive(MaterialDialog d) {
+
                 d.dismiss();
             }
 
@@ -46,7 +47,9 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
         void onFileSelection(File f);
     }
 
-    public FileDialog() throws FileNotFoundException{
+    FileDialogCallback m_callback;
+
+    public FileDialog(FileDialogCallback f) throws FileNotFoundException{
         m_parentFolder = Environment.getExternalStorageDirectory();
         m_parentContents = m_parentFolder.listFiles(); // TODO:
 	if(m_parentContents == null) {
@@ -54,6 +57,8 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
 	    throw new FileNotFoundException();
 	}
 	m_canGoUp = m_parentFolder.getParent() != null;
+
+	m_callback = f;
     }
 
     @Override
@@ -84,7 +89,9 @@ public class FileDialog extends DialogFragment implements MaterialDialog.ListCal
 	} else {
 	    File curr = m_parentContents[m_canGoUp ? i-1 : i];
 	    if(!curr.isDirectory()){
-		//EventBus.getDefault().post(new FileChangedEvent(curr));
+		if(m_callback != null) {
+		    m_callback.onFileSelection(curr);
+		}
 		materialDialog.dismiss();
 		return;
 	    } else {

@@ -29,7 +29,6 @@ public class GprFileReader extends AbstractDataInput {
     final static int CACHE_SIZE = 5000;
     public final static int MAX_PROGRESS = 100;
 
-    final String m_path;
     final File m_file;
     DataInputStream m_input;
 
@@ -51,9 +50,8 @@ public class GprFileReader extends AbstractDataInput {
             }
             );
 
-    public GprFileReader(String path) {
-        m_path = path;
-        m_file = new File(m_path);
+    public GprFileReader(File f) {
+	m_file = f;
 
         try {
             m_input = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));

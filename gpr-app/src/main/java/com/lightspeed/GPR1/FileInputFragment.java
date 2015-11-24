@@ -86,7 +86,7 @@ public class FileInputFragment
                               "Fragment detached while attempting to create dialog!");
                     }
                     try {
-                        new FileDialog().show(getActivity());
+                        new FileDialog(FileInputFragment.this).show(getActivity());
                     }
                     catch(Exception e) {
                         Log.e("FileInputFragment",""+e);
@@ -95,7 +95,6 @@ public class FileInputFragment
                 }
             });
 
-	Log.d("FileInputFragment","Successfully inflated views!");
         return ret;
     }
 
@@ -111,6 +110,7 @@ public class FileInputFragment
         // change textview to path
         // index the file
         // throw up an error if things go wrong?
+	m_fileText.setText(f.getAbsolutePath());
     }
 
     // // TODO: Buffering of the datastream so that we don't reopen the
