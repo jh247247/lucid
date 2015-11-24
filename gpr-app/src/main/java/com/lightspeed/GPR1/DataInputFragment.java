@@ -29,29 +29,28 @@ public class DataInputFragment extends Fragment {
     static final String FILENAME_SAVE = "filename";
 
     @Bind(R.id.inputSpinner) Spinner m_inputSpinner;
-    @Bind(R.id.inputOptionLayout) LinearLayout m_inputOption;
 
-    AbstractDataInput m_input;
-
-    View m_inputView; // view that the interface exposes
+    InputInterfaceHandler m_inputInterfaceHandler;
 
     public interface OnInputChangedListener {
-	public void onInputChanged(AbstractDataInput input);
+        public void onInputChanged(AbstractDataInput input);
     }
 
-    OnInputChangedListener m_inputCallback;
+    public interface InputInterfaceHandler {
+	public void setInputInterface(Fragment f);
+	public void clearInputInterface();
+    }
 
     @Override
     public void onAttach(Activity activity) {
-	super.onAttach(activity);
+        super.onAttach(activity);
 
-	try {
-	    m_inputCallback = (OnInputChangedListener) activity;
-	}
-	catch(Exception e) {
-	    Log.e("DataInputFragment","Attached activity does not implement OnInputChangedListener!");
-	}
-
+        try {
+            m_inputInterfaceHandler = (DataInputFragment.InputInterfaceHandler) activity;
+        }
+        catch(Exception e) {
+            Log.e("DataInputFragment","Attached activity does not implement InputInterfaceHandler!");
+        }
     }
 
     @Override
@@ -113,76 +112,62 @@ public class DataInputFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-	m_inputCallback = null;
-	
+
         ButterKnife.unbind(this);
     }
 
 
     public void setupInputUI(int selection) {
-        LayoutInflater inflater = (LayoutInflater)
-            getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        m_inputView = null;
-
-        m_inputOption.removeAllViews();
-        if(m_input != null) {
-            // this should make the inputs stop all associated threads
-            // and whatever
-            m_input.close();
-        }
-
+	if(m_inputInterfaceHandler == null) {
+	    // what can we actually do now??
+	    return;
+	}
+	//m_inputInterfaceHandler.clearInputInterface();
 
         switch(selection) {
         case 0: // should be bluetooth, is there a better way to do this?
-            m_inputView = inflater.inflate(R.layout.bluetooth_input_ui,
-                                           m_inputOption, false);
-            m_inputOption.addView(m_inputView,0);
-            try {
-                m_input = new BluetoothDataInput(getActivity());
-            } catch(Exception e) {
-                Toast.makeText(getActivity(), "Cannot use bluetooth?", Toast.LENGTH_SHORT).show();
-            }
+            // m_inputView = inflater.inflate(R.layout.bluetooth_input_ui,
+            //                                m_inputOption, false);
+            // m_inputOption.addView(m_inputView,0);
+            // try {
+            //     m_input = new BluetoothDataInput(getActivity());
+            // } catch(Exception e) {
+            //     Toast.makeText(getActivity(), "Cannot use bluetooth?", Toast.LENGTH_SHORT).show();
+            // }
 
             break;
         case 1: // should be file
-            m_inputView = inflater.inflate(R.layout.file_input_ui,
-                                           m_inputOption, false);
-            m_inputOption.addView(m_inputView,0);
+	    m_inputInterfaceHandler.setInputInterface(new FileInputFragment());
+            // m_inputView = inflater.inflate(R.layout.file_input_ui,
+            //                                m_inputOption, false);
+            // m_inputOption.addView(m_inputView,0);
 
-            Button b =
-                ButterKnife.findById(m_inputView,R.id.file_select_button);
-            b.setOnClickListener(new View.OnClickListener(){
-                    public void onClick(View v) {
-                        try {
-                            new FileDialog().show(getActivity());
-                        }
-                        catch (Exception e) {
-                            Log.e("FILE_DIALOG", "CANNOT GET EXTERNAL DIRECTORY");
-                        }
-                    }
-                });
-	    // TODO: fixme
+            // Button b =
+            //     ButterKnife.findById(m_inputView,R.id.file_select_button);
+            // b.setOnClickListener(new View.OnClickListener(){
+            //         public void onClick(View v) {
+            //             try {
+            //                 new FileDialog().show(getActivity());
+            //             }
+            //             catch (Exception e) {
+            //                 Log.e("FILE_DIALOG", "CANNOT GET EXTERNAL DIRECTORY");
+            //             }
+            //         }
+            //     });
+            // TODO: fixme
             //m_input = new FileDataInput(getActivity());
             break;
         case 2: // should be random (for now...)
-            m_input = new RandomDataInput();
+	    AbstractDataInput tin = new RandomDataInput();
+	    tin.open();
+            if(getActivity() != null) {
+                ((OnInputChangedListener)getActivity()).onInputChanged(tin);
+            }
             break;
         default:
             // wtf.
             break;
         }
-
-	if(m_inputCallback != null) {
-	    m_inputCallback.onInputChanged(m_input);
-	}
-
-
-        // send new input to receivers
-
-	if(m_input != null) {
-	    // post event?
-	    m_input.open();
-	}
     }
 
     // public void onEvent(FileDialog.FileChangedEvent e) {

@@ -24,6 +24,13 @@ import android.content.Intent;
 import android.app.Activity;
 import android.widget.Toast;
 import android.util.Log;
+import android.support.v4.app.Fragment;
+import android.widget.Button;
+import android.widget.TextView;
+import android.view.View;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+import android.os.Bundle;
 
 import android.content.DialogInterface;
 import com.afollestad.materialdialogs.DialogAction;
@@ -35,40 +42,89 @@ import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
 import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
 import com.afollestad.materialdialogs.util.DialogUtils;
 
+import butterknife.ButterKnife;
+import butterknife.Bind;
+
 import com.google.common.util.concurrent.ListenableFuture;
 
-public class FileDataInput implements FileDialog.FileDialogCallback {
-    final static int ELEMENT_HEADER_LEN = 6;
-    final static int TIMESTAMP_LEN = 7;
-    final static byte TYPE_ELEMENT = 0;
-    final static byte TYPE_TIMESTAMP = 1;
+public class FileInputFragment
+    extends Fragment
+    implements FileDialog.FileDialogCallback {
 
-    WeakReference<Context> m_ctx;
-    String m_inputName;
+    DataInputFragment.OnInputChangedListener m_inputCallback;
 
-    public FileDataInput(Context ctx) {
+    @Bind(R.id.file_select_button) Button m_selectBtn;
+    @Bind(R.id.file_select_text) TextView m_fileText;
 
-        m_inputName =  ctx.getString(R.string.file);
-        m_ctx = new WeakReference<Context>(ctx);
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        try {
+            m_inputCallback = (DataInputFragment.OnInputChangedListener) activity;
+        }
+        catch(Exception e) {
+            Log.e("FileInputFragment","Attached activity does not implement OnInputChangedListener!");
+        }
+
 
     }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
+                             Bundle savedInstanceState) {
+        super.onCreateView(inflater,container,savedInstanceState);
+        View ret = inflater.inflate(R.layout.file_input_ui,
+                                    container, false);
+        ButterKnife.bind(this,ret);
+
+        m_selectBtn.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    if(getActivity() == null) {
+                        Log.e("FileInputFragment",
+                              "Fragment detached while attempting to create dialog!");
+                    }
+                    try {
+                        new FileDialog().show(getActivity());
+                    }
+                    catch(Exception e) {
+                        Log.e("FileInputFragment",""+e);
+                    }
+
+                }
+            });
+
+	Log.d("FileInputFragment","Successfully inflated views!");
+        return ret;
+    }
+
+    @Override
+    public void onDestroyView() {
+	super.onDestroyView();
+        m_inputCallback = null;
+        ButterKnife.unbind(this);
+    }
+
     public void onFileSelection(File f) {
-	// TODO:
+        // TODO:
+        // change textview to path
+        // index the file
+        // throw up an error if things go wrong?
     }
 
     // // TODO: Buffering of the datastream so that we don't reopen the
     // // file every single time
     // public  ListenableFuture<Element> getElement(int index) {
-    // 	return null; // TODO
+    //  return null; // TODO
 
     //     // DataInputStream in = null;
     //     // try {
-    // 	//     Log.v("FileDataInput", "File path: " + m_path);
+    //  //     Log.v("FileDataInput", "File path: " + m_path);
     //     //     in = new DataInputStream(new BufferedInputStream(new
-    // 	// 						     FileInputStream(new File(m_path))));
+    //  //                                                   FileInputStream(new File(m_path))));
 
-    // 	// } catch(FileNotFoundException e) {
+    //  // } catch(FileNotFoundException e) {
     //     //     Log.e("FileDataInput","Cannot open the file!");
     //     //     return null;
     //     //     // TODO: handle
@@ -157,9 +213,9 @@ public class FileDataInput implements FileDialog.FileDialogCallback {
 
     // public boolean open() {
 
-    // 	if(m_path == null) {
-    // 	    return false;
-    // 	}
+    //  if(m_path == null) {
+    //      return false;
+    //  }
 
     //     // index the file for us, should really do some callback, but idk.
     //     new GprFileReader(m_path);
@@ -190,15 +246,20 @@ public class FileDataInput implements FileDialog.FileDialogCallback {
 
 
     private class FileIndexerDialog
-	implements GprFileReader.FileIndexProgressListener {
+        implements GprFileReader.FileIndexProgressListener {
         MaterialDialog m_dialog;
 
         public FileIndexerDialog(File f) {
             Log.d("INDEX", "Starting file index...");
+            if(getActivity() == null) {
+                // fragment has been detached!
+                Log.e("INDEX", "Fragment detached when creating dialog!");
+                return;
+            }
 
             // make the dialog so the user thinks that something is
             // actually going on...
-            new MaterialDialog.Builder(m_ctx.get())
+            new MaterialDialog.Builder(getActivity())
                 .title(R.string.file_read)
                 .progress(false, GprFileReader.MAX_PROGRESS, false)
                 .showListener(new DialogInterface.OnShowListener() {
@@ -209,8 +270,8 @@ public class FileDataInput implements FileDialog.FileDialogCallback {
                     }).show();
         }
 
-	public void onFileIndexProgress(int progress) {
-	    m_dialog.setProgress(progress);
-	}
+        public void onFileIndexProgress(int progress) {
+            m_dialog.setProgress(progress);
+        }
     }
 }

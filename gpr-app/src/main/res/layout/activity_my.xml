@@ -41,12 +41,18 @@
       android:showDividers="middle"
       android:paddingLeft="15dp"
       android:paddingRight="15dp"
+      android:orientation="vertical"
       android:background="?attr/colorPrimary">
     <fragment
         android:name="com.lightspeed.GPR1.DataInputFragment"
         android:id="@+id/input_manager"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>
+    <LinearLayout
+	android:id="@+id/input_fragment_layout"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical"/>
   </LinearLayout>
 
 

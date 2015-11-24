@@ -177,7 +177,7 @@ public class RenderElementBlitter extends AbstractRenderer {
             // check if element is actually loaded, if not, skip.
 
             re = m_renderElementCache.getUnchecked(data.get(i));
-            if(re == null || !re.isDone()) break;
+            if(re == null || !re.isDone()) continue;
             try {
                 if(re.get().isRendered()) {
                     m_cbm.drawBitmap(re.get().getRenderedElement(),
@@ -207,9 +207,9 @@ public class RenderElementBlitter extends AbstractRenderer {
 
         long endTime = System.nanoTime();
         long diff = (endTime-startTime)/1000000;
-        if(diff > 16) {
+        //if(diff > 16) {
             Log.w("RenderElementBlitter","Scene in: " + diff);
-        }
+	    //}
     }
 
     @Override

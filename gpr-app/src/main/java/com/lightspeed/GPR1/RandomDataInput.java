@@ -52,7 +52,8 @@ public class RandomDataInput extends AbstractDataInput {
                         } catch(Exception e) {
                             // TODO: handle?
                         }
-                        m_index.addAndGet(1);
+			Log.d("RandomDataInput","New element: " + m_index.addAndGet(1));
+
                         if(m_elementListener != null) {
                             m_elementListener.onNewElement(null, getCurrentIndex());
                         }
@@ -79,6 +80,7 @@ public class RandomDataInput extends AbstractDataInput {
 
         @Override
         public Element call() {
+	    // this needs fixing...
 	    if(!exists(m_index)) {
 		Thread.yield();
 	    }

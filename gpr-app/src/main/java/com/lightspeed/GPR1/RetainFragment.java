@@ -24,7 +24,6 @@ public class RetainFragment extends Fragment {
         m_blitter = new RenderElementBlitter();
         m_blitter.setViewManager(m_viewManager);
         // TODO: have this saved offline so we can reset to previous settings...
-	setInput(new RandomDataInput());
     }
 
     @Override

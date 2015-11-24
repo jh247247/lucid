@@ -22,6 +22,8 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
@@ -31,11 +33,13 @@ import java.io.File;
 import com.lightspeed.gpr.lib.AbstractDataInput;
 
 public class MainActivity extends AppCompatActivity
-    implements DataInputFragment.OnInputChangedListener {
+    implements DataInputFragment.OnInputChangedListener,
+               DataInputFragment.InputInterfaceHandler{
     @Bind(R.id.drawer) DrawerLayout m_drawerLayout;
     @Bind(R.id.toolbar) Toolbar m_toolbar;
     @Bind(R.id.render) RenderView m_render;
     @Bind(R.id.left_drawer) LinearLayout m_leftDrawer;
+    @Bind(R.id.input_fragment_layout) LinearLayout m_inputLayout;
 
     DataInputFragment m_inputManager;
     ActionBarDrawerToggle m_abtog;
@@ -56,8 +60,8 @@ public class MainActivity extends AppCompatActivity
         ButterKnife.bind(this);
 
         setupDrawerListener();
-	setupDrawerView();
-	setupMainView();
+        setupDrawerView();
+        setupMainView();
     }
 
     private void setupMainView() {
@@ -77,9 +81,9 @@ public class MainActivity extends AppCompatActivity
                                       TAG_RETAIN_FRAGMENT).commit();
         }
 
-	// has to be after setting up the retained fragment since this
-	// immediately tries to set the input to whatever was saved...
-	// setup the data input manager/fragment thing
+        // has to be after setting up the retained fragment since this
+        // immediately tries to set the input to whatever was saved...
+        // setup the data input manager/fragment thing
         m_inputManager = (DataInputFragment)
             fm.findFragmentById(R.id.input_manager);
 
@@ -92,10 +96,10 @@ public class MainActivity extends AppCompatActivity
         m_toolbar.setTitle(""); // make the title blank
         setSupportActionBar(m_toolbar); // set our toolbar as the toolbar
 
-	// show the hamburger
+        // show the hamburger
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-	// set the hamburger to the current state of the drawer
+        // set the hamburger to the current state of the drawer
         m_abtog.syncState();
     }
 
@@ -151,9 +155,24 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onInputChanged(AbstractDataInput in) {
-	if(m_retained != null) {
-	    m_retained.setInput(in);
-	}
+        if(m_retained != null) {
+            m_retained.setInput(in);
+        }
+    }
 
+    @Override
+    public void setInputInterface(Fragment f) {
+        clearInputInterface();
+
+        FragmentManager fragmentManager = getSupportFragmentManager(); // why
+        // do we need this...
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+	fragmentTransaction.add(R.id.input_fragment_layout, f);
+	fragmentTransaction.commit();
+    }
+
+    @Override
+    public void clearInputInterface() {
+        m_inputLayout.removeAllViews();
     }
 }
