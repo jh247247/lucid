@@ -59,7 +59,7 @@ public class Element implements Iterable<Double>, Cloneable {
                 // m_sampleStart was not set, a full sample, starts
                 // from 0
                 m_current = 0;
-            } else {
+	    } else {
                 m_current = m_sampleStart;
             }
         }

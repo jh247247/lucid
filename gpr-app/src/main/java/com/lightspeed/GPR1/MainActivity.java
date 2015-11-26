@@ -167,12 +167,15 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getSupportFragmentManager(); // why
         // do we need this...
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-	fragmentTransaction.add(R.id.input_fragment_layout, f);
-	fragmentTransaction.commit();
+        fragmentTransaction.add(R.id.input_fragment_layout, f);
+        fragmentTransaction.commit();
     }
 
     @Override
     public void clearInputInterface() {
-        m_inputLayout.removeAllViews();
+        if(m_inputLayout != null) {
+            m_inputLayout.removeAllViews();
+        }
+
     }
 }

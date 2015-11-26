@@ -72,7 +72,12 @@ public class GprFileReader extends AbstractDataInput {
 
     @Override
     public void close() {
-	m_input.close();
+        try {
+            m_input.close();
+        }
+        catch(Exception e) {
+            // TODO:
+        }
     }
 
     @Override
@@ -92,12 +97,20 @@ public class GprFileReader extends AbstractDataInput {
     @Override
     public ListenableFuture<Element> getElement(int index) {
         if(!exists(index)) {
-	    // will never exist for this case...
-	    return null;
-	}
+            // will never exist for this case...
+            return null;
+        }
+        try {
+            m_input.reset();
+            m_input.skip(m_elementIndex.get(index));
+        }
+        catch (Exception e) {
+            // TODO:
+        }
 
-	m_input.reset();
-        m_input.skip(m_elementIndex.get(index));
+
+        // TODO: actually read element
+        return null;
     }
 
     @Override
