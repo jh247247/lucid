@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity
 
     DataInputFragment m_inputManager;
     ActionBarDrawerToggle m_abtog;
+    Fragment m_inputFragment;
 
     // fragment to retain data in, totally kinda stolen from example
     // on the internet
@@ -163,19 +164,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void setInputInterface(Fragment f) {
         clearInputInterface();
+        Log.d("InputInterface","Adding...");
 
         FragmentManager fragmentManager = getSupportFragmentManager(); // why
         // do we need this...
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.add(R.id.input_fragment_layout, f);
+        fragmentTransaction.replace(R.id.input_fragment_layout, f);
         fragmentTransaction.commit();
-    }
-
-    @Override
-    public void clearInputInterface() {
-        if(m_inputLayout != null) {
-            m_inputLayout.removeAllViews();
-        }
-
+	m_inputFragment = f;
     }
 }

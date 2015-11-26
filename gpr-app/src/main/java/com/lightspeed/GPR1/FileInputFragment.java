@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 
 import android.content.DialogInterface;
 import com.afollestad.materialdialogs.DialogAction;
@@ -50,6 +51,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 public class FileInputFragment
     extends Fragment
     implements FileDialog.FileDialogCallback {
+    static final String FILE_PATH = "FILE_PATH";
 
     DataInputFragment.OnInputChangedListener m_inputCallback;
 
@@ -101,21 +103,33 @@ public class FileInputFragment
     }
 
     @Override
+    public void onActivityCreated(Bundle inState) {
+	super.onActivityCreated(inState);
+		Log.d("BUNDLE","RESTORING STATE OF FILE FRAGMENT: " + inState);
+	if(inState != null) {
+	    m_fileText.setText(inState.getString(FILE_PATH,"FIXME"));
+	}
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+	super.onSaveInstanceState(outState);
+	Log.d("BUNDLE","SAVING STATE OF FILE FRAGMENT");
+	outState.putString(FILE_PATH, m_fileText.getText().toString());
+    }
+
+    @Override
     public void onDestroyView() {
-	super.onDestroyView();
+        super.onDestroyView();
         m_inputCallback = null;
         ButterKnife.unbind(this);
     }
 
     public void onFileSelection(File f) {
-        // TODO:
-        // change textview to path
-        // index the file
-        // throw up an error if things go wrong?
-	m_fileText.setText(f.getAbsolutePath());
+        m_fileText.setText(f.getAbsolutePath());
 
-	GprFileReader g = new GprFileReader(f,new FileIndexerDialog());
-
+        // set the new input while it is indexing...
+        m_inputCallback.onInputChanged(new GprFileReader(f,new FileIndexerDialog()));
     }
 
     // // TODO: Buffering of the datastream so that we don't reopen the
@@ -276,13 +290,13 @@ public class FileInputFragment
         }
 
         public void onFileIndexProgress(int progress) {
-	    if(m_dialog != null) {
-		m_dialog.setProgress(progress);
-	    }
-	    // if the indexer finishes, close the dialog.
-	    if(progress >= GprFileReader.MAX_PROGRESS) {
-		m_dialog.dismiss();
-	    }
+            if(m_dialog != null) {
+                m_dialog.setProgress(progress);
+            }
+            // if the indexer finishes, close the dialog.
+            if(progress >= GprFileReader.MAX_PROGRESS) {
+                m_dialog.dismiss();
+            }
         }
     }
 }

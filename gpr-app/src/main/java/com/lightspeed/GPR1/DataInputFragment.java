@@ -37,8 +37,8 @@ public class DataInputFragment extends Fragment {
     }
 
     public interface InputInterfaceHandler {
-	public void setInputInterface(Fragment f);
-	public void clearInputInterface();
+        public void setInputInterface(Fragment f);
+        public void clearInputInterface();
     }
 
     @Override
@@ -93,20 +93,14 @@ public class DataInputFragment extends Fragment {
                 }
             });
 
-        // reset the spinner
-        if(savedInstanceState != null) {
-            m_inputSpinner.setSelection(savedInstanceState.getInt(SPINNER_POS_SAVE,0));
-        }
-
-        setupInputUI(m_inputSpinner.getSelectedItemPosition());
-
         return ret;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt("spinnerPos", m_inputSpinner.getSelectedItemPosition());
+        outState.putInt(SPINNER_POS_SAVE,
+                        m_inputSpinner.getSelectedItemPosition());
     }
 
     @Override
@@ -118,11 +112,11 @@ public class DataInputFragment extends Fragment {
 
 
     public void setupInputUI(int selection) {
-	if(m_inputInterfaceHandler == null) {
-	    // what can we actually do now??
-	    return;
-	}
-	//m_inputInterfaceHandler.clearInputInterface();
+        if(m_inputInterfaceHandler == null) {
+            // what can we actually do now??
+            return;
+        }
+        //m_inputInterfaceHandler.clearInputInterface();
 
         switch(selection) {
         case 0: // should be bluetooth, is there a better way to do this?
@@ -137,7 +131,7 @@ public class DataInputFragment extends Fragment {
 
             break;
         case 1: // should be file
-	    m_inputInterfaceHandler.setInputInterface(new FileInputFragment());
+            m_inputInterfaceHandler.setInputInterface(new FileInputFragment());
             // m_inputView = inflater.inflate(R.layout.file_input_ui,
             //                                m_inputOption, false);
             // m_inputOption.addView(m_inputView,0);
@@ -158,8 +152,8 @@ public class DataInputFragment extends Fragment {
             //m_input = new FileDataInput(getActivity());
             break;
         case 2: // should be random (for now...)
-	    AbstractDataInput tin = new RandomDataInput();
-	    tin.open();
+            AbstractDataInput tin = new RandomDataInput();
+            tin.open();
             if(getActivity() != null) {
                 ((OnInputChangedListener)getActivity()).onInputChanged(tin);
             }
