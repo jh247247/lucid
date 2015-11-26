@@ -3,6 +3,7 @@ package com.lightspeed.GPR1;
 import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.AbstractViewManager;
 import com.lightspeed.gpr.lib.AbstractRenderer;
+import com.lightspeed.gpr.lib.ThreadPoolHandler;
 
 
 import android.graphics.Canvas;
@@ -43,8 +44,6 @@ public class RenderElementBlitter extends AbstractRenderer {
 
     static final int CACHE_SIZE = 3000;
 
-    ListeningExecutorService m_renderPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
-
     Bitmap m_bm;
     Canvas m_cbm;
     Paint m_paint;
@@ -65,7 +64,7 @@ public class RenderElementBlitter extends AbstractRenderer {
                             public void onSuccess(Element e) {
                                 re.set(new RenderElement(e));
                                 try {
-                                    ListenableFuture<Bitmap> fbm = m_renderPool.submit(re.get());
+                                    ListenableFuture<Bitmap> fbm = ThreadPoolHandler.submit(re.get());
 				    Futures.addCallback(fbm, new FutureCallback<Bitmap>(){
 					    @Override
 					    public void onSuccess(Bitmap b) {

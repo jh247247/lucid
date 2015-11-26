@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.lang.IndexOutOfBoundsException;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Callable;
 
 
 import com.lightspeed.gpr.lib.Element;
@@ -158,13 +159,11 @@ public class ClassicViewManager
     }
 
     private void precache() {
-
-
-        Runnable r = new Runnable() {
+        Callable c = new Callable<Void>() {
                 ArrayList<ListenableFuture<Element>> tcache = new ArrayList();
 
                 @Override
-                public void run() {
+                public Void call() {
                     // todo: test if in cache already?
                     for(int i = 0; i < m_viewWidth; i++) {
                         try {
@@ -178,9 +177,9 @@ public class ClassicViewManager
                     if(m_renderer.get() != null) {
                         m_renderer.get().cache(tcache);
                     }
+		    return null;
                 }
             };
-        Thread t = new Thread(r);
-        t.start();
+	ThreadPoolHandler.submit(c);
     }
 }
