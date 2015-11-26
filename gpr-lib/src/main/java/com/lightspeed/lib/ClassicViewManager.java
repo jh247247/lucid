@@ -97,10 +97,10 @@ public class ClassicViewManager
 
         // clear the cache since we are changing inputs, they are useless.
         m_elementCache.invalidateAll();
-	renewView();
-	if(m_renderer.get() != null) {
-	    m_renderer.get().render();
-	}
+        renewView();
+        if(m_renderer.get() != null) {
+            m_renderer.get().render();
+        }
         //refreshElementCache();
     }
 
@@ -116,17 +116,29 @@ public class ClassicViewManager
                 renewView();
             }
         }
-	catch(Exception ex) {
-	    System.out.println("Error checking view: " + ex);
-	}
+        catch(Exception ex) {
+            System.out.println("Error checking view: " + ex);
+        }
 
     }
 
     @Override
     public void
-	scrollAccumulatorReset(AbstractRenderer.ResetScrollEvent e) {
-	super.scrollAccumulatorReset(e);
-	precache();
+        scrollAccumulatorReset(AbstractRenderer.ResetScrollEvent e) {
+        super.scrollAccumulatorReset(e);
+        precache();
+    }
+
+    @Override
+    public void surfaceScroll(AbstractRenderer.SurfaceScrolledEvent e) {
+        renewView();
+        super.surfaceScroll(e);
+    }
+
+    @Override
+    public void surfaceChanged(AbstractRenderer.SurfaceChangedEvent e) {
+        renewView();
+        super.surfaceChanged(e);
     }
 
     /////////////////////
@@ -146,22 +158,29 @@ public class ClassicViewManager
     }
 
     private void precache() {
-	ArrayList<ListenableFuture<Element>> tcache = new
-	    ArrayList();
 
-	// todo: test if in cache already?
-	for(int i = 0; i < m_viewWidth; i++) {
-	    try {
-		tcache.add(m_elementCache.get(m_viewIndex-i));
-		tcache.add(m_elementCache.get(m_viewIndex+m_viewWidth+i));
-	    }
-	    catch(Exception e) {
-		// todo...
-	    }
-	}
-	if(m_renderer.get() != null) {
-	    m_renderer.get().cache(tcache);
-	}
 
+        Runnable r = new Runnable() {
+                ArrayList<ListenableFuture<Element>> tcache = new ArrayList();
+
+                @Override
+                public void run() {
+                    // todo: test if in cache already?
+                    for(int i = 0; i < m_viewWidth; i++) {
+                        try {
+                            tcache.add(m_elementCache.get(m_viewIndex-i));
+                            tcache.add(m_elementCache.get(m_viewIndex+m_viewWidth+i));
+                        }
+                        catch(Exception e) {
+                            // todo...
+                        }
+                    }
+                    if(m_renderer.get() != null) {
+                        m_renderer.get().cache(tcache);
+                    }
+                }
+            };
+        Thread t = new Thread(r);
+        t.start();
     }
 }

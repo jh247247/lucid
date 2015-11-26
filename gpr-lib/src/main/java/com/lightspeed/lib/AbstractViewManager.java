@@ -99,8 +99,6 @@ public abstract class AbstractViewManager
         m_renderer = new WeakReference<AbstractRenderer>(r);
     }
 
-
-
     @Subscribe
     public void surfaceChanged(AbstractRenderer.SurfaceChangedEvent e) {
         // assume that the height of the data does not change, only

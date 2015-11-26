@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -17,6 +20,10 @@ import com.google.common.collect.Range;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 
 import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.AbstractDataInput;
@@ -27,10 +34,17 @@ public class GprFileReader extends AbstractDataInput {
     final static byte TYPE_ELEMENT = 0;
     final static byte TYPE_TIMESTAMP = 1;
     final static int CACHE_SIZE = 5000;
+    // amount of elements to attempt to cache in one go
+    final static int CACHE_BATCH_SIZE = 100;
+
     public final static int MAX_PROGRESS = 100;
 
+    ListeningExecutorService m_executor =
+        MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
+
+
     final File m_file;
-    DataInputStream m_input;
+
 
     GprFileIndexer m_fileIndexer;
 
@@ -45,7 +59,7 @@ public class GprFileReader extends AbstractDataInput {
         .build(new CacheLoader<Integer, ListenableFuture<Element>>() {
                 @Override
                 public ListenableFuture<Element> load(Integer index) {
-                    return null; // todo...
+                    return getElement(index);
                 }
             }
             );
@@ -53,15 +67,7 @@ public class GprFileReader extends AbstractDataInput {
     public GprFileReader(File f) {
         m_file = f;
 
-        try {
-            m_input = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
-        }
-        catch (FileNotFoundException e) {
-            // TODO:
-        }
-        catch (Exception e){
-            // TODO:
-        }
+
     }
 
     public GprFileReader(File f,
@@ -72,12 +78,7 @@ public class GprFileReader extends AbstractDataInput {
 
     @Override
     public void close() {
-        try {
-            m_input.close();
-        }
-        catch(Exception e) {
-            // TODO:
-        }
+
     }
 
     @Override
@@ -94,23 +95,130 @@ public class GprFileReader extends AbstractDataInput {
                 index < m_elementIndex.size());
     }
 
+    // this class loads the next CACHE_BATCH_SIZE elements after a given index
+    private class ElementGetter implements Callable<Element> {
+        DataInputStream m_input;
+
+        int m_indexStart;
+        int m_index;
+        public ElementGetter(int index) {
+            // find element that isn't loaded, centered around requested
+            // index.
+            m_index = index;
+            m_indexStart = Math.max(0,index - CACHE_BATCH_SIZE/2);
+
+            try {
+                m_input = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
+            }
+            catch (FileNotFoundException e) {
+                // TODO:
+            }
+            catch (Exception e){
+                // TODO:
+            }
+        }
+
+        public Element call() {
+            while(!m_fileIndexer.isDone()) {
+                try {
+                    Thread.sleep(100);
+                }
+                catch(Exception e) {
+                    // TODO:
+                }
+            }
+
+            // go to index and load the next CACHE_BATCH_SIZE elements
+            try {
+		System.out.println("Skipping to: " + m_elementIndex.get(m_indexStart));
+                m_input.skip(m_elementIndex.get(m_indexStart));
+            }
+            catch (Exception e) {
+                // TODO:
+            }
+
+	    return loadNextElement();
+
+            // for(int i = 0; i < CACHE_BATCH_SIZE; i++) {
+            //     SettableFuture s = SettableFuture.create();
+            //     s.set(loadNextElement());
+            //     m_elementCache.put(m_index+i, s);
+            // }
+            // Element ret = null;
+
+            // try {
+            //     ret = m_elementCache.get(m_index).get();
+            // }
+            // catch(Exception e) {
+            //     // TODO:
+            // }
+
+            // try {
+            //     m_input.close();
+            // }
+            // catch(Exception e) {
+            //     // TODO:
+            // }
+
+            // return ret;
+        }
+
+        public Element loadNextElement() {
+            short start;
+            short stop;
+            byte bps;
+            Element ret = null;
+
+            try {
+		if(m_input.readByte() != TYPE_ELEMENT){
+		    System.out.println("Loading non-element!");
+		}
+                start = m_input.readShort();
+                stop = m_input.readShort();
+                bps = m_input.readByte();
+		System.out.println("Element stats: " + start+" "+stop+" "+bps);
+                ret = new Element(start, stop);
+                for(int i = start; i < stop; i++) {
+                    // have to have different cases for different data types
+                    switch(bps) {
+                    case 1:
+                        ret.setSample(i,m_input.readByte());
+                        break;
+                    case 2:
+                        ret.setSample(i,m_input.readShort());
+                        break;
+                    case 4:
+                        ret.setSample(i,m_input.readInt());
+                        break;
+                    case 8:
+                        ret.setSample(i,m_input.readDouble());
+                        break;
+                    default:
+                        // wtf..
+                        // can't do anything really...
+                        // TODO:
+                        break;
+                    }
+                }
+            }
+            catch(IOException e) {
+                // TODO: better log...
+                System.out.println("Failed reading element: " + e);
+            }
+
+            return ret;
+        }
+    }
+
     @Override
     public ListenableFuture<Element> getElement(int index) {
-        if(!exists(index)) {
-            // will never exist for this case...
-            return null;
-        }
-        try {
-            m_input.reset();
-            m_input.skip(m_elementIndex.get(index));
-        }
-        catch (Exception e) {
-            // TODO:
-        }
+
+        // submit earlyIndex to executor so we can load in a bunch at once in another thread.
+        return m_executor.submit(new ElementGetter(index));
 
 
         // TODO: actually read element
-        return null;
+        // TODO: cache elements around this element?
     }
 
     @Override
@@ -120,7 +228,10 @@ public class GprFileReader extends AbstractDataInput {
 
     @Override
     public int getCurrentIndex() {
-        return 0;
+	if(!m_fileIndexer.isDone()) {
+	    return 0;
+	}
+	return m_elementIndex.size();
     }
 
     public interface FileIndexProgressListener {
@@ -128,19 +239,30 @@ public class GprFileReader extends AbstractDataInput {
     }
 
     public class GprFileIndexer implements Runnable {
-
-        int m_progress = 0; // maybe make this atomic...
+        DataInputStream m_input;
+        int m_progress = 0;
         Thread m_indexThread;
         FileIndexProgressListener m_progressListener;
+        AtomicBoolean m_done = new AtomicBoolean();
 
         public GprFileIndexer(FileIndexProgressListener p) {
+            try {
+                m_input = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
+            }
+            catch (FileNotFoundException e) {
+                // TODO:
+            }
+            catch (Exception e){
+                // TODO:
+            }
+
             m_indexThread = new Thread(GprFileIndexer.this);
             m_indexThread.start();
             m_progressListener = p;
         }
 
         public boolean isDone() {
-            return m_indexThread.isAlive();
+            return m_done.get();
         }
 
         public int getProgress() {
@@ -181,13 +303,20 @@ public class GprFileReader extends AbstractDataInput {
                         m_progress = (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS);
                         m_progressListener.onFileIndexProgress(m_progress);
                     }
-
-
                 }
             }
             catch (Exception e) {
                 System.out.println("Error: " + e);
             }
+
+            try {
+                m_input.close();
+            }
+            catch(Exception e) {
+                // TODO:
+            }
+	    System.out.println("Indexed: " + m_elementIndex.size() + " elements!");
+            m_done.lazySet(true);
         }
     }
 }

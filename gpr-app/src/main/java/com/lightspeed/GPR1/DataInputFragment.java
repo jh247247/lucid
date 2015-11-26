@@ -26,7 +26,6 @@ import butterknife.Bind;
 
 public class DataInputFragment extends Fragment {
     static final String SPINNER_POS_SAVE = "spinnerPos";
-    static final String FILENAME_SAVE = "filename";
 
     @Bind(R.id.inputSpinner) Spinner m_inputSpinner;
     int m_prevSpinnerPos;
@@ -64,6 +63,8 @@ public class DataInputFragment extends Fragment {
 
         ButterKnife.bind(this,ret);
 
+	// get back the previous spinner position, so that
+	// reinstantiating it does not cause a new fragment to be created.
 	if(savedInstanceState != null) {
 	    m_prevSpinnerPos = savedInstanceState.getInt(SPINNER_POS_SAVE,0);
 	} else {
@@ -77,6 +78,7 @@ public class DataInputFragment extends Fragment {
                                             android.R.layout.simple_spinner_item);
         // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
         // Apply the adapter to the spinner
         m_inputSpinner.setAdapter(adapter);
 
@@ -86,7 +88,11 @@ public class DataInputFragment extends Fragment {
                                            View selectedItemView,
                                            int position,
                                            long id) {
+		    // if the selected position is the same as
+		    // previously selected, don't do anything.
                     if(m_prevSpinnerPos != position) {
+			// otherwise set the input interface to
+			// whatever is expected.
                         Log.d("SPINNER","Input changed to: " + position);
                         setupInputUI(position);
                         m_prevSpinnerPos = position;

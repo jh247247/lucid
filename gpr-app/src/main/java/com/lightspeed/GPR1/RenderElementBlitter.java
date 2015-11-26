@@ -87,7 +87,7 @@ public class RenderElementBlitter extends AbstractRenderer {
                             public void onFailure(Throwable thrown) {
                                 // todo I guess...
                                 Log.e("RenderElementBlitter",
-                                      "Failed to load element!");
+                                      "Failed to load element!" + thrown);
                             }
                         });
                     return re;
