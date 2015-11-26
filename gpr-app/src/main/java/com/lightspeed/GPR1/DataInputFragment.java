@@ -29,8 +29,10 @@ public class DataInputFragment extends Fragment {
     static final String FILENAME_SAVE = "filename";
 
     @Bind(R.id.inputSpinner) Spinner m_inputSpinner;
+    int m_prevSpinnerPos;
 
     InputInterfaceHandler m_inputInterfaceHandler;
+
 
     public interface OnInputChangedListener {
         public void onInputChanged(AbstractDataInput input);
@@ -38,7 +40,6 @@ public class DataInputFragment extends Fragment {
 
     public interface InputInterfaceHandler {
         public void setInputInterface(Fragment f);
-        public void clearInputInterface();
     }
 
     @Override
@@ -54,11 +55,6 @@ public class DataInputFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
@@ -67,6 +63,12 @@ public class DataInputFragment extends Fragment {
                                     container, false);
 
         ButterKnife.bind(this,ret);
+
+	if(savedInstanceState != null) {
+	    m_prevSpinnerPos = savedInstanceState.getInt(SPINNER_POS_SAVE,0);
+	} else {
+	    m_prevSpinnerPos = 0;
+	}
 
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter =
@@ -84,7 +86,12 @@ public class DataInputFragment extends Fragment {
                                            View selectedItemView,
                                            int position,
                                            long id) {
-                    setupInputUI(position);
+                    if(m_prevSpinnerPos != position) {
+                        Log.d("SPINNER","Input changed to: " + position);
+                        setupInputUI(position);
+                        m_prevSpinnerPos = position;
+                    }
+
                 }
 
                 @Override
@@ -98,9 +105,8 @@ public class DataInputFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(SPINNER_POS_SAVE,
-                        m_inputSpinner.getSelectedItemPosition());
+	super.onSaveInstanceState(outState);
+	outState.putInt(SPINNER_POS_SAVE, m_prevSpinnerPos);
     }
 
     @Override
@@ -116,7 +122,6 @@ public class DataInputFragment extends Fragment {
             // what can we actually do now??
             return;
         }
-        //m_inputInterfaceHandler.clearInputInterface();
 
         switch(selection) {
         case 0: // should be bluetooth, is there a better way to do this?
@@ -132,24 +137,6 @@ public class DataInputFragment extends Fragment {
             break;
         case 1: // should be file
             m_inputInterfaceHandler.setInputInterface(new FileInputFragment());
-            // m_inputView = inflater.inflate(R.layout.file_input_ui,
-            //                                m_inputOption, false);
-            // m_inputOption.addView(m_inputView,0);
-
-            // Button b =
-            //     ButterKnife.findById(m_inputView,R.id.file_select_button);
-            // b.setOnClickListener(new View.OnClickListener(){
-            //         public void onClick(View v) {
-            //             try {
-            //                 new FileDialog().show(getActivity());
-            //             }
-            //             catch (Exception e) {
-            //                 Log.e("FILE_DIALOG", "CANNOT GET EXTERNAL DIRECTORY");
-            //             }
-            //         }
-            //     });
-            // TODO: fixme
-            //m_input = new FileDataInput(getActivity());
             break;
         case 2: // should be random (for now...)
             AbstractDataInput tin = new RandomDataInput();
