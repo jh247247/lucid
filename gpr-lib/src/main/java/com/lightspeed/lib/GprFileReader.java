@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -39,7 +41,9 @@ public class GprFileReader extends AbstractDataInput {
     public final static int MAX_PROGRESS = 100;
 
     final File m_file;
-    AtomicBoolean m_fileLock = new AtomicBoolean(false);
+    Lock m_fileLock = new ReentrantLock();
+    RandomAccessFile m_input;
+
 
     GprFileIndexer m_fileIndexer;
 
@@ -48,22 +52,37 @@ public class GprFileReader extends AbstractDataInput {
     private ArrayList<Integer> m_timestampIndex = new ArrayList(); // TODO: actually use this
 
     public GprFileReader(File f) {
-        m_file = f;
+        this(f,null);
     }
 
     public GprFileReader(File f,
                          FileIndexProgressListener p) {
-        this(f);
+        m_file = f;
         m_fileIndexer = new GprFileIndexer(p);
+        open();
     }
 
     @Override
     public void close() {
-
+        try {
+            m_input.close();
+        }
+        catch(Exception e) {
+            // TODO:
+        }
     }
 
     @Override
     public boolean open() {
+        try {
+            m_input = new RandomAccessFile(m_file,"r");
+        }
+        catch (FileNotFoundException e) {
+            return false;
+        }
+        catch (Exception e){
+            return false;
+        }
         return true;
     }
 
@@ -78,23 +97,11 @@ public class GprFileReader extends AbstractDataInput {
 
     // this class loads the next CACHE_BATCH_SIZE elements after a given index
     private class ElementGetter implements Callable<Element> {
-        DataInputStream m_input;
-
         int m_index;
         public ElementGetter(int index) {
             // find element that isn't loaded, centered around requested
             // index.
             m_index = index;
-
-            try {
-                m_input = new DataInputStream(new BufferedInputStream(new FileInputStream(m_file)));
-            }
-            catch (FileNotFoundException e) {
-                // TODO:
-            }
-            catch (Exception e){
-                // TODO:
-            }
         }
 
         public Element call() {
@@ -106,49 +113,35 @@ public class GprFileReader extends AbstractDataInput {
                     // TODO:
                 }
             }
-	    //	    m_fileLock.set(true);
 
-            // go to index and load the next CACHE_BATCH_SIZE elements
-            try {
-                //System.out.println("Skipping to: " + m_elementIndex.get(m_index));
-                m_input.skip(m_elementIndex.get(m_index));
-            }
-            catch (Exception e) {
-                // TODO:
-            }
-
-	    // loading more elements just clogs up the cache...
-	    // may be a smarter way to do it, but this is good enough for now.
-            Element ret = loadNextElement();
-
-            try {
-                m_input.close();
-		//		m_fileLock.set(false);
-            }
-            catch(Exception e) {
-                // TODO:
-		return null;
-            }
-
-            return ret;
+            // loading more elements just clogs up the cache...
+            // may be a smarter way to do it, but this is good enough for now.
+            return loadElement(m_index);
         }
 
-        public Element loadNextElement() {
+        public Element loadElement(int index) {
             short start;
             short stop;
             byte bps;
             Element ret = null;
 
+            m_fileLock.lock();
+
             try {
-                if(m_input.readByte() != TYPE_ELEMENT){
-		    // whoops, found timestamp... skip it.
-		    m_input.skip(TIMESTAMP_LEN);
-		    return loadNextElement();
-                }
+                //System.out.println("Skipping to: " + m_elementIndex.get(m_index));
+                m_input.seek(m_elementIndex.get(index));
+            }
+            catch (Exception e) {
+                // TODO:
+            }
+
+
+            try {
+                m_input.readByte(); // skip type...
                 start = m_input.readShort();
                 stop = m_input.readShort();
                 bps = m_input.readByte();
-                //System.out.println("Element stats: " + start+" "+stop+" "+bps);
+                System.out.println("Element stats: " + start+" "+stop+" "+bps);
                 ret = new Element(start, stop);
                 for(int i = start; i < stop; i++) {
                     // have to have different cases for different data types
@@ -176,9 +169,10 @@ public class GprFileReader extends AbstractDataInput {
             catch(IOException e) {
                 // TODO: better log...
                 System.out.println("Failed reading element: " + e);
-		return null;
+                return null;
             }
 
+            m_fileLock.unlock();
             return ret;
         }
     }
@@ -247,7 +241,6 @@ public class GprFileReader extends AbstractDataInput {
             long fileLength = m_file.length();
             int currOffset = 0;
             byte type;
-	    m_fileLock.set(true); // lock the file
             try {
                 while(currOffset < fileLength) {
                     type = m_input.readByte();
@@ -289,7 +282,6 @@ public class GprFileReader extends AbstractDataInput {
                 // TODO:
             }
             System.out.println("Indexed: " + m_elementIndex.size() + " elements!");
-	    m_fileLock.set(false); // unlock file...
             m_done.lazySet(true);
         }
     }

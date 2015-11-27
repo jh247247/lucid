@@ -45,6 +45,7 @@ public class ClassicViewManager
     LoadingCache<Integer, ListenableFuture<Element>> m_elementCache =
         CacheBuilder.newBuilder()
         .maximumSize(CACHE_SIZE)
+        .concurrencyLevel(1)
         .build(new CacheLoader<Integer, ListenableFuture<Element>>() {
                 @Override
                 public ListenableFuture<Element> load(Integer index) {
@@ -75,7 +76,31 @@ public class ClassicViewManager
 
     // move the view by some amount
     public void moveView(int amount) {
+        amount = Math.max(amount, -m_viewIndex); // amount to move left
+        amount = Math.min(amount, // amount to move right
+                          m_input.getCurrentIndex()-(m_viewIndex+m_viewWidth));
+
         goToIndex(m_viewIndex + amount);
+
+        try {
+            if(Math.abs(amount) < m_viewWidth) { // moving less than one screen
+                for(int i = 0; i < Math.abs(amount); i++) {
+                    if(amount > 0) { // moving right
+                        m_currentView.remove(0);
+                        // add new element to rhs
+                        m_currentView.add(m_elementCache.get(m_viewIndex+m_viewWidth-amount+i));
+                    } else {
+                        m_currentView.remove(m_currentView.size()-1);
+                        m_currentView.add(0,m_elementCache.get(m_viewIndex-amount-i));
+                    }
+                }
+            } else {
+                renewView();
+            }
+        }
+        catch(Exception e){
+            // TODO:
+        }
     }
 
     // go to a specific index
@@ -132,7 +157,6 @@ public class ClassicViewManager
 
     @Override
     public void surfaceScroll(AbstractRenderer.SurfaceScrolledEvent e) {
-        renewView();
         super.surfaceScroll(e);
     }
 
@@ -177,9 +201,9 @@ public class ClassicViewManager
                     if(m_renderer.get() != null) {
                         m_renderer.get().cache(tcache);
                     }
-		    return null;
+                    return null;
                 }
             };
-	ThreadPoolHandler.submit(c);
+        ThreadPoolHandler.submit(c);
     }
 }
