@@ -132,14 +132,11 @@ public class GprFileReader extends AbstractDataInput {
             ByteBuffer buf = ByteBuffer.allocate(ELEMENT_HEADER_LEN);
             Element ret = null;
 
-            // TODO: make this a file channel lock
-            m_fileLock.lock();
-
-
             try {
-                m_input.position(m_elementIndex.get(index));
+                m_input.position();
                 // interpret header...
-                int r = m_input.read(buf);
+                int r = m_input.read(buf,
+				     m_elementIndex.get(index).intValue());
 
                 if(r != ELEMENT_HEADER_LEN) {
                     System.out.println("Header: Read in " + r + "bytes, expected " + ELEMENT_HEADER_LEN);
@@ -163,7 +160,8 @@ public class GprFileReader extends AbstractDataInput {
             bps = buf.get();
             buf = ByteBuffer.allocate((stop-start)*bps);
             try {
-                int r = m_input.read(buf);
+                int r = m_input.read(buf,
+				     m_elementIndex.get(index)+ELEMENT_HEADER_LEN);
                 if(r != (stop-start)*bps) {
                     System.out.println("Read in " + r + "bytes, expected " + (stop-start)*bps);
                     return null;
@@ -202,7 +200,6 @@ public class GprFileReader extends AbstractDataInput {
                 }
             }
 
-            m_fileLock.unlock();
             return ret;
         }
     }
