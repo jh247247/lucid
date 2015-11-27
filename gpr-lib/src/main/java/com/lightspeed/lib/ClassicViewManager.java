@@ -7,6 +7,7 @@ import com.google.common.collect.Range;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.eventbus.Subscribe;
 
 
 import java.util.List;
@@ -152,7 +153,6 @@ public class ClassicViewManager
     public void
         scrollAccumulatorReset(AbstractRenderer.ResetScrollEvent e) {
         super.scrollAccumulatorReset(e);
-        precache();
     }
 
     @Override
@@ -164,6 +164,11 @@ public class ClassicViewManager
     public void surfaceChanged(AbstractRenderer.SurfaceChangedEvent e) {
         renewView();
         super.surfaceChanged(e);
+    }
+
+    @Subscribe
+    public void surfaceIdle(AbstractRenderer.SurfaceIdleStartEvent e) {
+	precache();
     }
 
     /////////////////////
@@ -189,7 +194,7 @@ public class ClassicViewManager
                 @Override
                 public Void call() {
                     // todo: test if in cache already?
-                    for(int i = 0; i < m_viewWidth/4; i++) {
+                    for(int i = 0; i < m_viewWidth; i++) {
                         try {
                             tcache.add(m_elementCache.get(m_viewIndex-i));
                             tcache.add(m_elementCache.get(m_viewIndex+m_viewWidth+i));

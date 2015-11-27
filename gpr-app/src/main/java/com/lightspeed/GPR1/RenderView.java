@@ -69,7 +69,7 @@ public class RenderView extends SurfaceView
             return;
         } else {
             //m_blitter.setSurfaceHolder(getHolder());
-	    m_blitter.setRenderView(this);
+            m_blitter.setRenderView(this);
         }
 
         uiInit();
@@ -88,18 +88,18 @@ public class RenderView extends SurfaceView
     }
 
     private void initCanvas() {
-	AbstractRenderer.SurfaceChangedEvent sufEv =
-	    new AbstractRenderer.SurfaceChangedEvent(this.getWidth(),
-						     this.getHeight());
+        AbstractRenderer.SurfaceChangedEvent sufEv =
+            new AbstractRenderer.SurfaceChangedEvent(this.getWidth(),
+                                                     this.getHeight());
         // send out the new surface dims via the event bus
 
         setWillNotDraw(false);
 
         Log.v(LOGTAG,"New canvas dims: " + sufEv.w + " x " + sufEv.h);
-	m_bus.post(sufEv);
-	SurfaceHolder sh = getHolder();
-	sh.setFixedSize(m_blitter.getWidth(),
-			m_blitter.getHeight());
+        m_bus.post(sufEv);
+        SurfaceHolder sh = getHolder();
+        sh.setFixedSize(m_blitter.getWidth(),
+                        m_blitter.getHeight());
     }
 
     @Override
@@ -150,7 +150,7 @@ public class RenderView extends SurfaceView
         @Override
         public boolean onDown(MotionEvent e) {
             Log.d(GESLIN_LOGTAG,"onDown: " + e.toString());
-	    m_bus.post(new AbstractRenderer.ResetScrollEvent());
+            m_bus.post(new AbstractRenderer.ResetScrollEvent());
             return true;
         }
 
@@ -158,19 +158,30 @@ public class RenderView extends SurfaceView
         public boolean onScroll(MotionEvent e1, MotionEvent e2,
                                 float dX, float dY) {
 
-	    AbstractRenderer.SurfaceScrolledEvent se =
-		new AbstractRenderer.SurfaceScrolledEvent(dX,dY);
+            AbstractRenderer.SurfaceScrolledEvent se =
+                new AbstractRenderer.SurfaceScrolledEvent(dX,dY);
 
-	    m_bus.post(se);
+            m_bus.post(se);
             return true;
         }
     }
+
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event){
         //this.mDetector.onTouchEvent(event);
         // Be sure to call the superclass implementation
         boolean handled = super.onTouchEvent(event);
+
+        // detect finger up for idle
+        if(!handled && event.getAction() == 1) { // on up
+            AbstractRenderer.SurfaceIdleStartEvent ie =
+		new AbstractRenderer.SurfaceIdleStartEvent();
+	    m_bus.post(ie);
+	    return true;
+        }
+
         if(!handled) {
             m_gdetector.onTouchEvent(event);
         }

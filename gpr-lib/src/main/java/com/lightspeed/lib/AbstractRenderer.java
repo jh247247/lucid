@@ -37,9 +37,10 @@ public abstract class AbstractRenderer {
     }
 
     static public class ResetScrollEvent {
-        public ResetScrollEvent() {
-
-        }
+        public ResetScrollEvent() {}
     }
 
+    static public class SurfaceIdleStartEvent {
+	public SurfaceIdleStartEvent() {}
+    }
 }
