@@ -1,5 +1,6 @@
 package com.lightspeed.gpr.lib;
 
+import java.lang.ref.WeakReference;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -8,6 +9,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -42,14 +46,14 @@ public class GprFileReader extends AbstractDataInput {
 
     final File m_file;
     Lock m_fileLock = new ReentrantLock();
-    RandomAccessFile m_input;
-
+    FileChannel m_input;
 
     GprFileIndexer m_fileIndexer;
 
+    // might not be able to store the entire file as it becomes larger.
     // these store the offset (in bytes) to the start of the element
     private ArrayList<Integer> m_elementIndex = new ArrayList();
-    private ArrayList<Integer> m_timestampIndex = new ArrayList(); // TODO: actually use this
+    private ArrayList<Integer> m_timestampIndex = new ArrayList();
 
     public GprFileReader(File f) {
         this(f,null);
@@ -74,8 +78,9 @@ public class GprFileReader extends AbstractDataInput {
 
     @Override
     public boolean open() {
+
         try {
-            m_input = new RandomAccessFile(m_file,"r");
+            m_input = new FileInputStream(m_file).getChannel();
         }
         catch (FileNotFoundException e) {
             return false;
@@ -123,53 +128,78 @@ public class GprFileReader extends AbstractDataInput {
             short start;
             short stop;
             byte bps;
+
+            ByteBuffer buf = ByteBuffer.allocate(ELEMENT_HEADER_LEN);
             Element ret = null;
 
+            // TODO: make this a file channel lock
             m_fileLock.lock();
 
-            try {
-                //System.out.println("Skipping to: " + m_elementIndex.get(m_index));
-                m_input.seek(m_elementIndex.get(index));
-            }
-            catch (Exception e) {
-                // TODO:
-            }
-
 
             try {
-                m_input.readByte(); // skip type...
-                start = m_input.readShort();
-                stop = m_input.readShort();
-                bps = m_input.readByte();
-                System.out.println("Element stats: " + start+" "+stop+" "+bps);
-                ret = new Element(start, stop);
-                for(int i = start; i < stop; i++) {
-                    // have to have different cases for different data types
-                    switch(bps) {
-                    case 1:
-                        ret.setSample(i,m_input.readByte());
-                        break;
-                    case 2:
-                        ret.setSample(i,m_input.readShort());
-                        break;
-                    case 4:
-                        ret.setSample(i,m_input.readInt());
-                        break;
-                    case 8:
-                        ret.setSample(i,m_input.readDouble());
-                        break;
-                    default:
-                        // wtf..
-                        // can't do anything really...
-                        // TODO:
-                        break;
-                    }
+                m_input.position(m_elementIndex.get(index));
+                // interpret header...
+                int r = m_input.read(buf);
+
+                if(r != ELEMENT_HEADER_LEN) {
+                    System.out.println("Header: Read in " + r + "bytes, expected " + ELEMENT_HEADER_LEN);
+                    return null;
                 }
             }
-            catch(IOException e) {
+            catch (Exception e) {
+                System.out.println("Error reading element header: " + e);
+                return null;
+            }
+
+            buf.position(0); // reset buffer position so we are at the start of the header.
+            // check header...
+            if(buf.get() != TYPE_ELEMENT) {
+                System.out.println("Read in non-element! File changed?");
+                return null;
+            }
+
+            start = buf.getShort();
+            stop = buf.getShort();
+            bps = buf.get();
+            buf = ByteBuffer.allocate((stop-start)*bps);
+            try {
+                int r = m_input.read(buf);
+                if(r != (stop-start)*bps) {
+                    System.out.println("Read in " + r + "bytes, expected " + (stop-start)*bps);
+                    return null;
+                }
+
+            }
+            catch(Exception e) {
                 // TODO: better log...
                 System.out.println("Failed reading element: " + e);
                 return null;
+            }
+
+            buf.position(0); // reset buffer position so we are at the start of the element.
+
+            ret = new Element(start, stop);
+            for(int i = start; i < stop; i++) {
+                // have to have different cases for different data types
+                switch(bps) {
+                case 1:
+                    ret.setSample(i,buf.get());
+                    break;
+                case 2:
+                    ret.setSample(i,buf.getShort());
+                    break;
+                case 4:
+                    ret.setSample(i,buf.getInt());
+                    break;
+                case 8:
+                    ret.setSample(i,buf.getDouble());
+                    break;
+                default:
+                    // wtf..
+                    // can't do anything really...
+                    // TODO:
+                    break;
+                }
             }
 
             m_fileLock.unlock();
@@ -205,11 +235,14 @@ public class GprFileReader extends AbstractDataInput {
         public void onFileIndexProgress(int progress);
     }
 
+    // this inner class indexes the file upon instantiation.
+    // Element format goes: start(short),stop(short),bytes per
+    // sample(byte), (stop-start) samples of bytes per sample length each.
     public class GprFileIndexer implements Runnable {
         DataInputStream m_input;
         int m_progress = 0;
         Thread m_indexThread;
-        FileIndexProgressListener m_progressListener;
+        WeakReference<FileIndexProgressListener> m_progressListener;
         AtomicBoolean m_done = new AtomicBoolean();
 
         public GprFileIndexer(FileIndexProgressListener p) {
@@ -225,7 +258,7 @@ public class GprFileReader extends AbstractDataInput {
 
             m_indexThread = new Thread(GprFileIndexer.this);
             m_indexThread.start();
-            m_progressListener = p;
+            m_progressListener = new WeakReference<FileIndexProgressListener>(p);
         }
 
         public boolean isDone() {
@@ -264,10 +297,10 @@ public class GprFileReader extends AbstractDataInput {
                         // idk what this is, skip until we find a valid thing.
                         break;
                     }
-                    if(m_progressListener != null &&
+                    if(m_progressListener.get() != null &&
                        m_progress != (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS)) {
                         m_progress = (int)(((double)currOffset/(double)fileLength)*MAX_PROGRESS);
-                        m_progressListener.onFileIndexProgress(m_progress);
+                        m_progressListener.get().onFileIndexProgress(m_progress);
                     }
                 }
             }
