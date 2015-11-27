@@ -42,7 +42,7 @@ import com.google.common.cache.LoadingCache;
 public class RenderElementBlitter extends AbstractRenderer {
     static final String LOGTAG = "RenderElementBlitter";
 
-    static final int CACHE_SIZE = 3000;
+    static final int CACHE_SIZE = 2000;
 
     Bitmap m_bm;
     Canvas m_cbm;
@@ -65,16 +65,16 @@ public class RenderElementBlitter extends AbstractRenderer {
                                 re.set(new RenderElement(e));
                                 try {
                                     ListenableFuture<Bitmap> fbm = ThreadPoolHandler.submit(re.get());
-				    Futures.addCallback(fbm, new FutureCallback<Bitmap>(){
-					    @Override
-					    public void onSuccess(Bitmap b) {
-						render();
-					    }
-					    @Override
-					    public void onFailure(Throwable t) {
-						// doubt we'll get here
-					    }
-					});
+                                    Futures.addCallback(fbm, new FutureCallback<Bitmap>(){
+                                            @Override
+                                            public void onSuccess(Bitmap b) {
+                                                render();
+                                            }
+                                            @Override
+                                            public void onFailure(Throwable t) {
+                                                // doubt we'll get here
+                                            }
+                                        });
                                 }
                                 catch(Exception ex) {
                                     // todo I guess...
@@ -123,9 +123,20 @@ public class RenderElementBlitter extends AbstractRenderer {
         }
     }
 
+    @Override
+    public int getWidth() {
+        return m_viewManager.getViewWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return m_viewManager.getViewHeight();
+    }
+
 
     public void setRenderView(View v) {
         m_renderView = new WeakReference<View>(v);
+
     }
 
 
@@ -189,9 +200,9 @@ public class RenderElementBlitter extends AbstractRenderer {
                                    m_paint);
                 }
             }
-	    catch (Exception ex){
-		Log.e("RenderElementBlitter","Error while rendering: " + ex);
-	    }
+            catch (Exception ex){
+                Log.e("RenderElementBlitter","Error while rendering: " + ex);
+            }
 
         }
 
@@ -207,20 +218,20 @@ public class RenderElementBlitter extends AbstractRenderer {
         long endTime = System.nanoTime();
         long diff = (endTime-startTime)/1000000;
         //if(diff > 16) {
-            Log.w("RenderElementBlitter","Scene in: " + diff);
-	    //}
+        Log.w("RenderElementBlitter","Scene in: " + diff);
+        //}
     }
 
     @Override
     public void cache(List<ListenableFuture<Element>> l) {
-	for(ListenableFuture<Element> fe : l) {
-	    try {
-		m_renderElementCache.get(fe);
-	    }
-	    catch(Exception ex) {
-		// todo...
-	    }
-	}
+        for(ListenableFuture<Element> fe : l) {
+            try {
+                m_renderElementCache.get(fe);
+            }
+            catch(Exception ex) {
+                // todo...
+            }
+        }
     }
 
     /////////////////////

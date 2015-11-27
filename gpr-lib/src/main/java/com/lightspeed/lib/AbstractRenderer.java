@@ -9,6 +9,8 @@ public abstract class AbstractRenderer {
     public abstract void setViewManager(AbstractViewManager viewman);
     public abstract void render();
     public abstract void cache(List<ListenableFuture<Element>> l);
+    public abstract int getWidth();
+    public abstract int getHeight();
 
     /**
      * These object is sent via the eventbus whenever the surface in

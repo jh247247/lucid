@@ -47,18 +47,6 @@ public class GprFileReader extends AbstractDataInput {
     private ArrayList<Integer> m_elementIndex = new ArrayList();
     private ArrayList<Integer> m_timestampIndex = new ArrayList(); // TODO: actually use this
 
-    // TODO: preemptive caching of elements around whatever is being accessed
-    LoadingCache<Integer, ListenableFuture<Element>> m_elementCache =
-        CacheBuilder.newBuilder()
-        .maximumSize(CACHE_SIZE)
-	.concurrencyLevel(10)
-        .build(new CacheLoader<Integer, ListenableFuture<Element>>() {
-                @Override
-                public ListenableFuture<Element> load(Integer index) {
-                    return getElement(index);
-                }
-            });
-
     public GprFileReader(File f) {
         m_file = f;
     }
@@ -110,8 +98,7 @@ public class GprFileReader extends AbstractDataInput {
         }
 
         public Element call() {
-            while(!m_fileIndexer.isDone() ||
-		  m_fileLock.get()) {
+            while(!m_fileIndexer.isDone()) {
                 try {
                     Thread.sleep(100);
                 }
@@ -119,11 +106,11 @@ public class GprFileReader extends AbstractDataInput {
                     // TODO:
                 }
             }
-	    m_fileLock.set(true);
+	    //	    m_fileLock.set(true);
 
             // go to index and load the next CACHE_BATCH_SIZE elements
             try {
-                System.out.println("Skipping to: " + m_elementIndex.get(m_index));
+                //System.out.println("Skipping to: " + m_elementIndex.get(m_index));
                 m_input.skip(m_elementIndex.get(m_index));
             }
             catch (Exception e) {
@@ -136,10 +123,11 @@ public class GprFileReader extends AbstractDataInput {
 
             try {
                 m_input.close();
-		m_fileLock.set(false);
+		//		m_fileLock.set(false);
             }
             catch(Exception e) {
                 // TODO:
+		return null;
             }
 
             return ret;
@@ -160,7 +148,7 @@ public class GprFileReader extends AbstractDataInput {
                 start = m_input.readShort();
                 stop = m_input.readShort();
                 bps = m_input.readByte();
-                System.out.println("Element stats: " + start+" "+stop+" "+bps);
+                //System.out.println("Element stats: " + start+" "+stop+" "+bps);
                 ret = new Element(start, stop);
                 for(int i = start; i < stop; i++) {
                     // have to have different cases for different data types
@@ -188,6 +176,7 @@ public class GprFileReader extends AbstractDataInput {
             catch(IOException e) {
                 // TODO: better log...
                 System.out.println("Failed reading element: " + e);
+		return null;
             }
 
             return ret;

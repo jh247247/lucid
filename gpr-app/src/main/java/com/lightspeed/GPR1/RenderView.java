@@ -97,6 +97,9 @@ public class RenderView extends SurfaceView
 
         Log.v(LOGTAG,"New canvas dims: " + sufEv.w + " x " + sufEv.h);
 	m_bus.post(sufEv);
+	SurfaceHolder sh = getHolder();
+	sh.setFixedSize(m_blitter.getWidth(),
+			m_blitter.getHeight());
     }
 
     @Override

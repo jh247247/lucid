@@ -165,7 +165,7 @@ public class ClassicViewManager
                 @Override
                 public Void call() {
                     // todo: test if in cache already?
-                    for(int i = 0; i < m_viewWidth; i++) {
+                    for(int i = 0; i < m_viewWidth/4; i++) {
                         try {
                             tcache.add(m_elementCache.get(m_viewIndex-i));
                             tcache.add(m_elementCache.get(m_viewIndex+m_viewWidth+i));
