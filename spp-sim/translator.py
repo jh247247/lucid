@@ -4,22 +4,26 @@ import sys
 import math
 import struct
 import array
+import base64
 
 
 def convertSample(line):
     # convert line to numbers
-    nl = [struct.pack(">H",int(x)) for x in line.rstrip().split(",")]
+    nl = [base64.standard_b64encode(bytes(int(x))) for x in
+          line.rstrip().split(",")]
+
 
     # find out header for line type,start,end,bytesPerSample
-    ret = ['\x00', '\x00\x00', struct.pack(">H",len(nl)), struct.pack("b",2)]
+    ret = ['\x00', '\x00\x00', struct.pack(">H",len(nl)), struct.pack("b",4)]
     # add data we have
     ret.extend(nl)
     return ''.join(ret)
 
 def convertTimeStamp(line):
     nl = line.rstrip()[-8:].split(":")
-    nl = [struct.pack("b",int(x)) for x in nl]
-    ret = ['\x01', struct.pack(">H",2013), '\x00', '\x00']
+    nl = [base64.standard_b64encode(bytes(int(x))) for x in nl]
+    ret = ['\x01', base64.standard_b64encode(bytes(2013)),
+           base64.standard_b64encode('\x00\x00')]
     ret.extend(nl)
     # format should now be type,y,m,d,h,m,s
 
