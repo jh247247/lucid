@@ -1,0 +1,37 @@
+* File and packet format
+  The only difference between packets sent over bluetooth and a file
+  is that the file has everything concatenated together. So, we can
+  use the same code for both.
+
+  Note that everything is encoded in binary, so things might go a bit
+  funny at some point.
+** Header
+   The header is relatively simple, with the starting byte defining
+   the type of the packet.
+   | Byte | Packet type                                       |
+   | 0x00 | Element/Depth                                     |
+   | 0x01 | Timestamp (May need to be added by phone to file) |
+** Element
+   - Header is one byte (0x00)
+   - The next 16 bits define the start of the element depth
+   - The next 16 bits define the end of the element depth
+   - The next byte defines the chars per sample, since this will be
+     encoded as base64 to avoid byte stuffing.
+   - So, finally comes the data. Hopefully this is
+     (end-start)*charsPerSample
+   - If it isn't, what do we do?
+     - Attempt to resync on the next non-base64 char (should be start
+       of new packet)
+
+   | Type | start | stop | char/samp | data (base64) |
+
+** Timestamp
+   - Header is one byte (0x01)
+   - next 2 bytes should define year
+   - next byte should define month
+   - next byte should define day
+   - next byte should define hour
+   - next byte should define minute
+   - next byte should define second
+
+   | Type | year | month | day | hour | minute | second |
