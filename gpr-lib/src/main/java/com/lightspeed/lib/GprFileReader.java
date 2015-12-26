@@ -30,6 +30,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
+import com.google.common.io.BaseEncoding;
 
 import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.ThreadPoolHandler;
@@ -128,6 +129,7 @@ public class GprFileReader extends AbstractDataInput {
             short start;
             short stop;
             byte bps;
+	    byte[] b64buf;
 
             ByteBuffer buf = ByteBuffer.allocate(ELEMENT_HEADER_LEN);
             Element ret = null;
@@ -159,6 +161,7 @@ public class GprFileReader extends AbstractDataInput {
             stop = buf.getShort();
             bps = buf.get();
             buf = ByteBuffer.allocate((stop-start)*bps);
+	    b64buf = new byte[bps];
             try {
                 int r = m_input.read(buf,
 				     m_elementIndex.get(index)+ELEMENT_HEADER_LEN);
@@ -178,26 +181,10 @@ public class GprFileReader extends AbstractDataInput {
 
             ret = new Element(start, stop);
             for(int i = start; i < stop; i++) {
-                // have to have different cases for different data types
-                switch(bps) {
-                case 1:
-                    ret.setSample(i,buf.get());
-                    break;
-                case 2:
-                    ret.setSample(i,buf.getShort());
-                    break;
-                case 4:
-                    ret.setSample(i,buf.getInt());
-                    break;
-                case 8:
-                    ret.setSample(i,buf.getDouble());
-                    break;
-                default:
-                    // wtf..
-                    // can't do anything really...
-                    // TODO:
-                    break;
-                }
+		buf.get(b64buf);
+		byte[] decoded = BaseEncoding.base64().decode(new String(b64buf));
+		int t = Integer.parseInt(new String(decoded));
+		ret.setSample(i,t);
             }
 
             return ret;
@@ -272,13 +259,14 @@ public class GprFileReader extends AbstractDataInput {
             int currOffset = 0;
             byte type;
             try {
-                while(currOffset < fileLength) {
+                while(currOffset < fileLength-1) {
                     type = m_input.readByte();
                     switch(type) {
                     case TYPE_ELEMENT:
                         // add element to list
                         m_elementIndex.add(currOffset);
                         short start = m_input.readShort();
+
                         short stop = m_input.readShort();
                         short bytesPerSample = m_input.readByte();
                         m_input.skip((stop-start)*bytesPerSample);
@@ -303,7 +291,12 @@ public class GprFileReader extends AbstractDataInput {
             }
             catch (Exception e) {
                 System.out.println("Error: " + e);
+
             }
+	    // have to quit at this point, set the progress to max to
+	    // dismiss the dialog
+	    m_progressListener.get().onFileIndexProgress(MAX_PROGRESS);
+
 
             try {
                 m_input.close();

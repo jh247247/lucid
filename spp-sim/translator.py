@@ -21,9 +21,8 @@ def convertSample(line):
 
 def convertTimeStamp(line):
     nl = line.rstrip()[-8:].split(":")
-    nl = [base64.standard_b64encode(bytes(int(x))) for x in nl]
-    ret = ['\x01', base64.standard_b64encode(bytes(2013)),
-           base64.standard_b64encode('\x00\x00')]
+    nl = [struct.pack("b",int(x)) for x in nl]
+    ret = ['\x01', struct.pack(">H",2013), '\x00', '\x00']
     ret.extend(nl)
     # format should now be type,y,m,d,h,m,s
 
