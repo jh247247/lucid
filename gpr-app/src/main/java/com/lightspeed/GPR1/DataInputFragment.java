@@ -71,6 +71,8 @@ public class DataInputFragment extends Fragment {
 	    m_prevSpinnerPos = 0;
 	}
 
+	setupInputUI(m_prevSpinnerPos);
+
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter =
             ArrayAdapter.createFromResource(getActivity(),
