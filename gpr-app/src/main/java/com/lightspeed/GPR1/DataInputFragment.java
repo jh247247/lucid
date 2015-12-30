@@ -25,6 +25,7 @@ import butterknife.ButterKnife;
 import butterknife.Bind;
 
 public class DataInputFragment extends Fragment {
+
     static final String SPINNER_POS_SAVE = "spinnerPos";
 
     @Bind(R.id.inputSpinner) Spinner m_inputSpinner;
@@ -150,26 +151,5 @@ public class DataInputFragment extends Fragment {
         }
     }
 
-    // public void onEvent(FileDialog.FileChangedEvent e) {
-    //     TextView t = null;
-    //     if(m_inputView != null) {
-    //         t = ButterKnife.findById(m_inputView,R.id.file_select_text);
-    //     }
 
-    //     if(t != null) {
-    //         // TODO: make this saved between switching interfaces?
-    //         String f = e.file.toString();
-    //         t.setText(f);
-    //     }
-    // }
-
-    // /**
-    //  * This object contains the new input type, sent to receivers.
-    //  */
-    // public class InputChangeEvent {
-    //     public final DataInputInterface input;
-    //     public InputChangeEvent(DataInputInterface in) {
-    //         this.input = in;
-    //     }
-    // }
 }
