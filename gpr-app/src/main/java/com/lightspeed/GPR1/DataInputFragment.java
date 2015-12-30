@@ -97,7 +97,6 @@ public class DataInputFragment extends Fragment {
                         setupInputUI(position);
                         m_prevSpinnerPos = position;
                     }
-
                 }
 
                 @Override
@@ -131,15 +130,7 @@ public class DataInputFragment extends Fragment {
 
         switch(selection) {
         case 0: // should be bluetooth, is there a better way to do this?
-            // m_inputView = inflater.inflate(R.layout.bluetooth_input_ui,
-            //                                m_inputOption, false);
-            // m_inputOption.addView(m_inputView,0);
-            // try {
-            //     m_input = new BluetoothDataInput(getActivity());
-            // } catch(Exception e) {
-            //     Toast.makeText(getActivity(), "Cannot use bluetooth?", Toast.LENGTH_SHORT).show();
-            // }
-
+            m_inputInterfaceHandler.setInputInterface(new BluetoothInputFragment());
             break;
         case 1: // should be file
             m_inputInterfaceHandler.setInputInterface(new FileInputFragment());

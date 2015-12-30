@@ -13,19 +13,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
 
-
 import com.google.common.util.concurrent.ListenableFuture;
 
-public class BluetoothDataInput extends AbstractDataInput {
+import io.palaima.smoothbluetooth.SmoothBluetooth;
 
+public class BluetoothDataInput
+    extends AbstractDataInput {
+    private SmoothBluetooth m_bt;
     private ArrayList<SoftReference<Element>> m_previous;
     private ArrayList<Element> m_new;
     // TODO: write to file
     // TODO: Actually connect to bluetooth device
 
-    public BluetoothDataInput(Context ctx) {
+    public BluetoothDataInput(Activity act) {
         m_previous = new ArrayList<SoftReference<Element>>();
         m_new = new ArrayList<Element>();
+	m_bt = new SmoothBluetooth(act);
     }
 
     public int getCurrentIndex() {
@@ -37,6 +40,7 @@ public class BluetoothDataInput extends AbstractDataInput {
     }
 
     public boolean open() {
+	m_bt.doDiscovery();
         return true;
     }
 

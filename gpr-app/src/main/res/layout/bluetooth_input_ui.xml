@@ -5,9 +5,14 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:orientation="horizontal">
+    android:orientation="vertical">
+  <Button
+      android:id="@+id/connect_button"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="@string/bluetooth_connect"/>
   <CheckedTextView
-      android:id="@+id/recordCheckTextView"
+      android:id="@+id/record_checkbox"
       android:layout_height="?android:attr/listPreferredItemHeightSmall"
       android:layout_width="fill_parent"
       android:text="@string/record"
