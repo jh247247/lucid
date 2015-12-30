@@ -111,6 +111,9 @@ public class BluetoothInputFragment extends Fragment {
     }
 
     private BluetoothDataInput.StateListener m_stateListener = new BluetoothDataInput.StateListener() {
+
+	    int m_connectionSelect; // hack so dialog will be happy
+
             public void startDiscovery() {
                 Activity act = getActivity();
                 if(act == null) return;
@@ -124,19 +127,55 @@ public class BluetoothInputFragment extends Fragment {
             }
 
             public void stopDiscovery() {
-		m_dialog.dismiss();
+                m_dialog.dismiss();
+                m_dialog = null;
             }
 
             public void startConnect() {
+                Activity act = getActivity();
+                if(act == null) return;
 
+                m_dialog = new MaterialDialog.Builder(act)
+                    .title(R.string.bluetooth_connecting)
+                    .content(R.string.please_wait)
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(false)
+                    .show();
             }
 
             public void stopConnect() {
-
+                m_dialog.dismiss();
+                m_dialog = null;
             }
 
-            public int selectDevice(final List<Device> dl) {
-                return 0;
+            public void selectDevice(final List<Device> dl,
+				     final SmoothBluetooth.ConnectionCallback connectionCallback) {
+                Device[] da = dl.toArray(new Device[dl.size()]);
+                String[] dn = new String[da.length];
+                for(int i = 0; i < da.length; i++) {
+                    dn[i] = da[i].getName();
+                }
+
+                // TODO: show dialog
+                new MaterialDialog.Builder(getActivity())
+                    .title(R.string.bluetooth_device_select)
+                    .items(dn)
+                    .itemsCallbackSingleChoice(2, new MaterialDialog.ListCallbackSingleChoice() {
+                            @Override
+                            public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+				m_connectionSelect = which;
+                                Log.d(TAG,which + ": " + text);
+                                return true; // allow selection
+                            }
+                        })
+		    .dismissListener(new DialogInterface.OnDismissListener() {
+			    @Override
+			    public void onDismiss(DialogInterface dialog) {
+				connectionCallback.connectTo(dl.get(m_connectionSelect));
+			    }
+			})
+                    .positiveText(R.string.bluetooth_connect)
+		    .show();
             }
         };
 }

@@ -49,6 +49,7 @@ public class BluetoothDataInput
     }
 
     public boolean open() {
+	m_bt.disconnect();
         m_bt.doDiscovery();
         return true;
     }
@@ -72,7 +73,7 @@ public class BluetoothDataInput
         public void startConnect();
         public void stopConnect();
 
-        public int selectDevice(final List<Device> dl);
+        public void selectDevice(final List<Device> dl, final SmoothBluetooth.ConnectionCallback connectionCallback);
     }
 
     private SmoothBluetooth.Listener m_listener = new SmoothBluetooth.Listener() {
@@ -89,11 +90,21 @@ public class BluetoothDataInput
             @Override
             public void onConnecting(Device device) {
                 //called when connecting to particular device
+                StateListener sl = m_stateListener.get();
+
+                if(sl != null) {
+                    sl.startConnect();
+                }
             }
 
             @Override
             public void onConnected(Device device) {
                 //called when connected to particular device
+		StateListener sl = m_stateListener.get();
+
+                if(sl != null) {
+                    sl.stopConnect();
+                }
             }
 
             @Override
@@ -140,6 +151,15 @@ public class BluetoothDataInput
                 //receives discovered devices list and connection callback
                 //you can filter devices list and connect to specific one
                 //connectionCallback.connectTo(deviceList.get(position));
+
+                StateListener sl = m_stateListener.get();
+
+                if(sl == null) {
+		    return;
+                }
+
+		// this may be blocking... another thread?
+		sl.selectDevice(deviceList,connectionCallback);
             }
 
             @Override

@@ -6,16 +6,21 @@
   <string name="close">Close</string>
   <string name="record">Record file</string>
   <string name="inputTitle">Input Select</string>
+
   <string name="bluetooth">Bluetooth</string>
   <string name="bluetooth_connect">Connect</string>
   <string name="bluetooth_discovery">Finding Devices</string>
+  <string name="bluetooth_connecting">Connecting to Device</string>
+  <string name="bluetooth_device_select">Device Select</string>
+
   <string name="file">File</string>
   <string name="file_select">Select</string>
   <string name="file_select_none">No file selected!</string>
+  <string name="file_read">Reading File...</string>
+
+  <string name="please_wait">Please Wait...</string>
   <string name="start">Start</string>
   <string name="stop">Stop</string>
-  <string name="file_read">Reading File...</string>
-  <string name="please_wait">Please Wait...</string>
   <string-array name="input_options">
     <item>Bluetooth</item>
     <item>File</item>
