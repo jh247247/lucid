@@ -22,25 +22,22 @@ public class BluetoothDataInput
     extends AbstractDataInput {
 
     private SmoothBluetooth m_bt;
-    private StateListener m_stateListener;
-
-    private ArrayList<SoftReference<Element>> m_previous;
-    private ArrayList<Element> m_new;
+    private WeakReference<StateListener> m_stateListener;
 
     // TODO: write to file
     // TODO: Actually connect to bluetooth device
 
-
-
     public BluetoothDataInput(Activity act) {
-        m_previous = new ArrayList<SoftReference<Element>>();
-        m_new = new ArrayList<Element>();
-	m_bt = new SmoothBluetooth(act.getApplicationContext());
+        m_bt = new SmoothBluetooth(act.getApplicationContext(),m_listener);
     }
 
     public BluetoothDataInput(Activity act, StateListener sl) {
-	this(act);
-	m_stateListener = sl;
+        this(act);
+        setStateListener(sl);
+    }
+
+    public void setStateListener(StateListener sl) {
+        m_stateListener = new WeakReference<StateListener>(sl);
     }
 
     public int getCurrentIndex() {
@@ -52,10 +49,7 @@ public class BluetoothDataInput
     }
 
     public boolean open() {
-	m_bt.doDiscovery();
-	if(m_stateListener != null) {
-	    m_stateListener.startDiscovery();
-	}
+        m_bt.doDiscovery();
         return true;
     }
 
@@ -64,20 +58,93 @@ public class BluetoothDataInput
     }
 
     public boolean exists(int index) {
-	return false;
+        return false;
     }
 
     public String getName() {
-	return "Bluetooth"; // TODO: fixxxx
+        return "Bluetooth"; // TODO: fixxxx
     }
 
     public static interface StateListener {
-	public void startDiscovery();
-	public void stopDiscovery();
+        public void startDiscovery();
+        public void stopDiscovery();
 
-	public void startConnect();
-	public void stopConnect();
+        public void startConnect();
+        public void stopConnect();
 
-	public int selectDevice(final List<Device> dl);
+        public int selectDevice(final List<Device> dl);
     }
+
+    private SmoothBluetooth.Listener m_listener = new SmoothBluetooth.Listener() {
+            @Override
+            public void onBluetoothNotSupported() {
+                //device does not support bluetooth
+            }
+
+            @Override
+            public void onBluetoothNotEnabled() {
+                //bluetooth is disabled, probably call Intent request to enable bluetooth
+            }
+
+            @Override
+            public void onConnecting(Device device) {
+                //called when connecting to particular device
+            }
+
+            @Override
+            public void onConnected(Device device) {
+                //called when connected to particular device
+            }
+
+            @Override
+            public void onDisconnected() {
+                //called when disconnected from device
+            }
+
+            @Override
+            public void onConnectionFailed(Device device) {
+                //called when connection failed to particular device
+            }
+
+            @Override
+            public void onDiscoveryStarted() {
+		//called when discovery is started
+                StateListener sl = m_stateListener.get();
+
+                if(sl != null) {
+                    sl.startDiscovery();
+                }
+
+            }
+
+            @Override
+            public void onDiscoveryFinished() {
+		//called when discovery is finished
+                StateListener sl = m_stateListener.get();
+
+                if(sl != null) {
+                    sl.stopDiscovery();
+                }
+
+            }
+
+            @Override
+            public void onNoDevicesFound() {
+                //called when no devices found
+            }
+
+            @Override
+            public void onDevicesFound(final List<Device> deviceList,
+                                       final SmoothBluetooth.ConnectionCallback connectionCallback) {
+
+                //receives discovered devices list and connection callback
+                //you can filter devices list and connect to specific one
+                //connectionCallback.connectTo(deviceList.get(position));
+            }
+
+            @Override
+            public void onDataReceived(int data) {
+                //receives all bytes
+            }
+        };
 }
