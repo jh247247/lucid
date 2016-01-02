@@ -15,9 +15,9 @@
         android:layout_height="0dp"
         android:layout_weight="1">
       <!-- Main rendering surface -->
-      <com.lightspeed.GPR1.RenderView android:id="@+id/render"
-                                      android:layout_width="fill_parent"
-                                      android:layout_height="fill_parent"/>
+      <com.gecko.gpr.ui.RenderView android:id="@+id/render"
+                                   android:layout_width="fill_parent"
+                                   android:layout_height="fill_parent"/>
       <FrameLayout
           android:layout_height="fill_parent"
           android:layout_width="fill_parent"
@@ -44,15 +44,15 @@
       android:orientation="vertical"
       android:background="?attr/colorPrimary">
     <fragment
-        android:name="com.lightspeed.GPR1.DataInputFragment"
+        android:name="com.gecko.gpr.ui.DataInputFragment"
         android:id="@+id/input_manager"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>
     <LinearLayout
-	android:id="@+id/input_fragment_layout"
-	android:layout_width="fill_parent"
-	android:layout_height="wrap_content"
-	android:orientation="vertical"/>
+        android:id="@+id/input_fragment_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"/>
   </LinearLayout>
 
 

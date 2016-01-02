@@ -1,4 +1,4 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr.ui;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.AbstractRenderer;
@@ -26,6 +26,7 @@ import android.support.v4.view.GestureDetectorCompat;
 
 import java.lang.Math;
 import java.lang.ref.WeakReference;
+import com.gecko.gpr.gfx.RenderElementBlitter;
 
 public class RenderView extends SurfaceView
     implements SurfaceHolder.Callback {

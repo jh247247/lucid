@@ -1,4 +1,6 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr.ui;
+
+import com.gecko.gpr.R;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.Element;

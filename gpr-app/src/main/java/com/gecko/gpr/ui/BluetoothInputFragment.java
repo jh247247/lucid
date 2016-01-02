@@ -1,4 +1,6 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr.ui;
+
+import com.gecko.gpr.R;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.Element;
@@ -53,6 +55,7 @@ import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
 import com.afollestad.materialdialogs.util.DialogUtils;
 
 import io.palaima.smoothbluetooth.Device;
+import com.gecko.gpr.input.BluetoothDataInput;
 
 
 /**

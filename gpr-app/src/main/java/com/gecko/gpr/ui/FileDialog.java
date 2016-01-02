@@ -1,4 +1,4 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr.ui;
 
 import android.app.Activity;
 import android.app.Dialog;

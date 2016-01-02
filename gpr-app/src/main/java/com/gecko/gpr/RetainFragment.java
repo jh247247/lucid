@@ -2,7 +2,7 @@
 // note that it CANNOT keep references to the context, otherwise a
 // whole bunch of memory leaks.
 
-package com.lightspeed.GPR1;
+package com.gecko.gpr;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.AbstractViewManager;
@@ -13,6 +13,9 @@ import android.support.v4.app.Fragment;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import com.gecko.gpr.gfx.RenderElementBlitter;
+
+
 
 public class RetainFragment extends Fragment {
     private AbstractDataInput m_input;

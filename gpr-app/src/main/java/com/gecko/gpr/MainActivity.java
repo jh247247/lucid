@@ -1,4 +1,4 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -25,12 +25,15 @@ import android.util.Log;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 
+
 import butterknife.ButterKnife;
 import butterknife.Bind;
 
 import java.io.File;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
+import com.gecko.gpr.ui.DataInputFragment;
+import com.gecko.gpr.ui.RenderView;
 
 public class MainActivity extends AppCompatActivity
     implements DataInputFragment.OnInputChangedListener,

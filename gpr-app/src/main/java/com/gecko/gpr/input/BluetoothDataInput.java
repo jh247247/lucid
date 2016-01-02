@@ -1,4 +1,4 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr.input;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
 import com.lightspeed.gpr.lib.Element;
@@ -105,6 +105,7 @@ public class BluetoothDataInput
                 if(sl != null) {
                     sl.stopConnect();
                 }
+
             }
 
             @Override

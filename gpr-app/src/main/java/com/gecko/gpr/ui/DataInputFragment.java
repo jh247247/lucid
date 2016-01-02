@@ -1,4 +1,6 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr.ui;
+
+import com.gecko.gpr.R;
 
 import com.lightspeed.gpr.lib.AbstractDataInput;
 
@@ -23,6 +25,7 @@ import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
+import com.gecko.gpr.input.RandomDataInput;
 
 public class DataInputFragment extends Fragment {
 

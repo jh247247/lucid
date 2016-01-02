@@ -1,4 +1,4 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr.gfx;
 
 import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.AbstractViewManager;

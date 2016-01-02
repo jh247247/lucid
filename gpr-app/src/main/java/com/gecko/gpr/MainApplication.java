@@ -1,4 +1,4 @@
-package com.lightspeed.GPR1;
+package com.gecko.gpr;
 
 import android.app.Application;
 import android.os.StrictMode;
