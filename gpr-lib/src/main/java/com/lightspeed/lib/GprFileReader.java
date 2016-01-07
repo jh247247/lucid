@@ -103,6 +103,7 @@ public class GprFileReader extends AbstractDataInput {
 
     // this class loads the next CACHE_BATCH_SIZE elements after a given index
     private class ElementGetter implements Callable<Element> {
+        DataPacketParser m_parser = new DataPacketParser();
         int m_index;
         public ElementGetter(int index) {
             // find element that isn't loaded, centered around requested
@@ -126,13 +127,7 @@ public class GprFileReader extends AbstractDataInput {
         }
 
         public Element loadElement(int index) {
-            short start;
-            short stop;
-            byte bps;
-            byte[] b64buf;
-
             ByteBuffer buf = ByteBuffer.allocate(ELEMENT_HEADER_LEN);
-            Element ret = null;
 
             try {
                 // interpret header...
@@ -148,43 +143,46 @@ public class GprFileReader extends AbstractDataInput {
                 System.out.println("Error reading element header: " + e);
                 return null;
             }
+	    // reposition buffer at start, since read leaves the mark at the end of the buffer.
+	    buf.position(0);
 
 	    if(buf.get() != TYPE_ELEMENT) {
-                System.out.println("Read in non-element! File changed?");
-                return null;
-            }
+		System.out.println("Indexed element " + index + "is not actually an element!");
+		return null;
+	    }
 
-            start = buf.getShort();
-            stop = buf.getShort();
-            bps = buf.get();
-            buf = ByteBuffer.allocate((stop-start)*bps);
-            b64buf = new byte[bps];
             try {
-                int r = m_input.read(buf,
-                                     m_elementIndex.get(index)+ELEMENT_HEADER_LEN);
-                if(r != (stop-start)*bps) {
-                    System.out.println("Read in " + r + "bytes, expected " + (stop-start)*bps);
-                    return null;
-                }
-
+                m_parser.parse(buf);
+            } catch (Exception ex) {
+                System.out.println("Could not read element " + index + " header:" + ex);
             }
-            catch(Exception e) {
-                // TODO: better log...
-                System.out.println("Failed reading element: " + e);
+
+            if(m_parser.getCurrentState() != DataPacketParser.PACKET_DATA) {
+                System.out.println("Read in non-element "+index+"! File changed?");
+            }
+
+            // allocate new buffer to read in amount of requested data
+            buf = ByteBuffer.allocate(m_parser.getNextReadSize());
+
+            try {
+                m_input.read(buf,m_elementIndex.get(index)+ELEMENT_HEADER_LEN);
+            } catch (Exception ex) {
+                System.out.println("Error while reading element" +index+ ": " + ex);
                 return null;
             }
 
-            buf.position(0); // reset buffer position so we are at the start of the element.
+            buf.position(0);
 
-            ret = new Element(start, stop);
-            for(int i = start; i < stop; i++) {
-                buf.get(b64buf);
-                byte[] decoded = BaseEncoding.base64().decode(new String(b64buf));
-                int t = Integer.parseInt(new String(decoded));
-                ret.setSample(i,t);
+            try {
+                if(!m_parser.parse(buf)) {
+                    System.out.println("Parser did not complete on "+index+"!");
+                }
+            } catch (Exception ex) {
+                System.out.println("Could not read " + index + " data:" + ex);
+            } finally {
             }
 
-            return ret;
+            return m_parser.getDecodedElement();
         }
     }
 

@@ -8,10 +8,12 @@ import java.io.IOException;
 
 import java.nio.ByteBuffer;
 public class DataPacketParser extends AbstractPacketParser {
-    final static int PACKET_START = 1;
-    final static int PACKET_END = 2;
-    final static int PACKET_BPP = 3;
-    final static int PACKET_DATA = 4;
+    public final static int PACKET_START = 1;
+    public final static int PACKET_END = 2;
+    public final static int PACKET_BPP = 3;
+    public final static int PACKET_DATA = 4;
+
+    static final boolean DEBUG = false;
 
     // Current packet decoding state
     int m_currState;
@@ -20,7 +22,7 @@ public class DataPacketParser extends AbstractPacketParser {
     int m_dataLength;
     int m_dataStart;
     int m_dataEnd;
-    int m_dataBpp;
+    byte m_dataBpp;
 
     // what sample we are currently setting
     int m_currIndex;
@@ -29,6 +31,7 @@ public class DataPacketParser extends AbstractPacketParser {
     // current sample attributes
     int m_currEncodedIndex;
     byte[] m_currSampleEncoded;
+    int m_encodedBufferSize;
 
     public DataPacketParser() {
         init();
@@ -46,35 +49,51 @@ public class DataPacketParser extends AbstractPacketParser {
         m_currSampleEncoded = null;
     }
 
-    public boolean hasPacketSize() {
-	if(m_)
+    // return how much we actually expect to read in the next batch.
+    public int getNextReadSize() {
+        if(m_currSampleEncoded != null) {
+            return m_currSampleEncoded.length - m_currEncodedIndex +1;
+        }
+        return 1;
+    }
+
+    public Element getDecodedElement() {
+        return m_currElement;
+    }
+
+    public int getCurrentState() {
+        return m_currState;
     }
 
     @Override
     public boolean parse(byte b) throws IOException {
+        if(DEBUG) System.out.println("Passed in: " + b);
+
         switch(m_currState) {
             // attempt to read
         case PACKET_START:
             if(m_dataStart == -1) {
-                m_dataStart = b;
+                m_dataStart = (b<<8);
             } else {
-                m_dataStart = (m_dataStart<<8) + b;
+                m_dataStart = m_dataStart + b;
                 m_currState = PACKET_END;
+                if(DEBUG) System.out.println("Packet starts at sample: " + m_dataStart);
             }
             break;
 
         case PACKET_END:
-            if(m_dataStart == -1) {
-                m_dataEnd = b;
+            if(m_dataEnd == -1) {
+                m_dataEnd = (b<<8);
             } else {
-                m_dataEnd = m_dataEnd + (b<<8);
+                m_dataEnd = m_dataEnd + b;
                 if(m_dataEnd < m_dataStart) {
-		    m_currState = PACKET_START;
+                    m_currState = PACKET_START;
                     throw new IOException("Element end value smaller than start value!");
                 }
                 m_currState = PACKET_BPP;
+                if(DEBUG)System.out.println("Packet ends at sample: " + m_dataEnd);
             }
-            m_currElement = new Element(m_dataStart,m_dataEnd);
+
             break;
 
         case PACKET_BPP:
@@ -85,37 +104,63 @@ public class DataPacketParser extends AbstractPacketParser {
             int inSize = m_dataLength + ((m_dataLength%3)!=0 ? (3-(m_dataLength%3)):0);
             int b64Size = (inSize/3)*4;
             m_currSampleEncoded = new byte[b64Size];
-
             m_currState = PACKET_DATA;
+            if(DEBUG)System.out.println("Packet contains " + m_dataBpp + " bytes per sample");
+
             break;
 
         case PACKET_DATA:
             if(m_currEncodedIndex < m_currSampleEncoded.length) {
-		m_currSampleEncoded[m_currEncodedIndex++] = b;
-	    } else {
-		// decode bytes, wrap in bytebuffer for decoding
-		byte[] decoded = BaseEncoding.base64().decode(new String(m_currSampleEncoded));
-		ByteBuffer buf = ByteBuffer.wrap(decoded);
+                if(DEBUG)System.out.println("Reading sample " +
+                                            (m_currEncodedIndex+1)+"out of"+
+                                            m_currSampleEncoded.length);
+                m_currSampleEncoded[m_currEncodedIndex++] = b;
+            }
+            // at final byte, decode.
+            if(m_currEncodedIndex == m_currSampleEncoded.length) {
+                if(DEBUG)System.out.println("Decoding: " + new String(m_currSampleEncoded));
 
-		while(buf.hasRemaining() && m_currIndex < m_dataLength) {
-		    switch(m_dataBpp) {
-		    case 1:
-			m_currElement.setSample(m_currIndex, buf.get());
-		    case 2:
-			m_currElement.setSample(m_currIndex, buf.getShort());
-		    case 4:
-			m_currElement.setSample(m_currIndex, buf.getInt());
-		    case 8:
-			m_currElement.setSample(m_currIndex, buf.getDouble());
-		    }
-		}
+                m_currElement = new Element(m_dataStart,m_dataEnd);
 
-		// reset state machine
-		init();
-		m_currState = PACKET_START;
-	    }
-	    break;
-	}
-	return false;
+                // decode bytes, wrap in bytebuffer for decoding
+                byte[] decoded = BaseEncoding.base64().decode(new String(m_currSampleEncoded));
+
+                ByteBuffer buf = ByteBuffer.wrap(decoded);
+
+                while(buf.hasRemaining() && m_currIndex < m_dataLength) {
+                    if(DEBUG)System.out.println("Setting element: "+ m_currIndex);
+
+                    switch(m_dataBpp) {
+                    case 1:
+                        m_currElement.setSample(m_currIndex++, buf.get());
+                        break;
+                    case 2:
+                        m_currElement.setSample(m_currIndex++, buf.getShort());
+                        break;
+                    case 4:
+                        m_currElement.setSample(m_currIndex++, buf.getInt());
+                        break;
+                    case 8:
+                        m_currElement.setSample(m_currIndex++, buf.getDouble());
+                        break;
+		    default:
+			System.out.println("WARNING: unknown bytes per pixel!");
+			break;
+                    }
+                }
+
+                System.out.println(m_currElement);
+
+
+                // reset state machine
+                init();
+                m_currState = PACKET_START;
+                System.out.println("DONE");
+
+                return true;
+            }
+            break;
+        }
+        return false;
     }
 }
