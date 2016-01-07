@@ -9,12 +9,14 @@ import base64
 
 def convertSample(line):
     # convert line to numbers
-    nl = [base64.standard_b64encode(bytes(int(x))) for x in
-          line.rstrip().split(",")]
+    tmp = array.array('h', [int(x) for x in line.rstrip().split(",")])
+    l = len(tmp)
+    tmp = ''.join([struct.pack(">H",int(x)) for x in tmp])
 
+    nl = base64.standard_b64encode(bytes(tmp))
 
     # find out header for line type,start,end,bytesPerSample
-    ret = ['\x00', '\x00\x00', struct.pack(">H",len(nl)), struct.pack("b",4)]
+    ret = ['\x00', '\x00\x00', struct.pack(">H",l), struct.pack("b",2)]
     # add data we have
     ret.extend(nl)
     return ''.join(ret)
