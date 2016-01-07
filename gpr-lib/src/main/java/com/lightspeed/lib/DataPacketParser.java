@@ -149,14 +149,9 @@ public class DataPacketParser extends AbstractPacketParser {
                     }
                 }
 
-                System.out.println(m_currElement);
-
-
                 // reset state machine
                 init();
                 m_currState = PACKET_START;
-                System.out.println("DONE");
-
                 return true;
             }
             break;
