@@ -118,7 +118,7 @@ public abstract class AbstractViewManager
 
         int xscroll = (int)(m_scrollAccumulatorX/m_pixelSize);
         if(xscroll != 0 && !getStartLock()) {
-            moveView(xscroll/2);
+	    moveView(xscroll/2);
             m_scrollAccumulatorX -= xscroll*m_pixelSize;
 
             if(m_renderer.get() != null) {

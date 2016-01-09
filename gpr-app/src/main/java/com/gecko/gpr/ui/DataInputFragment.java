@@ -67,15 +67,15 @@ public class DataInputFragment extends Fragment {
 
         ButterKnife.bind(this,ret);
 
-	// get back the previous spinner position, so that
-	// reinstantiating it does not cause a new fragment to be created.
-	if(savedInstanceState != null) {
-	    m_prevSpinnerPos = savedInstanceState.getInt(SPINNER_POS_SAVE,0);
-	} else {
-	    m_prevSpinnerPos = 0;
-	}
+        // get back the previous spinner position, so that
+        // reinstantiating it does not cause a new fragment to be created.
+        if(savedInstanceState != null) {
+            m_prevSpinnerPos = savedInstanceState.getInt(SPINNER_POS_SAVE,0);
+        } else {
+            m_prevSpinnerPos = 0;
+        }
 
-	setupInputUI(m_prevSpinnerPos);
+        setupInputUI(m_prevSpinnerPos);
 
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter =
@@ -94,11 +94,11 @@ public class DataInputFragment extends Fragment {
                                            View selectedItemView,
                                            int position,
                                            long id) {
-		    // if the selected position is the same as
-		    // previously selected, don't do anything.
+                    // if the selected position is the same as
+                    // previously selected, don't do anything.
                     if(m_prevSpinnerPos != position) {
-			// otherwise set the input interface to
-			// whatever is expected.
+                        // otherwise set the input interface to
+                        // whatever is expected.
                         Log.d("SPINNER","Input changed to: " + position);
                         setupInputUI(position);
                         m_prevSpinnerPos = position;
@@ -116,8 +116,8 @@ public class DataInputFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-	super.onSaveInstanceState(outState);
-	outState.putInt(SPINNER_POS_SAVE, m_prevSpinnerPos);
+        super.onSaveInstanceState(outState);
+        outState.putInt(SPINNER_POS_SAVE, m_prevSpinnerPos);
     }
 
     @Override
@@ -133,26 +133,30 @@ public class DataInputFragment extends Fragment {
             // what can we actually do now??
             return;
         }
-
+        Fragment tmpInput = null;
         switch(selection) {
         case 0: // should be bluetooth, is there a better way to do this?
-            m_inputInterfaceHandler.setInputInterface(new BluetoothInputFragment());
+            tmpInput = new BluetoothInputFragment();
             break;
+
         case 1: // should be file
-            m_inputInterfaceHandler.setInputInterface(new FileInputFragment());
+            tmpInput = new FileInputFragment();
             break;
+
         case 2: // should be random (for now...)
-            AbstractDataInput tin = new RandomDataInput();
-            tin.open();
+            RandomDataInput rin = new RandomDataInput();
+            rin.open();
             if(getActivity() != null) {
-                ((OnInputChangedListener)getActivity()).onInputChanged(tin);
+                ((OnInputChangedListener)getActivity()).onInputChanged(rin);
             }
             break;
+
         default:
             // wtf.
             break;
         }
+
+        m_inputInterfaceHandler.setInputInterface(tmpInput);
+
     }
-
-
 }

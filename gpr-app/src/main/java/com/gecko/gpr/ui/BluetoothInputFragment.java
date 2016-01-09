@@ -86,6 +86,7 @@ public class BluetoothInputFragment extends Fragment {
 
         // setup bluetooth when user presses connect?
         m_dataInput = new BluetoothDataInput(activity, m_stateListener);
+	m_inputCallback.onInputChanged(m_dataInput);
     }
 
     @Override

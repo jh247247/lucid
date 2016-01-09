@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void setInputInterface(Fragment f) {
+	if(f==null) return;
         Log.d("InputInterface","Adding...");
 
         FragmentManager fragmentManager = getSupportFragmentManager(); // why

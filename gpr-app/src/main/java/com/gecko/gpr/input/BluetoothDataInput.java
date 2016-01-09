@@ -1,9 +1,14 @@
 package com.gecko.gpr.input;
 
+import android.util.Log;
 import com.lightspeed.gpr.lib.AbstractDataInput;
+import com.lightspeed.gpr.lib.DataPacketParser;
 import com.lightspeed.gpr.lib.Element;
+import com.lightspeed.gpr.lib.PacketParser;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.lang.ref.SoftReference;
 import java.lang.Math;
@@ -21,8 +26,14 @@ import io.palaima.smoothbluetooth.Device;
 public class BluetoothDataInput
     extends AbstractDataInput {
 
+    private static String TAG = "BluetoothDataInput";
+
     private SmoothBluetooth m_bt;
     private WeakReference<StateListener> m_stateListener;
+    private PacketParser m_parser = new PacketParser();
+
+    private HashMap<Integer,Element> m_prevElementCache = new HashMap<Integer,Element>();
+    private int m_currIndex = 0;
 
     // TODO: write to file
     // TODO: Actually connect to bluetooth device
@@ -41,15 +52,15 @@ public class BluetoothDataInput
     }
 
     public int getCurrentIndex() {
-        return 0; // TODO:
+        return m_currIndex; // TODO:
     }
 
     public ListenableFuture<Element> getElement(int index) {
-        return null;
+	return null;
     }
 
     public boolean open() {
-	m_bt.disconnect();
+        m_bt.disconnect();
         m_bt.doDiscovery();
         return true;
     }
@@ -100,7 +111,7 @@ public class BluetoothDataInput
             @Override
             public void onConnected(Device device) {
                 //called when connected to particular device
-		StateListener sl = m_stateListener.get();
+                StateListener sl = m_stateListener.get();
 
                 if(sl != null) {
                     sl.stopConnect();
@@ -120,7 +131,7 @@ public class BluetoothDataInput
 
             @Override
             public void onDiscoveryStarted() {
-		//called when discovery is started
+                //called when discovery is started
                 StateListener sl = m_stateListener.get();
 
                 if(sl != null) {
@@ -131,7 +142,7 @@ public class BluetoothDataInput
 
             @Override
             public void onDiscoveryFinished() {
-		//called when discovery is finished
+                //called when discovery is finished
                 StateListener sl = m_stateListener.get();
 
                 if(sl != null) {
@@ -156,16 +167,25 @@ public class BluetoothDataInput
                 StateListener sl = m_stateListener.get();
 
                 if(sl == null) {
-		    return;
+                    return;
                 }
 
-		// this may be blocking... another thread?
-		sl.selectDevice(deviceList,connectionCallback);
+                // this may be blocking... another thread?
+                sl.selectDevice(deviceList,connectionCallback);
             }
 
             @Override
             public void onDataReceived(int data) {
                 //receives all bytes
+                try {
+                    if(m_parser.parse((byte)data) && m_elementListener != null) {
+			m_elementListener.onNewElement(m_parser.getDataPacketParser().getDecodedElement(),
+						       m_currIndex++);
+		    }
+                } catch (IOException ex) {
+                } finally {
+                }
+
             }
         };
 }

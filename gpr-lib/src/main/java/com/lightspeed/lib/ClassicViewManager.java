@@ -8,6 +8,7 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.util.concurrent.SettableFuture;
 
 
 import java.util.List;
@@ -133,19 +134,26 @@ public class ClassicViewManager
 
     @Override
     public void onNewElement(Element e, int i) {
+	System.out.println("Received element of index: " + i);
+
+	SettableFuture<Element> se = SettableFuture.create();
+	se.set(e);
+	m_elementCache.put(new Integer(i),se);
+
         if(m_startLock) {
             m_viewIndex = Math.max(i-m_viewWidth,0);
         }
 
         // check if view needs renewing
         try {
-            if(m_currentView.get(0) != m_elementCache.get(m_viewIndex)) {
-                renewView();
-            }
+	    renewView();
         }
         catch(Exception ex) {
             System.out.println("Error checking view: " + ex);
         }
+	if(m_renderer.get() != null) {
+	    m_renderer.get().render();
+	}
 
     }
 
