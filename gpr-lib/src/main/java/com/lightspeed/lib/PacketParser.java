@@ -10,7 +10,7 @@ public class PacketParser extends AbstractPacketParser {
     int m_currPacketType = -1;
 
     // FIXME: This may not be scalable...
-    AbstractPacketParser[] m_parsers = {new DataPacketParser()};
+    AbstractPacketParser[] m_parsers = {new DataPacketParser(), new TimePacketParser()};
 
     public int getCurrentPacketType() {
         return m_currPacketType;

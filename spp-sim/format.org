@@ -27,11 +27,6 @@
 
 ** Timestamp
    - Header is one byte (0x01)
-   - next 2 bytes should define year
-   - next byte should define month
-   - next byte should define day
-   - next byte should define hour
-   - next byte should define minute
-   - next byte should define second
+   - next 8 bytes should define unix timestamp
 
    | Type | year | month | day | hour | minute | second |

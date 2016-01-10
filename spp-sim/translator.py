@@ -5,6 +5,8 @@ import math
 import struct
 import array
 import base64
+import datetime
+import time
 
 
 def convertSample(line):
@@ -23,9 +25,9 @@ def convertSample(line):
 
 def convertTimeStamp(line):
     nl = line.rstrip()[-8:].split(":")
-    nl = [struct.pack("b",int(x)) for x in nl]
-    ret = ['\x01', struct.pack(">H",2013), '\x00', '\x00']
-    ret.extend(nl)
+    nl = [int(x) for x in nl]
+    timestamp = time.mktime(datetime.datetime(2013,2,9,nl[0],nl[1],nl[2]).timetuple())
+    ret = ['\x01', struct.pack(">q",long(timestamp))]
     # format should now be type,y,m,d,h,m,s
 
     return ''.join(ret)
