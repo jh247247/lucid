@@ -13,7 +13,7 @@ public class DataPacketParser extends AbstractPacketParser {
     public final static int PACKET_BPP = 3;
     public final static int PACKET_DATA = 4;
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     // Current packet decoding state
     int m_currState;

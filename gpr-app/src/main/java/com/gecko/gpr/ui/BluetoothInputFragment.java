@@ -40,8 +40,6 @@ import android.content.DialogInterface;
 import butterknife.ButterKnife;
 import butterknife.Bind;
 
-import io.palaima.smoothbluetooth.SmoothBluetooth;
-
 import com.google.common.util.concurrent.ListenableFuture;
 
 import android.content.DialogInterface;
@@ -54,7 +52,8 @@ import com.afollestad.materialdialogs.simplelist.MaterialSimpleListAdapter;
 import com.afollestad.materialdialogs.simplelist.MaterialSimpleListItem;
 import com.afollestad.materialdialogs.util.DialogUtils;
 
-import io.palaima.smoothbluetooth.Device;
+import com.gecko.gpr.bluetooth.BluetoothHandler;
+import com.gecko.gpr.bluetooth.Device;
 import com.gecko.gpr.input.BluetoothDataInput;
 
 
@@ -153,7 +152,7 @@ public class BluetoothInputFragment extends Fragment {
             }
 
             public void selectDevice(final List<Device> dl,
-				     final SmoothBluetooth.ConnectionCallback connectionCallback) {
+				     final BluetoothHandler.ConnectionCallback connectionCallback) {
                 Device[] da = dl.toArray(new Device[dl.size()]);
                 String[] dn = new String[da.length];
                 for(int i = 0; i < da.length; i++) {

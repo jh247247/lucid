@@ -7,6 +7,7 @@ import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.PacketParser;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,15 +21,15 @@ import android.app.Activity;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
-import io.palaima.smoothbluetooth.SmoothBluetooth;
-import io.palaima.smoothbluetooth.Device;
+import com.gecko.gpr.bluetooth.BluetoothHandler;
+import com.gecko.gpr.bluetooth.Device;
 
 public class BluetoothDataInput
     extends AbstractDataInput {
 
     private static String TAG = "BluetoothDataInput";
 
-    private SmoothBluetooth m_bt;
+    private BluetoothHandler m_bt;
     private WeakReference<StateListener> m_stateListener;
     private PacketParser m_parser = new PacketParser();
 
@@ -39,7 +40,7 @@ public class BluetoothDataInput
     // TODO: Actually connect to bluetooth device
 
     public BluetoothDataInput(Activity act) {
-        m_bt = new SmoothBluetooth(act.getApplicationContext(),m_listener);
+        m_bt = new BluetoothHandler(act.getApplicationContext(),m_listener);
     }
 
     public BluetoothDataInput(Activity act, StateListener sl) {
@@ -56,7 +57,7 @@ public class BluetoothDataInput
     }
 
     public ListenableFuture<Element> getElement(int index) {
-	return null;
+        return null;
     }
 
     public boolean open() {
@@ -84,10 +85,10 @@ public class BluetoothDataInput
         public void startConnect();
         public void stopConnect();
 
-        public void selectDevice(final List<Device> dl, final SmoothBluetooth.ConnectionCallback connectionCallback);
+        public void selectDevice(final List<Device> dl, final BluetoothHandler.ConnectionCallback connectionCallback);
     }
 
-    private SmoothBluetooth.Listener m_listener = new SmoothBluetooth.Listener() {
+    private BluetoothHandler.Listener m_listener = new BluetoothHandler.Listener() {
             @Override
             public void onBluetoothNotSupported() {
                 //device does not support bluetooth
@@ -158,7 +159,7 @@ public class BluetoothDataInput
 
             @Override
             public void onDevicesFound(final List<Device> deviceList,
-                                       final SmoothBluetooth.ConnectionCallback connectionCallback) {
+                                       final BluetoothHandler.ConnectionCallback connectionCallback) {
 
                 //receives discovered devices list and connection callback
                 //you can filter devices list and connect to specific one
@@ -175,13 +176,16 @@ public class BluetoothDataInput
             }
 
             @Override
-            public void onDataReceived(int data) {
+            public void onDataReceived(ByteBuffer data) {
+                Log.d(TAG,"Received: " + data);
                 //receives all bytes
                 try {
-                    if(m_parser.parse((byte)data) && m_elementListener != null) {
-			m_elementListener.onNewElement(m_parser.getDataPacketParser().getDecodedElement(),
-						       m_currIndex++);
-		    }
+                    while(data.hasRemaining()) {
+                        if(m_parser.parse(data) && m_elementListener != null) {
+                            m_elementListener.onNewElement(m_parser.getDataPacketParser().getDecodedElement(),
+                                                           m_currIndex++);
+                        }
+                    }
                 } catch (IOException ex) {
                 } finally {
                 }
