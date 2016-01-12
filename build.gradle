@@ -11,9 +11,15 @@ buildscript {
   dependencies {
     classpath 'com.android.tools.build:gradle:1.5.0'
     classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    classpath 'me.tatarka:gradle-retrolambda:3.2.4'
   }
+}
+
+repositories {
+  mavenCentral()
 }
 
 allprojects {
     buildDir = "/tmp/${rootProject.name}/${project.name}"
+    apply plugin: 'me.tatarka.retrolambda'
 }

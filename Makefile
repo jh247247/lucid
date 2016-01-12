@@ -2,6 +2,8 @@
 
 .DEFAULT_GOAL := install
 
+export JAVA8_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
 
 EMULATOR := /opt/android/sdk/tools/emulator
 AVD-DEVICE := Marshmallow-dev
