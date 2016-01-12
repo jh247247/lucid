@@ -11,8 +11,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 public class ThreadPoolHandler {
     static ListeningExecutorService m_executor =
-        MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(4,
-                                                                      new LowPriorityThreadFactory()));
+        MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(4,new LowPriorityThreadFactory()));
 
     //static ListeningExecutorService m_executor =
     //  MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
@@ -28,5 +27,9 @@ public class ThreadPoolHandler {
 
     public static <T> ListenableFuture<T> submit(Callable<T> c) {
         return m_executor.submit(c);
+    }
+
+    public static ListenableFuture<?> submit(Runnable t) {
+	return m_executor.submit(t);
     }
 }

@@ -45,7 +45,7 @@ public abstract class AbstractViewManager
         m_viewWidth = 1; // magic numbers get fixed later on.
         m_viewHeight = 1;
         m_pixelSize = 1;
-        m_startLock = false;
+        m_startLock = true;
         m_input = null;
 
         // register on the eventbus...

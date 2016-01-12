@@ -177,6 +177,7 @@ public class RenderView extends SurfaceView
 
         // detect finger up for idle
         if(!handled && event.getAction() == 1) { // on up
+	    Log.d(LOGTAG, "Finger lifted, sending surface idle event...");
             AbstractRenderer.SurfaceIdleStartEvent ie =
 		new AbstractRenderer.SurfaceIdleStartEvent();
 	    m_bus.post(ie);

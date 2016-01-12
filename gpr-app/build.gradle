@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
 apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'com.getkeepsafe.dexcount'
 
 
 def gitSha = 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim()
@@ -55,7 +56,7 @@ buildscript {
   }
   dependencies {
     classpath 'com.novoda:gradle-android-command-plugin:1.4.0'
-
+    classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.3.1'
   }
 }
 
@@ -93,58 +94,62 @@ dependencies {
   debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3.1'
   releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.3.1'
 
+  compile 'com.annimon:stream:1.0.5'
+
+  compile 'io.reactivex:rxandroid:1.1.0'
+
+  compile 'io.reactivex:rxjava:1.1.0'
+
   compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
-allprojects {
-  configurations {
-    umljavadoc
-  }
+configurations {
+  umljavadoc
+}
 
-  dependencies {
-    umljavadoc 'org.umlgraph:umlgraph:5.6'
-  }
+dependencies {
+  umljavadoc 'org.umlgraph:umlgraph:5.6'
+}
 
-  //
-  // While javadoc is not typically dependent on compilation, the compile steps
-  // sometimes generate some sources that we wish to have in the Javadoc.
-  //
-  task javadoc(overwrite: true, dependsOn: build) {
-    setDescription('Generates Javadoc API documentation with UMLGraph diagrams')
-    setGroup(JavaBasePlugin.DOCUMENTATION_GROUP)
+//
+// While javadoc is not typically dependent on compilation, the compile steps
+// sometimes generate some sources that we wish to have in the Javadoc.
+//
+task javadoc(overwrite: true, dependsOn: build) {
+  setDescription('Generates Javadoc API documentation with UMLGraph diagrams')
+  setGroup(JavaBasePlugin.DOCUMENTATION_GROUP)
 
-    doLast {
-      def javaFilePath = file('src/main/java')
-      if (javaFilePath.exists())
-              {
-                ant.javadoc(classpath: "/opt/android/sdk/platforms/android-23/android.jar",
-                sourcepath: file('src/main/java'),
-                packagenames: '*',
-                destdir: "../javadoc",
-                            private: 'true',
-                docletpath: configurations.umljavadoc.asPath,
-                charset: 'UTF-8',
-                encoding: 'UTF-8',
-                docencoding: 'UTF-8') {
-                  doclet(name: 'org.umlgraph.doclet.UmlGraphDoc')
-                  {
-                    param(name: '-nodefontsize', value: '9')
-                    param(name: '-nodefontpackagesize', value: '7')
-                    param(name: '-qualify')
-                    param(name: '-postfixpackage')
-                    param(name: '-hide', value: 'java.*')
-                    param(name: '-collpackages', value: 'java.util.*')
-                    param(name: '-inferrel')
-                    param(name: '-inferdep')
-                    param(name: '-link', value: 'http://java.sun.com/j2se/1.5.0/docs/guide/javadoc/doclet/spec')
-                    param(name: '-link', value: 'http://java.sun.com/j2se/1.5/docs/api')
-                  }
-                }
-              }
-              else
-              {
-                print("!!! Cannot find source path !!!");
-              }
-    }
+  doLast {
+    def javaFilePath = file('src/main/java')
+    if (javaFilePath.exists())
+                    {
+                      ant.javadoc(classpath: "/opt/android/sdk/platforms/android-23/android.jar",
+                      sourcepath: file('src/main/java'),
+                      packagenames: '*',
+                      destdir: "../javadoc",
+                                  private: 'true',
+                      docletpath: configurations.umljavadoc.asPath,
+                      charset: 'UTF-8',
+                      encoding: 'UTF-8',
+                      docencoding: 'UTF-8') {
+                        doclet(name: 'org.umlgraph.doclet.UmlGraphDoc')
+                        {
+                          param(name: '-nodefontsize', value: '9')
+                          param(name: '-nodefontpackagesize', value: '7')
+                          param(name: '-qualify')
+                          param(name: '-postfixpackage')
+                          param(name: '-hide', value: 'java.*')
+                          param(name: '-collpackages', value: 'java.util.*')
+                          param(name: '-inferrel')
+                          param(name: '-inferdep')
+                          param(name: '-link', value: 'http://java.sun.com/j2se/1.5.0/docs/guide/javadoc/doclet/spec')
+                          param(name: '-link', value: 'http://java.sun.com/j2se/1.5/docs/api')
+                        }
+                      }
+                    }
+                    else
+                    {
+                      print("!!! Cannot find source path !!!");
+                    }
   }
 }

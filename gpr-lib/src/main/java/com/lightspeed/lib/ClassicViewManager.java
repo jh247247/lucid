@@ -1,5 +1,8 @@
 package com.lightspeed.gpr.lib;
 
+import com.annimon.stream.Collectors;
+import com.annimon.stream.Exceptional;
+import com.annimon.stream.Stream;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -10,6 +13,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.SettableFuture;
 
+import java.io.IOException;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -42,7 +46,7 @@ public class ClassicViewManager
     // should aim for 1x1mm pixels?
     private int m_viewDpi;
 
-    private ArrayList<ListenableFuture<Element>> m_currentView = new ArrayList();
+    private List<ListenableFuture<Element>> m_currentView = new ArrayList();
 
     LoadingCache<Integer, ListenableFuture<Element>> m_elementCache =
         CacheBuilder.newBuilder()
@@ -50,11 +54,11 @@ public class ClassicViewManager
         .concurrencyLevel(1)
         .build(new CacheLoader<Integer, ListenableFuture<Element>>() {
                 @Override
-                public ListenableFuture<Element> load(Integer index) {
+                public ListenableFuture<Element> load(Integer index) throws IOException {
                     if(m_input != null) {
                         return m_input.getElement(index);
                     }
-                    return null; // need to do something smarter...
+		    throw new IOException();
                 }
             }
             );
@@ -129,16 +133,15 @@ public class ClassicViewManager
         if(m_renderer.get() != null) {
             m_renderer.get().render();
         }
-        //refreshElementCache();
     }
 
     @Override
     public void onNewElement(Element e, int i) {
-	System.out.println("Received element of index: " + i);
+        System.out.println("Received element of index: " + i);
 
-	SettableFuture<Element> se = SettableFuture.create();
-	se.set(e);
-	m_elementCache.put(new Integer(i),se);
+        SettableFuture<Element> se = SettableFuture.create();
+        se.set(e);
+        m_elementCache.put(new Integer(i),se);
 
         if(m_startLock) {
             m_viewIndex = Math.max(i-m_viewWidth,0);
@@ -146,14 +149,14 @@ public class ClassicViewManager
 
         // check if view needs renewing
         try {
-	    renewView();
+            renewView();
         }
         catch(Exception ex) {
             System.out.println("Error checking view: " + ex);
         }
-	if(m_renderer.get() != null) {
-	    m_renderer.get().render();
-	}
+        if(m_renderer.get() != null) {
+            m_renderer.get().render();
+        }
 
     }
 
@@ -166,7 +169,11 @@ public class ClassicViewManager
     @Override
     public void surfaceScroll(AbstractRenderer.SurfaceScrolledEvent e) {
         super.surfaceScroll(e);
+
+        // check if we are at the start of the data, enable start lock, else disable.
+        m_startLock = (m_viewIndex == Math.max(0,m_input.getCurrentIndex()-m_viewWidth));
     }
+
 
     @Override
     public void surfaceChanged(AbstractRenderer.SurfaceChangedEvent e) {
@@ -176,7 +183,7 @@ public class ClassicViewManager
 
     @Subscribe
     public void surfaceIdle(AbstractRenderer.SurfaceIdleStartEvent e) {
-	precache();
+        precache();
     }
 
     /////////////////////
@@ -184,39 +191,28 @@ public class ClassicViewManager
     /////////////////////
 
     private void renewView() {
-        m_currentView = new ArrayList();
-        for(int i = m_viewIndex; i < m_viewIndex+m_viewWidth; i++) {
-            try {
-                m_currentView.add(m_elementCache.get(i));
-            }
-            catch(Exception e) {
-                System.out.println("Error populating view: " + e);
-            }
-        }
+	if(m_input == null) return; // FIXME:
+
+	precache();
+
+        m_currentView = Stream.ofRange(m_viewIndex, m_viewIndex+m_viewWidth)
+	    .map((i) -> m_elementCache.getUnchecked(i))
+	    .collect(Collectors.toList());
     }
 
     private void precache() {
-        Callable c = new Callable<Void>() {
-                ArrayList<ListenableFuture<Element>> tcache = new ArrayList();
+	if(m_input == null)  return;
 
-                @Override
-                public Void call() {
-                    // todo: test if in cache already?
-                    for(int i = 0; i < m_viewWidth; i++) {
-                        try {
-                            tcache.add(m_elementCache.get(m_viewIndex-i));
-                            tcache.add(m_elementCache.get(m_viewIndex+m_viewWidth+i));
-                        }
-                        catch(Exception e) {
-                            // todo...
-                        }
-                    }
-                    if(m_renderer.get() != null) {
-                        m_renderer.get().cache(tcache);
-                    }
-                    return null;
-                }
-            };
-        ThreadPoolHandler.submit(c);
+	ArrayList<ListenableFuture<Element>> tcache = new ArrayList();
+
+        // todo: test if in cache already?
+        Stream.ofRange(m_viewIndex-m_viewWidth,
+                       m_viewIndex+m_viewWidth*2)
+	    .filter((i) -> m_elementCache.getIfPresent(i) == null)
+            .forEach((i) -> tcache.add(m_elementCache.getUnchecked(i)));
+
+        if(m_renderer.get() != null) {
+            m_renderer.get().cache(tcache);
+        }
     }
 }
