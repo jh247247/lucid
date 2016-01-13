@@ -1,9 +1,13 @@
 package com.lightspeed.gpr.lib;
 
+import com.annimon.stream.Stream;
+import com.google.common.primitives.Doubles;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.lang.UnsupportedOperationException;
 
+import java.lang.Double;
+import java.util.Arrays;
 public class Element implements Iterable<Double>, Cloneable {
     /**
      * Keep track of the amount of samples in this element
@@ -103,7 +107,7 @@ public class Element implements Iterable<Double>, Cloneable {
     }
 
     public void setSample(int index, double sample)
-        throws NoSuchElementException{
+        throws NoSuchElementException {
         if(index < m_sampleStart || index > m_sampleStop) {
 	    throw new NoSuchElementException();
         }
@@ -116,5 +120,9 @@ public class Element implements Iterable<Double>, Cloneable {
             ret.setSample(i,m_samples[i-m_sampleStart]);
         }
         return ret;
+    }
+
+    public Stream<Double> stream() {
+	return Stream.of(Doubles.asList(m_samples));
     }
 }
