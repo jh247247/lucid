@@ -3,15 +3,12 @@ package com.lightspeed.gpr.lib;
 import com.annimon.stream.Collectors;
 import com.annimon.stream.Exceptional;
 import com.annimon.stream.Stream;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Range;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.ContiguousSet;
+
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.SettableFuture;
+import com.google.common.eventbus.Subscribe;
+import com.google.common.base.Preconditions;
+
 
 import java.io.IOException;
 
@@ -27,6 +24,9 @@ import java.util.concurrent.Callable;
 
 import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.EventBusHandler;
+import com.lightspeed.gpr.lib.cache.LoadingCache;
+import com.lightspeed.gpr.lib.cache.LoadingCache.CacheLoader;
+
 
 /**
  * This file implements a platform agnostic view manager for the data given
@@ -49,21 +49,15 @@ public class ClassicViewManager
     private List<ListenableFuture<Element>> m_currentView = new ArrayList();
 
     LoadingCache<Integer, ListenableFuture<Element>> m_elementCache =
-        CacheBuilder.newBuilder()
-        .maximumSize(CACHE_SIZE)
-        .concurrencyLevel(1)
-        .build(new CacheLoader<Integer, ListenableFuture<Element>>() {
-                @Override
-                public ListenableFuture<Element> load(Integer index) throws IOException {
-                    if(m_input != null) {
-                        return m_input.getElement(index);
-                    }
-		    throw new IOException();
-                }
-            }
-            );
-
-
+	new LoadingCache(CACHE_SIZE, new CacheLoader<Integer, ListenableFuture<Element>>() {
+		@Override
+		public ListenableFuture<Element> load(Integer i) {
+		    if(m_input != null) {
+			return m_input.getElement(i);
+		    }
+		    return null; // what to do???
+		}
+	    });
 
     public ClassicViewManager() {
         super();
@@ -82,30 +76,30 @@ public class ClassicViewManager
 
     // move the view by some amount
     public void moveView(int amount) {
+	Preconditions.checkNotNull(m_input);
+
         amount = Math.max(amount, -m_viewIndex); // amount to move left
         amount = Math.min(amount, // amount to move right
                           m_input.getCurrentIndex()-(m_viewIndex+m_viewWidth));
 
         goToIndex(m_viewIndex + amount);
 
-        try {
-            if(Math.abs(amount) < m_viewWidth) { // moving less than one screen
-                for(int i = 0; i < Math.abs(amount); i++) {
-                    if(amount > 0) { // moving right
-                        m_currentView.remove(0);
-                        // add new element to rhs
-                        m_currentView.add(m_elementCache.get(m_viewIndex+m_viewWidth-amount+i));
-                    } else {
-                        m_currentView.remove(m_currentView.size()-1);
-                        m_currentView.add(0,m_elementCache.get(m_viewIndex-amount-i));
-                    }
-                }
-            } else {
-                renewView();
+        if(Math.abs(amount) < m_viewWidth) { // moving less than one screen
+            if(amount > 0) {
+                m_currentView = m_currentView.subList(amount, m_currentView.size());
+                m_currentView.addAll(Stream.ofRange(m_viewIndex+m_viewWidth-amount, m_viewIndex+m_viewWidth)
+                                     .map((i) -> m_elementCache.get(i))
+                                     .collect(Collectors.toList()));
+            } else if(amount < 0) {
+                m_currentView = m_currentView.subList(0, m_currentView.size()+amount);
+                m_currentView.addAll(0, Stream.ofRange(m_viewIndex, m_viewIndex-amount)
+                                     .map((i) -> m_elementCache.get(i))
+                                     .collect(Collectors.toList()));
+
             }
-        }
-        catch(Exception e){
-            // TODO:
+        } else {
+	    // just recreate the view, can't salvage anything from current view.
+            renewView();
         }
     }
 
@@ -128,7 +122,7 @@ public class ClassicViewManager
         super.setInput(in);
 
         // clear the cache since we are changing inputs, they are useless.
-        m_elementCache.invalidateAll();
+        m_elementCache.clear();
         renewView();
         if(m_renderer.get() != null) {
             m_renderer.get().render();
@@ -191,25 +185,25 @@ public class ClassicViewManager
     /////////////////////
 
     private void renewView() {
-	if(m_input == null) return; // FIXME:
+        if(m_input == null) return; // FIXME:
 
-	precache();
+        precache();
 
         m_currentView = Stream.ofRange(m_viewIndex, m_viewIndex+m_viewWidth)
-	    .map((i) -> m_elementCache.getUnchecked(i))
-	    .collect(Collectors.toList());
+            .map((i) -> m_elementCache.get(i))
+            .collect(Collectors.toList());
     }
 
     private void precache() {
-	if(m_input == null)  return;
+        if(m_input == null)  return;
 
-	ArrayList<ListenableFuture<Element>> tcache = new ArrayList();
+        ArrayList<ListenableFuture<Element>> tcache = new ArrayList();
 
         // todo: test if in cache already?
         Stream.ofRange(m_viewIndex-m_viewWidth,
                        m_viewIndex+m_viewWidth*2)
-	    .filter((i) -> m_elementCache.getIfPresent(i) == null)
-            .forEach((i) -> tcache.add(m_elementCache.getUnchecked(i)));
+            .filter((i) -> m_elementCache.containsKey(i))
+            .forEach((i) -> tcache.add(m_elementCache.get(i)));
 
         if(m_renderer.get() != null) {
             m_renderer.get().cache(tcache);
