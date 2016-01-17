@@ -66,6 +66,35 @@ public class DataPacketParser extends AbstractPacketParser {
         return m_currState;
     }
 
+    // this method assumes that we are at the start of the packet, just after the type byte.
+    // what do we do if we aren't???
+    @Override
+    public boolean parse(ByteBuffer buf) throws IOException {
+        m_dataStart = buf.getShort();
+        m_dataEnd = buf.getShort();
+        m_dataBpp = buf.get();
+
+	if(DEBUG){
+	    System.out.println("Start: " + m_dataStart);
+	    System.out.println("End: " + m_dataEnd);
+	    System.out.println("Bpp: " + m_dataBpp);
+	}
+
+        m_dataLength = (m_dataEnd-m_dataStart)*m_dataBpp;
+	int inSize = m_dataLength + ((m_dataLength%3)!=0 ? (3-(m_dataLength%3)):0);
+	int b64Size = (inSize/3)*4;
+        m_currSampleEncoded = new byte[b64Size];
+	if(DEBUG) System.out.println("Packet size: " + m_currSampleEncoded.length);
+
+	buf.get(m_currSampleEncoded);
+        byte[] decoded = Base64.decode(m_currSampleEncoded);
+        digestBuffer(ByteBuffer.wrap(decoded));
+
+        init();
+        m_currState = PACKET_START;
+        return true;
+    }
+
     @Override
     public boolean parse(byte b) throws IOException {
         if(DEBUG) System.out.println("Passed in: " + b);
@@ -121,34 +150,11 @@ public class DataPacketParser extends AbstractPacketParser {
             if(m_currEncodedIndex == m_currSampleEncoded.length) {
                 if(DEBUG)System.out.println("Decoding: " + new String(m_currSampleEncoded));
 
-                m_currElement = new Element(m_dataStart,m_dataEnd);
-
                 // decode bytes, wrap in bytebuffer for decoding
                 byte[] decoded = Base64.decode(m_currSampleEncoded);
                 ByteBuffer buf = ByteBuffer.wrap(decoded);
 
-                while(buf.hasRemaining() && m_currIndex < m_dataLength) {
-                    if(DEBUG)System.out.println("Setting element: "+ m_currIndex);
-
-                    switch(m_dataBpp) {
-                    case 1:
-                        m_currElement.setSample(m_currIndex++, buf.get());
-                        break;
-                    case 2:
-                        m_currElement.setSample(m_currIndex++, buf.getShort());
-                        break;
-                    case 4:
-                        m_currElement.setSample(m_currIndex++, buf.getInt());
-                        break;
-                    case 8:
-                        m_currElement.setSample(m_currIndex++, (int)buf.getDouble());
-                        break;
-		    default:
-			System.out.println("WARNING: unknown bytes per pixel!");
-			break;
-                    }
-                }
-
+                digestBuffer(buf);
                 // reset state machine
                 init();
                 m_currState = PACKET_START;
@@ -157,5 +163,32 @@ public class DataPacketParser extends AbstractPacketParser {
             break;
         }
         return false;
+    }
+
+    private void digestBuffer(ByteBuffer buf) {
+	m_currElement = new Element(m_dataStart,m_dataEnd);
+
+        while(buf.hasRemaining() && m_currIndex < m_dataLength) {
+            if(DEBUG)System.out.println("Setting element: "+ m_currIndex);
+
+            switch(m_dataBpp) {
+            case 1:
+                m_currElement.setSample(m_currIndex++, buf.get());
+                break;
+            case 2:
+                m_currElement.setSample(m_currIndex++, buf.getShort());
+                break;
+            case 4:
+                m_currElement.setSample(m_currIndex++, buf.getInt());
+                break;
+            case 8:
+                m_currElement.setSample(m_currIndex++, (int)buf.getDouble());
+                break;
+            default:
+                System.out.println("WARNING: unknown bytes per pixel!");
+                break;
+            }
+        }
+
     }
 }
