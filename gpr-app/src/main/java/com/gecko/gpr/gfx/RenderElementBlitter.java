@@ -1,5 +1,9 @@
 package com.gecko.gpr.gfx;
 
+import com.annimon.stream.Collectors;
+import com.annimon.stream.Stream;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.lightspeed.gpr.lib.Element;
 import com.lightspeed.gpr.lib.AbstractViewManager;
 import com.lightspeed.gpr.lib.AbstractRenderer;
@@ -157,9 +161,7 @@ public class RenderElementBlitter extends AbstractRenderer {
 
 
     public void blitToCanvas(Canvas c) {
-        if(c == null) {
-            return; // wtf...
-        }
+        Preconditions.checkNotNull(c);
 
         // if elements are empty, might as well clear all the pixels...
         if(m_viewManager == null) {
@@ -177,33 +179,36 @@ public class RenderElementBlitter extends AbstractRenderer {
 
         // create tmp bitmap to render to
         Future<Bitmap> fbm = null;
-        ListenableFuture<RenderElement> re = null;
-        List<ListenableFuture<Element>> data = m_viewManager.getView();
+        List<RenderElement> data = Stream.of(m_viewManager.getView())
+            .map((e) -> {
+                    if(e.isDone()) {
+                        ListenableFuture<RenderElement> re = m_renderElementCache.getUnchecked(e);
+                        if(re.isDone()) {
+                            try {
+                                return re.get();
+                            }
+                            catch(Exception ex){}
+                        }
+                    }
+                    return null;
+                })
+            .collect(Collectors.toList());
 
         Log.d("RenderElementBlitter", "Rendering " + data.size() +
               " elements!");
-
-        for(int i = data.size()-1; i >= 0; i--) {
-            // check if element is actually loaded, if not, skip.
-
-            re = m_renderElementCache.getUnchecked(data.get(i));
-            if(re == null || !re.isDone()) continue;
-            try {
-                if(re.get().isRendered()) {
-                    m_cbm.drawBitmap(re.get().getRenderedElement(),
-                                     m_cbm.getWidth()-data.size()+i-1, 0, null);
-                } else {
-                    m_cbm.drawRect(m_cbm.getWidth()-data.size()+i-1,
-                                   0,
-                                   m_cbm.getWidth()-data.size()+i,
-                                   m_cbm.getHeight(),
-                                   m_paint);
-                }
+        int index = 0;
+        for(RenderElement re : data) {
+            index++;
+            if(re != null && re.isRendered()) {
+                m_cbm.drawBitmap(re.getRenderedElement(),
+                                 m_cbm.getWidth()-data.size()+index-1, 0, null);
+            } else {
+                m_cbm.drawRect(m_cbm.getWidth()-data.size()+index-1,
+                               0,
+                               m_cbm.getWidth()-data.size()+index,
+                               m_cbm.getHeight(),
+                               m_paint);
             }
-            catch (Exception ex){
-                Log.e("RenderElementBlitter","Error while rendering: " + ex);
-            }
-
         }
 
         Log.d("RenderElementBlitter",m_bm.getWidth() + " x " + m_bm.getHeight());
