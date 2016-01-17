@@ -202,8 +202,9 @@ public class ClassicViewManager
         // todo: test if in cache already?
         Stream.ofRange(m_viewIndex-m_viewWidth,
                        m_viewIndex+m_viewWidth*2)
-            .filter((i) -> m_elementCache.containsKey(i))
-            .forEach((i) -> tcache.add(m_elementCache.get(i)));
+            .forEach((i) -> {tcache.add(m_elementCache.get(i));
+		System.out.println("Caching element: " + i);
+		});
 
         if(m_renderer.get() != null) {
             m_renderer.get().cache(tcache);
