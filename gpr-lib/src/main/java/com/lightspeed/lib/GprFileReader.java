@@ -64,7 +64,6 @@ public class GprFileReader extends AbstractDataInput {
                          FileIndexProgressListener p) {
         m_file = f;
         m_fileIndexer = new GprFileIndexer(p);
-        open();
     }
 
     @Override
@@ -286,10 +285,7 @@ public class GprFileReader extends AbstractDataInput {
                         break;
                     default:
                         // idk what this is, skip until we find a valid thing.
-                        System.out.println("Invalid type byte read: " + Integer.toHexString(type));
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ignore) { }
+                        System.out.println("Invalid type byte read: " + Integer.toHexString(type) + " (" +type+")");
                         break;
                     }
                     if(m_progressListener.get() != null &&
@@ -310,6 +306,7 @@ public class GprFileReader extends AbstractDataInput {
 
             try {
                 m_input.close();
+		open();
             }
             catch(Exception e) {
                 // TODO:
