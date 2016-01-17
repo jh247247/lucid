@@ -1,14 +1,13 @@
 package com.lightspeed.gpr.lib;
 
 import com.annimon.stream.Stream;
-import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.lang.UnsupportedOperationException;
 
-import java.lang.Double;
 import java.util.Arrays;
-public class Element implements Iterable<Double>, Cloneable {
+public class Element implements Iterable<Integer>, Cloneable {
     /**
      * Keep track of the amount of samples in this element
      */
@@ -32,7 +31,7 @@ public class Element implements Iterable<Double>, Cloneable {
      * I would like to make this an int to optimize it later, but that
      * comes later!
      */
-    private double[] m_samples;
+    private int[] m_samples;
 
     public Element(int sampleStart,
                    int sampleStop) {
@@ -41,18 +40,25 @@ public class Element implements Iterable<Double>, Cloneable {
         m_sampleStop = sampleStop;
         m_amountOfSamples = sampleStop-sampleStart;
 
-        m_samples = new double[m_amountOfSamples];
+        m_samples = new int[m_amountOfSamples];
+    }
+
+    public Element(int sampleStart, int[] samples) {
+	m_sampleStart = sampleStart;
+	m_sampleStop = m_sampleStart+samples.length;
+	m_amountOfSamples = samples.length;
+	m_samples = Arrays.copyOf(samples,samples.length);
     }
 
     public Element(int amountOfSamples) {
         this(0, amountOfSamples);
     }
 
-    public Iterator<Double> iterator() {
+    public Iterator<Integer> iterator() {
         return new ElementIterator();
     }
 
-    public class ElementIterator implements Iterator<Double> {
+    public class ElementIterator implements Iterator<Integer> {
         /**
          * Current sample in element
          */
@@ -74,7 +80,7 @@ public class Element implements Iterable<Double>, Cloneable {
         }
 
         @Override
-        public Double next() throws NoSuchElementException{
+        public Integer next() throws NoSuchElementException {
             if(!hasNext()) {
                 throw new NoSuchElementException();
             }
@@ -99,14 +105,14 @@ public class Element implements Iterable<Double>, Cloneable {
         return m_sampleStop;
     }
 
-    public double getSample(int index) throws NoSuchElementException{
+    public int getSample(int index) throws NoSuchElementException{
         if(index < m_sampleStart || index > m_sampleStop) {
             throw new NoSuchElementException();
         }
         return m_samples[index-m_sampleStart];
     }
 
-    public void setSample(int index, double sample)
+    public void setSample(int index, int sample)
         throws NoSuchElementException {
         if(index < m_sampleStart || index > m_sampleStop) {
 	    throw new NoSuchElementException();
@@ -115,14 +121,10 @@ public class Element implements Iterable<Double>, Cloneable {
     }
 
     public Element clone() {
-        Element ret = new Element(m_sampleStart, m_sampleStop);
-        for (int i = m_sampleStart; i < m_sampleStop; i++) {
-            ret.setSample(i,m_samples[i-m_sampleStart]);
-        }
-        return ret;
+	return new Element(m_sampleStart, m_samples);
     }
 
-    public Stream<Double> stream() {
-	return Stream.of(Doubles.asList(m_samples));
+    public Stream<Integer> stream() {
+	return Stream.of(Ints.asList(m_samples));
     }
 }
