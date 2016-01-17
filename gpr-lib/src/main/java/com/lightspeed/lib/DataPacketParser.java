@@ -1,6 +1,7 @@
 package com.lightspeed.gpr.lib;
 
 
+import com.annimon.stream.Stream;
 import com.google.common.io.BaseEncoding;
 import com.lightspeed.gpr.lib.AbstractPacketParser;
 import com.lightspeed.gpr.lib.Element;
@@ -74,19 +75,19 @@ public class DataPacketParser extends AbstractPacketParser {
         m_dataEnd = buf.getShort();
         m_dataBpp = buf.get();
 
-	if(DEBUG){
-	    System.out.println("Start: " + m_dataStart);
-	    System.out.println("End: " + m_dataEnd);
-	    System.out.println("Bpp: " + m_dataBpp);
-	}
+        if(DEBUG){
+            System.out.println("Start: " + m_dataStart);
+            System.out.println("End: " + m_dataEnd);
+            System.out.println("Bpp: " + m_dataBpp);
+        }
 
         m_dataLength = (m_dataEnd-m_dataStart)*m_dataBpp;
-	int inSize = m_dataLength + ((m_dataLength%3)!=0 ? (3-(m_dataLength%3)):0);
-	int b64Size = (inSize/3)*4;
+        int inSize = m_dataLength + ((m_dataLength%3)!=0 ? (3-(m_dataLength%3)):0);
+        int b64Size = (inSize/3)*4;
         m_currSampleEncoded = new byte[b64Size];
-	if(DEBUG) System.out.println("Packet size: " + m_currSampleEncoded.length);
+        if(DEBUG) System.out.println("Packet size: " + m_currSampleEncoded.length);
 
-	buf.get(m_currSampleEncoded);
+        buf.get(m_currSampleEncoded);
         byte[] decoded = Base64.decode(m_currSampleEncoded);
         digestBuffer(ByteBuffer.wrap(decoded));
 
@@ -165,30 +166,43 @@ public class DataPacketParser extends AbstractPacketParser {
         return false;
     }
 
+    // this method expects the byte buffer holding the raw decoded data.
     private void digestBuffer(ByteBuffer buf) {
-	m_currElement = new Element(m_dataStart,m_dataEnd);
+        int[] out = new int[buf.remaining()/m_dataBpp];
 
-        while(buf.hasRemaining() && m_currIndex < m_dataLength) {
-            if(DEBUG)System.out.println("Setting element: "+ m_currIndex);
+        if(DEBUG)System.out.println("Setting element: "+ m_currIndex);
 
-            switch(m_dataBpp) {
-            case 1:
-                m_currElement.setSample(m_currIndex++, buf.get());
-                break;
-            case 2:
-                m_currElement.setSample(m_currIndex++, buf.getShort());
-                break;
-            case 4:
-                m_currElement.setSample(m_currIndex++, buf.getInt());
-                break;
-            case 8:
-                m_currElement.setSample(m_currIndex++, (int)buf.getDouble());
-                break;
-            default:
-                System.out.println("WARNING: unknown bytes per pixel!");
-                break;
+        switch(m_dataBpp) {
+        case 1:
+            byte[] outb = new byte[buf.remaining()];
+            buf.get(outb);
+            for(int i = 0; i < outb.length; i++) {
+                out[i] = (int)outb[i];
             }
-        }
 
+            break;
+        case 2:
+            short[] outs = new short[buf.remaining()/m_dataBpp];
+            buf.asShortBuffer().get(outs);
+            for(int i = 0; i < outs.length; i++) {
+		out[i] = (int)outs[i];
+	    }
+	    break;
+	case 4:
+	    buf.asIntBuffer().get(out);
+	    break;
+	case 8:
+	    double[] outd = new double[buf.remaining()/m_dataBpp];
+	    buf.asDoubleBuffer().get(outd);
+            for(int i = 0; i < outd.length; i++) {
+		out[i] = (int)outd[i];
+	    }
+	    break;
+	default:
+	    System.out.println("WARNING: unknown bytes per pixel!");
+	    break;
+	}
+	m_currElement = new Element(m_dataStart,out);
     }
+
 }
