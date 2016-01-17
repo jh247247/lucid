@@ -88,7 +88,7 @@ public class RandomDataInput extends AbstractDataInput {
 	    // a real implementation would read from file or cache.
             Element ret = new Element(START_ELEMENT,END_ELEMENT);
             for(int i = START_ELEMENT; i < END_ELEMENT; i++) {
-                ret.setSample(i,Math.random()*MAX_VAL);
+                ret.setSample(i,(int)Math.random()*MAX_VAL);
             }
             return ret;
         }
