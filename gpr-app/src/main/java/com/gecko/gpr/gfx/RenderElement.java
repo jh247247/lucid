@@ -1,18 +1,23 @@
 package com.gecko.gpr.gfx;
 
+import com.annimon.stream.Stream;
 import com.lightspeed.gpr.lib.Element;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+import com.lightspeed.gpr.lib.cache.LoadingCache;
+import android.graphics.BitmapFactory;
+import com.lightspeed.gpr.lib.cache.LoadingCache.CacheLoader;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.lang.Thread;
 import java.lang.Runnable;
 import java.util.concurrent.Callable;
 
-import android.graphics.BitmapFactory;
+
 
 public class RenderElement implements Callable<Bitmap> {
     /**
@@ -27,6 +32,18 @@ public class RenderElement implements Callable<Bitmap> {
      */
     Bitmap m_renderedData;
     AtomicBoolean m_rendered;
+
+    // static lookup table for color->paint
+    static LoadingCache<Integer,Paint> m_paintCache =
+        new LoadingCache<Integer,Paint>(300,
+                                        new CacheLoader<Integer,Paint> (){
+                                            @Override
+                                            public Paint load(Integer i) {
+                                                Paint p = new Paint();
+                                                p.setARGB(255,i,i,i); // TODO: custom colors?
+                                                return p;
+                                            }
+                                        });
 
     public RenderElement(Element e) {
         if(e != null) {
@@ -67,21 +84,18 @@ public class RenderElement implements Callable<Bitmap> {
 
         // make the paint, bitmap and canvas so we can actually render
         // the element
-        Paint p = new Paint();
         Bitmap.Config conf = Bitmap.Config.ARGB_8888;
         Bitmap tmp = Bitmap.createBitmap(1,
                                          m_data.getAmountOfSamples(),
                                          conf);
 
         Canvas c = new Canvas(tmp);
-        for(int i = m_data.getSampleStart();
-            i < m_data.getSampleStop(); i++) {
-            p.setARGB(255,
-                      (int)m_data.getSample(i),
-                      (int)m_data.getSample(i),
-                      (int)m_data.getSample(i));
-            c.drawPoint(0,i,p);
-        }
+        Stream.ofRange(m_data.getSampleStart(), m_data.getSampleStop())
+            .forEach((i) -> {
+                    int col = m_data.getSample(i);
+                    c.drawPoint(0,i,m_paintCache.get(col));
+                });
+
         m_renderedData = tmp;
         m_rendered.set(true);
         Log.d("RENDERELEMENT","Done!");
@@ -89,7 +103,7 @@ public class RenderElement implements Callable<Bitmap> {
 
     @Override
     public Bitmap call() {
-	return getRenderedElement();
+        return getRenderedElement();
     }
 
 }
