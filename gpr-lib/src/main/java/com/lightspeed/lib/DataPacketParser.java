@@ -141,7 +141,7 @@ public class DataPacketParser extends AbstractPacketParser {
                         m_currElement.setSample(m_currIndex++, buf.getInt());
                         break;
                     case 8:
-                        m_currElement.setSample(m_currIndex++, buf.getDouble());
+                        m_currElement.setSample(m_currIndex++, (int)buf.getDouble());
                         break;
 		    default:
 			System.out.println("WARNING: unknown bytes per pixel!");
