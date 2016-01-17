@@ -171,12 +171,10 @@ public class RenderView extends SurfaceView
 
     @Override
     public boolean onTouchEvent(MotionEvent event){
-        //this.mDetector.onTouchEvent(event);
-        // Be sure to call the superclass implementation
-        boolean handled = super.onTouchEvent(event);
 
         // detect finger up for idle
-        if(!handled && event.getAction() == 1) { // on up
+	Log.d(LOGTAG, "Event: " + event.toString());
+        if(event.getAction() == MotionEvent.ACTION_UP) { // on up
 	    Log.d(LOGTAG, "Finger lifted, sending surface idle event...");
             AbstractRenderer.SurfaceIdleStartEvent ie =
 		new AbstractRenderer.SurfaceIdleStartEvent();
@@ -184,9 +182,7 @@ public class RenderView extends SurfaceView
 	    return true;
         }
 
-        if(!handled) {
-            m_gdetector.onTouchEvent(event);
-        }
+	m_gdetector.onTouchEvent(event);
 
         return true;
     }
