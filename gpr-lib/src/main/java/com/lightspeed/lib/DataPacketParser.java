@@ -5,6 +5,7 @@ import com.google.common.io.BaseEncoding;
 import com.lightspeed.gpr.lib.AbstractPacketParser;
 import com.lightspeed.gpr.lib.Element;
 import java.io.IOException;
+import com.migcomponents.migbase64.Base64;
 
 import java.nio.ByteBuffer;
 public class DataPacketParser extends AbstractPacketParser {
@@ -123,8 +124,7 @@ public class DataPacketParser extends AbstractPacketParser {
                 m_currElement = new Element(m_dataStart,m_dataEnd);
 
                 // decode bytes, wrap in bytebuffer for decoding
-                byte[] decoded = BaseEncoding.base64().decode(new String(m_currSampleEncoded));
-
+                byte[] decoded = Base64.decode(m_currSampleEncoded);
                 ByteBuffer buf = ByteBuffer.wrap(decoded);
 
                 while(buf.hasRemaining() && m_currIndex < m_dataLength) {
